@@ -1,0 +1,308 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CIVIS AI | Live Smart Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "on-secondary-fixed": "#00201c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary": "#943700",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-container": "#2563eb",
+                        "inverse-primary": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "accent-gradient-start": "#2563EB",
+                        "surface-tint": "#0053db",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "surface-container": "#eceef0",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#eeefff",
+                        "critical": "#EF4444",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d8dadc",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "accent-gradient-end": "#60A5FA",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6df5e1",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+        .map-marker { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .map-marker:hover { transform: scale(1.15) translateY(-4px); z-index: 50; }
+        ::-webkit-scrollbar { height: 0px; width: 0px; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Layer (Predicted/JSON TopAppBar Integration) -->
+<header class="w-full top-0 sticky z-50 transition-colors duration-200 bg-surface/80 backdrop-blur-md shadow-sm flex items-center justify-between px-margin py-4">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-primary">CityAI</span>
+<div class="hidden md:flex items-center px-4 py-2 glass-panel rounded-full shadow-sm w-96 ml-8">
+<span class="material-symbols-outlined text-outline mr-3">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-body-md text-on-surface placeholder:text-outline" placeholder="Search locations or issues..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined text-primary">notifications</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a city official for a modern digital interface. The person is dressed in smart casual business attire, looking confident and approachable. The lighting is bright and even, consistent with a clean, high-end corporate tech aesthetic. The background is a soft, out-of-focus modern office setting with cool blue and white tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzvs4HbZDm-AkKVtdtCdnJfHpX9rBUc8dChCMJKyULuxqEL4Y_D-fzti6M1LH6DYy_EteYdrFl-POLQD-dsTkXh3ZekZywmhs8breOnJVW6QvuIkbiTakgSH153UWHUPGJPSM421e1w1qLeCiHn2xIf1f-5XEPAFTdW2Le8ICmcLdTLvA1fT3XrdZ9n2m9Zi0VYEKfwBe7sznYaAnYepn6Cpj3Waywswu41ccElZFJSQwiPkSUca0">
+</div>
+</div>
+</header>
+<!-- Map Canvas Area -->
+<main class="flex-grow relative overflow-hidden">
+<!-- Base Map Layer -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="A stylized, high-resolution map of Pune city, India, showing neighborhoods like Kothrud, Viman Nagar, and Baner." data-location="Pune City" style="background-image: url(&quot;https://lh3.googleusercontent.com/aida-public/AB6AXuCSH9hwqshxBdPjDkZA-0IuxFUD0lAz5RH9X_R9kF0hqBMyPNky78P9isQLRfW1ZMNv4NC-on4TBTnYbWplHs4evnXS2OzTET4NqXHfpXxSE-ei9i6bxa1pNZOS7Hkl8Ui0OV1LPr9nplDjBpKnZMvs5NFvfZtQWiW-Fbge46YTXGcD4HVLonF-vN321xDB0-065NPbDAnU_bKEHcrSYndJrcPOBId4LwWzmwileG30TTG7FQMMk7Q&quot;);"></div>
+</div>
+<!-- Floating UI: Filters Horizontal Chip Scroll -->
+<div class="absolute top-6 left-0 right-0 z-20 pointer-events-none">
+<div class="max-w-container-max mx-auto px-margin">
+<div class="flex gap-3 overflow-x-auto no-scrollbar pointer-events-auto py-2">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group border-primary/20">
+<span class="material-symbols-outlined text-primary group-hover:text-on-primary-container">category</span>
+<span class="font-label-md text-label-md">All Issues</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-on-primary-container">warning</span>
+<span class="font-label-md text-label-md">Potholes</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-on-primary-container">delete</span>
+<span class="font-label-md text-label-md">Garbage</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-on-primary-container">lightbulb</span>
+<span class="font-label-md text-label-md">Streetlights</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-on-primary-container">water_drop</span>
+<span class="font-label-md text-label-md">Water Leakage</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-full glass-panel shadow-sm whitespace-nowrap hover:bg-primary-container hover:text-on-primary-container transition-all group">
+<span class="material-symbols-outlined text-outline group-hover:text-on-primary-container">construction</span>
+<span class="font-label-md text-label-md">Road Damage</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Map Markers Layer -->
+<div class="absolute inset-0 z-10 pointer-events-none">
+<!-- Critical Pin (Red) -->
+<div class="absolute top-[30%] left-[45%] pointer-events-auto cursor-pointer map-marker group">
+<div class="relative flex flex-col items-center">
+<div class="bg-critical p-2 rounded-full shadow-lg border-2 border-white ring-4 ring-critical/20">
+<span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+<div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm whitespace-nowrap shadow-xl">Critical Road Damage: Kothrud</div>
+</div>
+</div>
+<!-- Moderate Pin (Yellow) -->
+<div class="absolute top-[55%] left-[25%] pointer-events-auto cursor-pointer map-marker group">
+<div class="relative flex flex-col items-center">
+<div class="bg-warning p-2 rounded-full shadow-lg border-2 border-white ring-4 ring-warning/20">
+<span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings: 'FILL' 1;">pending</span>
+</div>
+<div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm whitespace-nowrap shadow-xl">Uncollected Garbage: Baner</div>
+</div>
+</div>
+<!-- Resolved Pin (Green) -->
+<div class="absolute top-[40%] left-[70%] pointer-events-auto cursor-pointer map-marker group">
+<div class="relative flex flex-col items-center">
+<div class="bg-success p-2 rounded-full shadow-lg border-2 border-white ring-4 ring-success/20">
+<span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm whitespace-nowrap shadow-xl">Fixed Streetlight: Viman Nagar</div>
+</div>
+</div>
+<!-- Your Complaint Pin (Blue) -->
+<div class="absolute top-[65%] left-[55%] pointer-events-auto cursor-pointer map-marker group">
+<div class="relative flex flex-col items-center">
+<div class="bg-primary p-2 rounded-full shadow-lg border-2 border-white ring-4 ring-primary/20">
+<span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings: 'FILL' 1;">person_pin</span>
+</div>
+<div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-inverse-surface text-inverse-on-surface px-3 py-1.5 rounded-lg text-label-sm font-label-sm whitespace-nowrap shadow-xl">
+                        Your Report: Pothole
+                    </div>
+</div>
+</div>
+</div>
+<!-- Floating AI Legend -->
+<div class="absolute bottom-10 left-margin z-30">
+<div class="glass-panel p-5 rounded-2xl shadow-xl w-64 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+<div class="flex items-center gap-2 pb-2 border-b border-outline-variant/30">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<h3 class="font-label-md text-label-md font-bold text-on-surface">CIVIS AI Insights</h3>
+</div>
+<div class="flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-critical ring-2 ring-critical/20"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Critical (Immediate Action)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-warning ring-2 ring-warning/20"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Moderate (Queued)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-success ring-2 ring-success/20"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Resolved (Past 24h)</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-primary ring-2 ring-primary/20"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Your Reported Complaints</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation Controls -->
+<div class="absolute right-margin bottom-10 z-30 flex flex-col gap-2">
+<button class="w-12 h-12 glass-panel rounded-xl flex items-center justify-center hover:bg-surface-variant shadow-lg group transition-all">
+<span class="material-symbols-outlined text-on-surface group-active:scale-90">my_location</span>
+</button>
+<div class="flex flex-col glass-panel rounded-xl shadow-lg overflow-hidden mt-2">
+<button class="w-12 h-12 flex items-center justify-center hover:bg-surface-variant transition-colors border-b border-outline-variant/30 group">
+<span class="material-symbols-outlined text-on-surface group-active:scale-90">add</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center hover:bg-surface-variant transition-colors group">
+<span class="material-symbols-outlined text-on-surface group-active:scale-90">remove</span>
+</button>
+</div>
+<button class="w-12 h-12 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg hover:shadow-primary/40 hover:-translate-y-1 transition-all mt-4">
+<span class="material-symbols-outlined">add_location_alt</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Predicted/JSON Integration) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-6 bg-surface/90 backdrop-blur-lg shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">map</span>
+<span class="font-label-sm text-label-sm mt-1">Map</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center -mt-8 shadow-lg ring-4 ring-surface">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+</div>
+<span class="font-label-sm text-label-sm mt-1">Scan</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="font-label-sm text-label-sm mt-1">Alerts</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</div>
+</nav>
+<script>
+        // Simple Micro-interactions
+        document.querySelectorAll('.map-marker').forEach(marker => {
+            marker.addEventListener('click', function() {
+                // Potential for a popup details card
+                console.log('Pin clicked');
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input');
+        const searchContainer = searchInput.parentElement;
+        searchInput.addEventListener('focus', () => {
+            searchContainer.classList.add('ring-2', 'ring-primary/40');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchContainer.classList.remove('ring-2', 'ring-primary/40');
+        });
+    </script>
+
+
+</body></html>

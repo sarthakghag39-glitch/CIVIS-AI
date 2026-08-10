@@ -1,0 +1,505 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CIVIS AI | Municipality Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "on-secondary-fixed": "#00201c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary": "#943700",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-container": "#2563eb",
+                        "inverse-primary": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "accent-gradient-start": "#2563EB",
+                        "surface-tint": "#0053db",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "surface-container": "#eceef0",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#eeefff",
+                        "critical": "#EF4444",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d8dadc",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "accent-gradient-end": "#60A5FA",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6df5e1",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-effect { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.9); }
+        .ambient-shadow { box-shadow: 0 4px 20px -2px hsla(220, 20%, 20%, 0.05); }
+        .chart-bar-glow:hover { filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3)); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Navigation Drawer -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-black text-primary">CIVIS AI</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-semibold rounded-lg mx-2 transition-all duration-200" href="admin_dashboard.html">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="smart_map.html">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Live Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="my_complaints.html">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-md text-label-md">Citizen Issues</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">AI Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings_heart</span>
+<span class="font-label-md text-label-md">System Health</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="profile.html">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a city administrator, a middle-aged woman with a friendly but authoritative expression, in a high-end corporate tech environment. The lighting is soft and professional, emphasizing a modern light-mode aesthetic with clean lines and subtle blue accents. The background is a blurred high-tech city operations center." src="profile_photo.jpg">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
+<p class="text-[10px] font-semibold text-primary uppercase tracking-wider">PUNE CITY</p>
+</div>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+<span class="text-[11px] text-on-surface-variant font-medium">System Online</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 w-full bg-surface/90 glass-effect border-b border-border-subtle px-margin py-4 flex items-center justify-between">
+<div class="flex items-center gap-8 flex-1">
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Admin Home</h2>
+<div class="relative w-full max-w-md group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-border-subtle rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-label-md" placeholder="Search complaints, wards, or analytics..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-critical rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-border-subtle mx-2"></div>
+<button class="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-surface-variant/50 transition-colors">
+<span class="font-label-md text-label-md font-semibold hidden md:block">Hi, Ishita</span>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">IS</div>
+</button>
+</div>
+</header>
+<section class="p-margin max-w-container-max mx-auto space-y-gutter">
+<!-- AI Summary Panel -->
+<div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-accent-gradient-end p-[1px] ambient-shadow">
+<div class="bg-surface-container-lowest rounded-[15px] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Intelligence Report</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+<span class="font-bold text-primary">AI Insight:</span> Pothole reports increased by <span class="text-critical font-bold">15%</span> in District B-12 this week. High urgency intervention recommended for Ward 4.
+                            </p>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="px-6 py-2.5 rounded-xl border border-primary text-primary font-label-md text-label-md hover:bg-primary/5 transition-all">View Trends</button>
+<button class="px-6 py-2.5 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:opacity-90 transition-all ambient-shadow">Deploy Crew</button>
+</div>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<!-- Card 1 -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-primary/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined">forum</span>
+</div>
+<span class="text-success text-[12px] font-bold">+12% vs LW</span>
+</div>
+<p class="text-outline font-label-md text-label-md">Total Complaints</p>
+<h4 class="text-display-lg font-display-lg text-on-surface mt-1">1,248</h4>
+</div>
+<!-- Card 2 -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-critical/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-error-container text-on-error-container group-hover:bg-critical group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-critical text-[12px] font-bold">+4 Today</span>
+</div>
+<p class="text-outline font-label-md text-label-md">Critical Issues</p>
+<h4 class="text-display-lg font-display-lg text-critical mt-1">42</h4>
+</div>
+<!-- Card 3 -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-success/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-success group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<span class="text-success text-[12px] font-bold">88% Efficiency</span>
+</div>
+<p class="text-outline font-label-md text-label-md">Resolved Today</p>
+<h4 class="text-display-lg font-display-lg text-success mt-1">156</h4>
+</div>
+<!-- Card 4 -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-warning/30 transition-all">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-warning group-hover:text-on-primary transition-colors">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<span class="text-outline text-[12px] font-bold">Avg 2.4 days</span>
+</div>
+<p class="text-outline font-label-md text-label-md">Pending Cases</p>
+<h4 class="text-display-lg font-display-lg text-on-surface mt-1">850</h4>
+</div>
+</div>
+<!-- Analytics Section: Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Bar Chart: Complaints by Category -->
+<div class="lg:col-span-1 bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+<div class="flex items-center justify-between mb-8">
+<h5 class="font-headline-md text-headline-md text-on-surface">Categories</h5>
+<button class="text-primary font-label-md text-label-md">View all</button>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-medium">
+<span class="">Roads &amp; Potholes</span>
+<span class="text-on-surface-variant">420</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 75%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-medium">
+<span class="">Sanitation</span>
+<span class="text-on-surface-variant">310</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 55%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-medium">
+<span class="">Street Lighting</span>
+<span class="text-on-surface-variant">240</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-warning rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-label-md font-medium">
+<span class="">Water Leakage</span>
+<span class="text-on-surface-variant">158</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-accent-gradient-end rounded-full" style="width: 30%"></div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-border-subtle flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">info</span>
+<p class="text-label-sm text-outline">Road issues increased by 8% this month.</p>
+</div>
+</div>
+<!-- Line Chart: Resolution Trend Placeholder -->
+<div class="lg:col-span-2 bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h5 class="font-headline-md text-headline-md text-on-surface">Resolution Trend</h5>
+<p class="text-label-sm text-outline">Tracking efficiency over the last 30 days</p>
+</div>
+<div class="flex bg-surface-container-low p-1 rounded-lg">
+<button class="px-4 py-1.5 rounded-md text-label-sm font-bold bg-white shadow-sm text-primary">Daily</button>
+<button class="px-4 py-1.5 rounded-md text-label-sm font-bold text-on-surface-variant hover:text-on-surface">Weekly</button>
+</div>
+</div>
+<div class="flex-1 relative min-h-[250px] w-full bg-surface-container-lowest rounded-xl overflow-hidden border border-border-subtle flex items-end justify-between px-6 pb-4">
+<!-- Simulated Chart Visual -->
+<div class="h-[40%] w-8 bg-primary/20 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[60%] w-8 bg-primary/30 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[55%] w-8 bg-primary/40 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[80%] w-8 bg-primary/50 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[70%] w-8 bg-primary/60 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[90%] w-8 bg-primary rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[85%] w-8 bg-primary/80 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[75%] w-8 bg-primary/40 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[95%] w-8 bg-primary rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="h-[65%] w-8 bg-primary/30 rounded-t-sm chart-bar-glow transition-all"></div>
+</div>
+<div class="mt-4 flex justify-between px-6">
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider">01 Oct</span>
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider">10 Oct</span>
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider">20 Oct</span>
+<span class="text-[10px] font-bold text-outline uppercase tracking-wider">30 Oct</span>
+</div>
+</div>
+</div>
+<!-- Recent Complaints Table -->
+<div class="bg-card-bg rounded-2xl border border-border-subtle ambient-shadow overflow-hidden">
+<div class="px-6 py-5 border-b border-border-subtle flex items-center justify-between bg-surface-container-lowest/50">
+<h5 class="font-headline-md text-headline-md text-on-surface">Recent Complaints</h5>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                            Filter
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[20px]">download</span>
+                            Export
+                        </button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50 border-b border-border-subtle">
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Issue &amp; Details</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Priority</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Reported By</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Location</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-border-subtle overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A detailed photo of a large pothole on a busy city street in a modern light-mode environment. The pothole is filled with murky water, and the surrounding asphalt is cracked. The lighting is bright and clear, emphasizing the urban decay against a clean architectural background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJ4txZXyBEIYUGtSczla3lYtkZCA82CFq02Z5lMWvkHIhYJDz3i8UqV_3PS0ApvdyT_odVbBWUwY3e9QKbmqn4Aqa4ZPst-LU0aMVl4EVPaeBqUoHNHku_4T_IhbZCfrf_70X6uLZMEJiQw9zMUEev7XHBYf_77K0XeUsJ5M7lpxwU9HFh0--0gijl7ainT6yi8EeOHAFtWs4KGNff5C72xnZfuhWAgCmEi12U4AEH0o6WumIvhQU">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">Severe Pothole Cluster</p>
+<p class="text-[12px] text-on-surface-variant">Infrastructure Issue #5821</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-error-container text-on-error-container">Critical</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-label-md text-label-md">Ward 12, Kothrud</span>
+</td>
+<td class="px-6 py-4 text-label-sm text-outline">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 text-label-sm font-bold text-warning">
+<span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+                                        Pending
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-border-subtle overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional photograph of overflowing trash bins on a modern sidewalk. The scene is brightly lit in a light-mode aesthetic, with clean white and blue building facades in the background. The trash is neatly contained but exceeding capacity, signifying a high-performance urban planning monitoring system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMCSHE0kFAKzO2J03V9MrBLbe0B5vxxxwIWbj2xOAAdmA29SQtPPM46foHESi2xtLsjWPm-19g2d6tkqa3llTQT18FuTjcivffDCOV3wgGz9L5Pb-dOcmc5GWFIn2BqhXT4ipyPFKIrHxC6JlWKdJP7i13YOZSxK4_ciQpT_15dwuhC2jgT3Gqxii9i2mAmgL9wbGAbRgXPrhsCjaD8yWIP-0M56Z54-qJTodTVuPykCccGKbHIy4">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">Trash Overflow</p>
+<p class="text-[12px] text-on-surface-variant">Sanitation Issue #5819</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-surface-variant">Medium</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-label-md text-label-md">Ward 08, Viman Nagar</span>
+</td>
+<td class="px-6 py-4 text-label-sm text-outline">Oct 24, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 text-label-sm font-bold text-primary">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                                        Assigned
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-high border border-border-subtle overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A high-quality image of a broken street lamp at dusk. The lamp is a modern, minimalist design, but the light is flickering or out. The background shows a clean, high-tech residential street with soft blue and white lighting, maintaining a premium corporate tech aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKU11mCuAWSnVAivJQKHdVXyQak_wgOaPcwt9FAnbXCHOOI4TQSlhYvnLrFTg_6rbndzs8OPbi2dpznkjmXJGM7FHty5cNIoTl4ZfDhYgkrXjs7LXiq6ZuNJbVYxDT4fSfAeAS-FYXMJOAtgChcpuzeXjLs-xqPxYuCpu3Zkz6KIz6yrdrGqknXU4ryUPbCIqwj855GFCMbsYKsL8NALjEWI48-udc3j8xGRrPhEOKfDOrRSUQylQ">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">Damaged Lamp Post</p>
+<p class="text-[12px] text-on-surface-variant">Electrical Issue #5812</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-surface-container-high text-on-surface-variant">Low</span>
+</td>
+<td class="px-6 py-4">
+<span class="font-label-md text-label-md">Ward 21, Baner</span>
+</td>
+<td class="px-6 py-4 text-label-sm text-outline">Oct 23, 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 text-label-sm font-bold text-success">
+<span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+                                        Resolved
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-surface-container-lowest flex items-center justify-between border-t border-border-subtle">
+<p class="text-label-sm text-outline">Showing 3 of 1,248 complaints</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded border border-primary bg-primary/10 text-primary font-bold text-[12px]">1</button>
+<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline font-bold text-[12px]">2</button>
+<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Spacer -->
+<div class="h-12"></div>
+</main>
+<script>
+        // Micro-interaction for Stats Cards
+        document.querySelectorAll('.ambient-shadow').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+            });
+        });
+
+        // Search Bar Focus Effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('max-w-xl');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('max-w-xl');
+        });
+    </script>
+
+
+<script src="app.js"></script></body></html>

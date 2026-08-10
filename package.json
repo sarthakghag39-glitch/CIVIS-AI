@@ -1,0 +1,17 @@
+{
+  "name": "civis-ai-platform",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "serve public -l 3000"
+  },
+  "dependencies": {
+    "marked": "^18.0.5",
+    "puppeteer-core": "^25.3.0",
+    "serve": "^14.2.4"
+  },
+  "description": "",
+  "main": "check_nav.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

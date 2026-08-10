@@ -1,0 +1,334 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CIVIS AI - Smart City Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "on-secondary-fixed": "#00201c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary": "#943700",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-container": "#2563eb",
+                        "inverse-primary": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "accent-gradient-start": "#2563EB",
+                        "surface-tint": "#0053db",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "surface-container": "#eceef0",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#eeefff",
+                        "critical": "#EF4444",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d8dadc",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "accent-gradient-end": "#60A5FA",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6df5e1",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid #E2E8F0;
+        }
+        .premium-shadow {
+            box-shadow: 0 10px 15px -3px hsla(220, 20%, 20%, 0.05), 0 4px 6px -4px hsla(220, 20%, 20%, 0.05);
+        }
+        .ai-pulse {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-50 bg-surface shadow-sm flex items-center justify-between px-margin py-4 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<img alt="CIVIS AI Logo" class="w-8 h-8 rounded-md" src="https://lh3.googleusercontent.com/aida/AP1WRLuZ76Kwazrv4YgUe1Om6BSTXsvjowCvSoOZ0SrJnWrpP9jB-c2gSOmQgyVeO06uOwQEnOSUbsPMrwCxfWcpkdEtJgbGg6J_SkQvkRU43cIzIDVyPZLdf8GeJQkhGSeR4brtfTlk2Sk8JeKRbBfdfGhjLcjml_LEeTRBHuxx8hAlg3AhJBanchulba4xEHw1XSCes58gA--vTn0iPGmgjVEk8GY0fA0qAX_jKA8iY4M39MNOCKDojF4Ptg">
+<span class="font-headline-md text-headline-md font-bold text-primary">CityAI</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-variant/50 rounded-full transition-colors material-symbols-outlined text-primary" data-icon="notifications">notifications</button>
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+<img class="w-full h-full object-cover" data-alt="A professional high-definition portrait of a South Asian man in his late 20s with a friendly expression. He is wearing smart-casual tech attire. The background is a blurred modern office space with clean lines and soft lighting, fitting a premium corporate tech aesthetic with a bright light-mode palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB21S5FQYCJ3KJ0wUplJDFNNM9gqiOZbrALgYJM44luh62RZtEvfkH9kInglw72Cf1U60nWh8XjCPAOCO5eVSfVM23AqpePzf2gX07YRemIzM8Q7gMRA7yHGUabDuX-faIAfb86lJqU7w_rixrP7yBXAHdmgFuK47hyRuumbrpYjnABuzAU0gOcKzOAnqBe18gHMgBpI261Yfc9qUdePsO--dwfjN24wKIhiE00inX5g3e3I62ZCbU">
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- Hero Section -->
+<section class="px-margin pt-6 pb-4">
+<div class="mb-6">
+<p class="font-label-md text-label-md text-outline mb-1">Welcome back,</p>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface font-extrabold tracking-tight">Good Morning, Sarthak</h1>
+</div>
+<!-- AI Scan Main CTA -->
+<div class="relative group cursor-pointer ai-pulse">
+<div class="absolute -inset-1 bg-gradient-to-r from-accent-gradient-start to-accent-gradient-end rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+<div class="relative glass-card rounded-2xl p-6 flex items-center justify-between overflow-hidden">
+<div class="z-10">
+<h2 class="font-headline-md text-headline-md text-primary mb-1">AI Scan</h2>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-[200px]">Identify &amp; report urban issues instantly using your camera.</p>
+<button class="mt-4 bg-primary text-white font-label-md text-label-md px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-[20px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+                            Start Scanning
+                        </button>
+</div>
+<div class="absolute right-[-20px] top-[-20px] opacity-10">
+<span class="material-symbols-outlined text-[160px]" data-icon="psychology">psychology</span>
+</div>
+<div class="relative h-24 w-24 flex items-center justify-center">
+<div class="absolute w-full h-full border-4 border-primary/20 rounded-full animate-ping"></div>
+<div class="absolute w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[40px]" data-icon="center_focus_strong">center_focus_strong</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section (Bento Style) -->
+<section class="px-margin mb-8">
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-lowest border border-border-subtle p-5 rounded-2xl premium-shadow">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-lg bg-primary-container/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="insert_chart">insert_chart</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Today</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">12</div>
+<p class="font-label-sm text-label-sm text-outline">New Reports</p>
+</div>
+<div class="bg-surface-container-lowest border border-border-subtle p-5 rounded-2xl premium-shadow">
+<div class="flex items-center gap-3 mb-3">
+<div class="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center text-success">
+<span class="material-symbols-outlined text-[20px]" data-icon="verified">verified</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Efficiency</span>
+</div>
+<div class="font-headline-md text-headline-md text-on-surface">84%</div>
+<p class="font-label-sm text-label-sm text-outline">Resolved</p>
+</div>
+<div class="col-span-2 bg-surface-container-lowest border border-border-subtle p-5 rounded-2xl premium-shadow flex items-center justify-between">
+<div>
+<div class="flex items-center gap-3 mb-1">
+<div class="w-2 h-2 rounded-full bg-critical animate-pulse"></div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Live System Alert</span>
+</div>
+<div class="font-body-md text-body-md font-semibold text-on-surface">Critical Issue in Kothrud, Pune</div>
+<p class="font-label-sm text-label-sm text-outline">Water leak detected 5 mins ago</p>
+</div>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1">
+                        View <span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Quick Actions Grid -->
+<section class="px-margin mb-8">
+<h3 class="font-label-md text-label-md text-on-surface-variant mb-4 uppercase tracking-wider">Quick Actions</h3>
+<div class="grid grid-cols-4 gap-4">
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-white border border-border-subtle flex items-center justify-center group-active:scale-95 transition-all premium-shadow">
+<span class="material-symbols-outlined text-primary" data-icon="campaign">campaign</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Report Issue</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-white border border-border-subtle flex items-center justify-center group-active:scale-95 transition-all premium-shadow">
+<span class="material-symbols-outlined text-primary" data-icon="map">map</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">Live Map</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-white border border-border-subtle flex items-center justify-center group-active:scale-95 transition-all premium-shadow">
+<span class="material-symbols-outlined text-primary" data-icon="assignment_turned_in">assignment_turned_in</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center">My Complaints</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="w-14 h-14 rounded-2xl bg-white border border-border-subtle flex items-center justify-center group-active:scale-95 transition-all premium-shadow">
+<span class="material-symbols-outlined text-critical" data-icon="emergency">emergency</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant text-center text-critical">Emergency</span>
+</button>
+</div>
+</section>
+<!-- Nearby Alerts (Horizontal Scroll) -->
+<section class="mb-8">
+<div class="px-margin flex justify-between items-center mb-4">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Nearby Alerts</h3>
+<a class="text-primary font-label-sm text-label-sm" href="#">See all</a>
+</div>
+<div class="flex overflow-x-auto hide-scrollbar gap-4 px-margin">
+<!-- Alert Card 1 -->
+<div class="min-w-[280px] bg-white border border-border-subtle rounded-2xl p-4 premium-shadow">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-warning/10 text-warning px-3 py-1 rounded-full font-label-sm text-label-sm">Maintenance</span>
+<span class="text-outline font-label-sm text-label-sm">2h ago</span>
+</div>
+<h4 class="font-body-md text-body-md font-bold mb-1">Scheduled Road Work</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-4">Avenue 4th intersection will be closed from 10 PM tonight.</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[16px]" data-icon="location_on">location_on</span>
+<span class="font-label-sm text-label-sm text-outline">Baner, Pune</span>
+</div>
+</div>
+<!-- Alert Card 2 -->
+<div class="min-w-[280px] bg-white border border-border-subtle rounded-2xl p-4 premium-shadow">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-success/10 text-success px-3 py-1 rounded-full font-label-sm text-label-sm">Cleanliness</span>
+<span class="text-outline font-label-sm text-label-sm">5h ago</span>
+</div>
+<h4 class="font-body-md text-body-md font-bold mb-1">New Smart Bin Installed</h4>
+<p class="font-label-sm text-label-sm text-on-surface-variant mb-4">Your local park now features AI-sorted waste management bins.</p>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-[16px]" data-icon="location_on">location_on</span>
+<span class="font-label-sm text-label-sm text-outline">Viman Nagar, Pune</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl flex justify-around items-center px-4 py-2 pb-6">
+<!-- Home Active -->
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform duration-150 scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-sm text-label-sm mt-1">Home</span>
+</a>
+<!-- Map -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="map">map</span>
+<span class="font-label-sm text-label-sm mt-1">Map</span>
+</a>
+<!-- Scan (Center Floating Feel) -->
+<div class="relative -top-4">
+<button class="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+<span class="material-symbols-outlined text-[32px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+</button>
+<span class="block text-center font-label-sm text-label-sm mt-2 text-on-surface-variant">Scan</span>
+</div>
+<!-- Notifications -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="font-label-sm text-label-sm mt-1">Alerts</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150 active:scale-95" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm mt-1">Profile</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for cards
+        document.querySelectorAll('.glass-card, .premium-shadow').forEach(card => {
+            card.addEventListener('touchstart', () => {
+                card.style.transform = 'scale(0.98)';
+                card.style.transition = 'transform 0.1s ease';
+            });
+            card.addEventListener('touchend', () => {
+                card.style.transform = 'scale(1)';
+            });
+        });
+
+        // Sticky header background shift on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('bg-white/80', 'backdrop-blur-md');
+            } else {
+                header.classList.remove('bg-white/80', 'backdrop-blur-md');
+            }
+        });
+    </script>
+
+
+</body></html>

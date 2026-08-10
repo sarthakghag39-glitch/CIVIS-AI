@@ -1,0 +1,317 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CIVIS AI - Emergency Services</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .emergency-pulse {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "on-secondary-fixed": "#00201c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary": "#943700",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-container": "#2563eb",
+                        "inverse-primary": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "accent-gradient-start": "#2563EB",
+                        "surface-tint": "#0053db",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "surface-container": "#eceef0",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#eeefff",
+                        "critical": "#EF4444",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d8dadc",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "accent-gradient-end": "#60A5FA",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6df5e1",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- TopAppBar (Simulating the Shared Component but specialized for Emergency) -->
+<header class="bg-surface w-full top-0 sticky shadow-sm z-50 flex items-center justify-between px-4 py-4 md:px-margin">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-variant/50 transition-colors duration-200 rounded-full flex items-center justify-center" onclick="window.history.back()">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Emergency Services</h1>
+</div>
+<div class="flex items-center gap-unit">
+<div class="flex items-center gap-2 px-3 py-1 bg-critical/10 text-critical rounded-full animate-pulse">
+<span class="w-2 h-2 rounded-full bg-critical"></span>
+<span class="text-label-sm font-bold tracking-wider">LIVE SYSTEM</span>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-container-max mx-auto px-4 md:px-margin py-6">
+<!-- Context Alert / GPS Status -->
+<div class="mb-8 glass-panel rounded-xl p-4 flex items-center gap-4 border-l-4 border-primary">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<div>
+<p class="text-label-md font-bold text-on-surface">Your Current Location</p>
+<p class="text-body-md text-on-surface-variant">Kothrud, Pune, Maharashtra</p>
+</div>
+<div class="ml-auto">
+<span class="text-label-sm font-semibold text-success flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_4_bar</span> GPS Active
+                </span>
+</div>
+</div>
+<!-- Primary Emergency Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+<!-- Report Accident -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-critical rounded-2xl shadow-lg transition-all duration-200 active:scale-95 border-b-4 border-black/20 overflow-hidden">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 emergency-pulse">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">car_crash</span>
+</div>
+<span class="text-white font-headline-md text-headline-md text-center">Report Accident</span>
+<span class="text-white/80 text-label-sm mt-2">Vehicle collisions &amp; traffic incidents</span>
+</button>
+<!-- Fire -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-warning rounded-2xl shadow-lg transition-all duration-200 active:scale-95 border-b-4 border-black/20 overflow-hidden">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<span class="text-white font-headline-md text-headline-md text-center">Fire Emergency</span>
+<span class="text-white/80 text-label-sm mt-2">Active fire or smoke detected</span>
+</button>
+<!-- Medical -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-surface-container-lowest border-2 border-critical rounded-2xl shadow-lg transition-all duration-200 active:scale-95 border-b-4 border-critical/30 overflow-hidden">
+<div class="absolute inset-0 bg-critical/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-critical/10 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-critical text-5xl" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<span class="text-critical font-headline-md text-headline-md text-center">Medical Assistance</span>
+<span class="text-on-surface-variant text-label-sm mt-2">Injuries or health crises</span>
+</button>
+<!-- Flood -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-primary rounded-2xl shadow-lg transition-all duration-200 active:scale-95 border-b-4 border-black/20 overflow-hidden">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">flood</span>
+</div>
+<span class="text-white font-headline-md text-headline-md text-center">Flood Warning</span>
+<span class="text-white/80 text-label-sm mt-2">Severe water rising or leaks</span>
+</button>
+<!-- Fallen Tree / Blockage -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-[#5D4037] rounded-2xl shadow-lg transition-all duration-200 active:scale-95 border-b-4 border-black/20 overflow-hidden">
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">nature</span>
+</div>
+<span class="text-white font-headline-md text-headline-md text-center">Fallen Tree</span>
+<span class="text-white/80 text-label-sm mt-2">Road blockages &amp; hazards</span>
+</button>
+<!-- Other Hazards -->
+<button class="group relative flex flex-col items-center justify-center p-8 bg-surface-container-highest rounded-2xl shadow-sm transition-all duration-200 active:scale-95 border-b-4 border-outline/20 overflow-hidden">
+<div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-outline/10 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-on-surface-variant text-5xl" style="font-variation-settings: 'FILL' 1;">report</span>
+</div>
+<span class="text-on-surface font-headline-md text-headline-md text-center">Other Hazard</span>
+<span class="text-on-surface-variant text-label-sm mt-2">General safety reporting</span>
+</button>
+</div>
+<!-- Secondary Information Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Active Alerts -->
+<div class="lg:col-span-2 glass-panel rounded-2xl p-6">
+<h3 class="font-headline-md text-headline-md mb-4 text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-warning">warning</span>
+                    Active Local Alerts
+                </h3>
+<div class="space-y-4">
+<div class="flex items-start gap-4 p-4 bg-warning/5 rounded-xl border border-warning/20">
+<span class="material-symbols-outlined text-warning mt-1">traffic</span>
+<div>
+<p class="font-bold text-on-surface">Heavy Traffic - Baner Road</p>
+<p class="text-body-md text-on-surface-variant">Due to utility repairs. Expect 20-minute delays.</p>
+<p class="text-label-sm text-outline mt-1">Reported 12 mins ago</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 bg-primary/5 rounded-xl border border-primary/20">
+<span class="material-symbols-outlined text-primary mt-1">water_drop</span>
+<div>
+<p class="font-bold text-on-surface">Water Main Maintenance - Kothrud</p>
+<p class="text-body-md text-on-surface-variant">Scheduled pressure drop in Kothrud and Bavdhan between 2 PM - 4 PM.</p>
+<p class="text-label-sm text-outline mt-1">System Notification</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Direct Contact -->
+<div class="bg-surface-container-low rounded-2xl p-6 border border-border-subtle flex flex-col gap-4">
+<h3 class="font-headline-md text-headline-md text-on-surface">Direct Support</h3>
+<p class="text-body-md text-on-surface-variant mb-2">Speak directly with emergency dispatch services via secure AI link.</p>
+<a class="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-border-subtle hover:bg-primary-container hover:text-white transition-all duration-200 group" href="tel:911">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary group-hover:text-white">call</span>
+<span class="font-bold">National Emergency</span>
+</div>
+<span class="font-bold text-primary group-hover:text-white">911</span>
+</a>
+<button class="w-full flex items-center justify-between p-4 bg-white rounded-xl border border-border-subtle hover:bg-primary-container hover:text-white transition-all duration-200 group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary group-hover:text-white">chat</span>
+<span class="font-bold">Text with Dispatch</span>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:text-white">chevron_right</span>
+</button>
+<div class="mt-auto pt-4 border-t border-border-subtle">
+<div class="flex items-center justify-between text-label-sm">
+<span class="text-outline">Civis ID:</span>
+<span class="font-mono font-bold text-on-surface-variant">#CX-9921-A</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Visual Anchor / Background Decoration -->
+<div class="fixed inset-0 -z-10 pointer-events-none opacity-20">
+
+</div>
+<!-- Confirmation Modal (Hidden by Default) -->
+<div class="fixed inset-0 z-[100] hidden flex items-center justify-center px-4" id="confirmModal">
+<div class="absolute inset-0 bg-on-surface/40 backdrop-blur-md"></div>
+<div class="relative bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-95 transition-transform duration-300">
+<div class="w-20 h-20 bg-success/10 text-success rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<h2 class="text-headline-md font-headline-md text-center text-on-surface mb-2">Report Sent Successfully</h2>
+<p class="text-body-md text-on-surface-variant text-center mb-8">Emergency services have been notified of your location. Please stay in a safe place.</p>
+<button class="w-full py-4 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors" onclick="closeModal()">Dismiss</button>
+</div>
+</div>
+<script>
+        // Simple Interaction Logic
+        const buttons = document.querySelectorAll('main button');
+        const modal = document.getElementById('confirmModal');
+        const modalContent = modal?.querySelector('div:last-child');
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // If it's one of our reporting buttons
+                if (btn.classList.contains('group')) {
+                    const type = btn.querySelector('span:nth-of-type(1)').textContent;
+                    console.log(`Reporting ${type} at current GPS...`);
+                    
+                    // Show modal
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modalContent.classList.remove('scale-95');
+                        modalContent.classList.add('scale-100');
+                    }, 10);
+                }
+            });
+        });
+
+        function closeModal() {
+            modalContent.classList.add('scale-95');
+            modalContent.classList.remove('scale-100');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+
+
+</body></html>

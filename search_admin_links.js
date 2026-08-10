@@ -1,0 +1,21 @@
+const fs = require('fs');
+const path = require('path');
+
+const publicDir = path.join(__dirname, 'public');
+const files = fs.readdirSync(publicDir);
+
+files.forEach(file => {
+  const filePath = path.join(publicDir, file);
+  if (fs.statSync(filePath).isFile() && file.endsWith('.html')) {
+    const content = fs.readFileSync(filePath, 'utf8');
+    if (content.includes('admin') || content.includes('dashboard') || content.includes('Admin')) {
+      console.log(`Found in ${file}:`);
+      const lines = content.split('\n');
+      lines.forEach((line, index) => {
+        if (line.includes('admin') || line.includes('dashboard') || line.includes('Admin')) {
+          console.log(`  Line ${index + 1}: ${line.trim()}`);
+        }
+      });
+    }
+  }
+});
