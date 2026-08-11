@@ -157,7 +157,59 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-surface text-on-surface overflow-hidden h-screen flex flex-col">
+
+<!-- Navigation Drawer -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/smart_map.html" id="nav-map">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Live Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/my_complaints.html" id="nav-issues">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-md text-label-md">Citizen Issues</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/ai_analysis.html" id="nav-analytics">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">AI Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="#" id="nav-health">
+<span class="material-symbols-outlined">settings_heart</span>
+<span class="font-label-md text-label-md">System Health</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/profile.html" id="nav-settings">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
+<img class="w-full h-full object-cover" data-alt="..." src="/profile_photo.jpg">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
+<p class="text-[10px] font-semibold text-primary uppercase tracking-wider">PUNE CITY</p>
+</div>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+<span class="text-[11px] text-on-surface-variant font-medium">System Online</span>
+</div>
+</div>
+</div>
+</aside>
+
 <!-- Top Navigation Layer (Predicted/JSON TopAppBar Integration) -->
+<div class="ml-64 min-h-screen flex flex-col pb-16">
 <header class="w-full top-0 sticky z-50 transition-colors duration-200 bg-surface/80 backdrop-blur-md shadow-sm flex items-center justify-between px-margin py-4">
 <div class="flex items-center gap-4">
 <span class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</span>
@@ -260,31 +312,9 @@
 </button>
 </div>
 </main>
-<!-- Bottom Navigation Bar (Predicted/JSON Integration) -->
-<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-6 bg-surface/90 backdrop-blur-lg shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl">
-<a href="/index.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">home</span>
-<span class="font-label-sm text-label-sm mt-1">Home</span>
-</a>
-<a href="/smart_map.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">map</span>
-<span class="font-label-sm text-label-sm mt-1">Map</span>
-</a>
-<a href="#" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<div class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center -mt-8 shadow-lg ring-4 ring-surface">
-<span class="material-symbols-outlined">qr_code_scanner</span>
 </div>
-<span class="font-label-sm text-label-sm mt-1">Scan</span>
-</a>
-<a href="/my_complaints.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-<span class="font-label-sm text-label-sm mt-1">Alerts</span>
-</a>
-<a href="/profile.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-<span class="material-symbols-outlined">person</span>
-<span class="font-label-sm text-label-sm mt-1">Profile</span>
-</a>
-</nav>
+<!-- Bottom Navigation Bar (Predicted/JSON Integration) -->
+
 <script>
         // Simple Micro-interactions
         document.querySelectorAll('.map-marker').forEach(marker => {

@@ -867,6 +867,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Sidebar navigation active state highlighting
+  const currentPath = window.location.pathname;
+  document.querySelectorAll('aside nav a').forEach(link => {
+    const href = link.getAttribute('href');
+    const isDashboard = href === '/admin_dashboard.html' && (currentPath === '/' || currentPath === '' || currentPath.includes('admin_dashboard'));
+    const isOtherPage = href !== '#' && href !== '/admin_dashboard.html' && currentPath.includes(href);
+    
+    if (isDashboard || isOtherPage) {
+      link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-semibold');
+      link.classList.remove('text-on-surface-variant');
+    } else {
+      link.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-semibold');
+      link.classList.add('text-on-surface-variant');
+    }
+  });
+
   // Admin Quick Redirect Shortcut Pill in Headers
   if (isAdminUser() && !window.location.pathname.includes('admin_dashboard')) {
     const headerRight = document.querySelector('header .flex.items-center.gap-4, header .flex.items-center.gap-2, header div.flex.items-center.gap-4');

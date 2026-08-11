@@ -162,7 +162,59 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+
+<!-- Navigation Drawer -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/smart_map.html" id="nav-map">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Live Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/my_complaints.html" id="nav-issues">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-md text-label-md">Citizen Issues</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/ai_analysis.html" id="nav-analytics">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">AI Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="#" id="nav-health">
+<span class="material-symbols-outlined">settings_heart</span>
+<span class="font-label-md text-label-md">System Health</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/profile.html" id="nav-settings">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
+<img class="w-full h-full object-cover" data-alt="..." src="/profile_photo.jpg">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
+<p class="text-[10px] font-semibold text-primary uppercase tracking-wider">PUNE CITY</p>
+</div>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+<span class="text-[11px] text-on-surface-variant font-medium">System Online</span>
+</div>
+</div>
+</div>
+</aside>
+
 <!-- TopAppBar (Simulating the Shared Component but specialized for Emergency) -->
+<div class="ml-64 min-h-screen flex flex-col pb-16">
 <header class="bg-surface w-full top-0 sticky shadow-sm z-50 flex items-center justify-between px-4 py-4 md:px-margin">
 <div class="flex items-center gap-4">
 <button class="p-2 hover:bg-surface-variant/50 transition-colors duration-200 rounded-full flex items-center justify-center" onclick="window.history.back()">
@@ -304,6 +356,7 @@
 </div>
 </section>
 </main>
+</div>
 <!-- Visual Anchor / Background Decoration -->
 <div class="fixed inset-0 -z-10 pointer-events-none opacity-20">
 
