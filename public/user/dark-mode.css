@@ -1,0 +1,287 @@
+/* ============================================
+   CIVIS AI - Global Dark Mode Stylesheet
+   Overrides all Material-You design tokens
+   when .dark class is present on <html>
+   Uses !important to beat Tailwind specificity
+   ============================================ */
+
+/* ---- Body & Root ---- */
+html.dark body {
+    background-color: #0f1117 !important;
+    color: #e2e4e9 !important;
+}
+
+/* ---- Surface Backgrounds (Tailwind Custom Classes) ---- */
+html.dark .bg-surface-container-lowest {
+    background-color: #1a1e2e !important;
+}
+html.dark .bg-surface-container-low {
+    background-color: #141720 !important;
+}
+html.dark .bg-surface-container {
+    background-color: #1c2030 !important;
+}
+html.dark .bg-surface-container-high {
+    background-color: #222638 !important;
+}
+html.dark .bg-surface-container-highest {
+    background-color: #2a2f45 !important;
+}
+html.dark .bg-surface {
+    background-color: #191c24 !important;
+}
+html.dark .bg-surface-bright {
+    background-color: #1e2230 !important;
+}
+html.dark .bg-surface-dim {
+    background-color: #0d1018 !important;
+}
+html.dark .bg-surface-variant {
+    background-color: #2d3250 !important;
+}
+html.dark .bg-background {
+    background-color: #0f1117 !important;
+}
+html.dark .bg-inverse-surface {
+    background-color: #e2e4e9 !important;
+}
+html.dark .bg-white {
+    background-color: #1a1e2e !important;
+}
+html.dark .bg-card-bg {
+    background-color: #1a1e2e !important;
+}
+
+/* ---- Text Colors ---- */
+html.dark .text-on-surface {
+    color: #e2e4e9 !important;
+}
+html.dark .text-on-surface-variant {
+    color: #a8adc4 !important;
+}
+html.dark .text-outline {
+    color: #6b7099 !important;
+}
+html.dark .text-on-secondary-container {
+    color: #a8e6df !important;
+}
+html.dark .text-on-primary-container {
+    color: #93c5fd !important;
+}
+html.dark .text-on-error-container {
+    color: #ffb4ab !important;
+}
+
+/* Headline / Display text that falls back to near-black in light mode */
+html.dark .font-headline-md,
+html.dark .font-headline-lg,
+html.dark .font-headline-sm,
+html.dark .font-display-md,
+html.dark .font-display-lg,
+html.dark .font-display-sm,
+html.dark .font-title-lg,
+html.dark .font-title-md,
+html.dark .font-title-sm,
+html.dark .font-body-lg,
+html.dark .font-body-md,
+html.dark .font-body-sm,
+html.dark .font-label-lg,
+html.dark .font-label-md,
+html.dark .font-label-sm {
+    color: inherit;
+}
+
+/* Global element text defaults in dark mode */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+    color: #e2e4e9 !important;
+}
+
+html.dark p {
+    color: #a8adc4 !important;
+}
+
+html.dark span:not(.material-symbols-outlined):not(.text-primary):not(.text-success):not(.text-warning):not(.text-error):not(.text-tertiary) {
+    color: inherit;
+}
+
+/* ---- Primary Color ---- */
+html.dark .text-primary {
+    color: #60a5fa !important;
+}
+html.dark .bg-primary {
+    background-color: #2563eb !important;
+}
+html.dark .bg-primary-container {
+    background-color: rgba(37, 99, 235, 0.25) !important;
+}
+html.dark .bg-primary-container\/10 {
+    background-color: rgba(37, 99, 235, 0.15) !important;
+}
+html.dark .text-on-primary-container {
+    color: #93c5fd !important;
+}
+
+/* ---- Header / TopAppBar ---- */
+html.dark header {
+    background: rgba(25, 28, 36, 0.97) !important;
+    border-bottom: 1px solid rgba(42, 47, 69, 0.8) !important;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3) !important;
+}
+html.dark header.bg-surface,
+html.dark header.glass-header {
+    background: rgba(25, 28, 36, 0.97) !important;
+}
+html.dark .glass-header {
+    background: rgba(25, 28, 36, 0.97) !important;
+}
+
+/* ---- Bottom Navigation ---- */
+html.dark nav.fixed {
+    background: rgba(20, 23, 32, 0.97) !important;
+    border-top: 1px solid rgba(42, 47, 69, 0.6) !important;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark nav.fixed a span:not(.material-symbols-outlined) {
+    color: #8b91b0 !important;
+}
+html.dark nav.fixed .bg-primary-container {
+    background: rgba(37, 99, 235, 0.2) !important;
+}
+html.dark nav.fixed .text-on-primary-container {
+    color: #93c5fd !important;
+}
+
+/* ---- Glass Cards ---- */
+html.dark .glass-card {
+    background: rgba(28, 32, 48, 0.9) !important;
+    border-color: rgba(42, 47, 69, 0.7) !important;
+}
+html.dark .glass-panel {
+    background: rgba(28, 32, 48, 0.9) !important;
+    border-color: rgba(42, 47, 69, 0.7) !important;
+}
+
+/* ---- Borders & Dividers ---- */
+html.dark .border-border-subtle {
+    border-color: rgba(52, 58, 80, 0.8) !important;
+}
+html.dark .border {
+    border-color: rgba(52, 58, 80, 0.6) !important;
+}
+html.dark .divide-border-subtle > * + * {
+    border-color: rgba(52, 58, 80, 0.8) !important;
+}
+html.dark .bg-border-subtle,
+html.dark .h-px {
+    background-color: rgba(52, 58, 80, 0.8) !important;
+}
+html.dark .border-outline {
+    border-color: #4a5080 !important;
+}
+
+/* ---- Input Fields ---- */
+html.dark input,
+html.dark select,
+html.dark textarea {
+    background-color: #1c2030 !important;
+    color: #e2e4e9 !important;
+    border-color: rgba(52, 58, 80, 0.8) !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+    color: #6b7099 !important;
+}
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15) !important;
+}
+
+/* ---- Alert & Status Colors ---- */
+html.dark .bg-warning\/10 {
+    background-color: rgba(245, 158, 11, 0.15) !important;
+}
+html.dark .bg-success\/10 {
+    background-color: rgba(34, 197, 94, 0.15) !important;
+}
+html.dark .bg-error\/5,
+html.dark .bg-error-container {
+    background-color: rgba(186, 26, 26, 0.15) !important;
+}
+html.dark .bg-tertiary-fixed,
+html.dark .bg-tertiary\/10 {
+    background-color: rgba(148, 55, 0, 0.15) !important;
+}
+html.dark .text-warning { color: #fbbf24 !important; }
+html.dark .text-success { color: #4ade80 !important; }
+html.dark .text-error { color: #f87171 !important; }
+html.dark .text-tertiary { color: #fb923c !important; }
+
+/* ---- Secondary Container ---- */
+html.dark .bg-secondary-container\/20 {
+    background-color: rgba(0, 111, 100, 0.2) !important;
+}
+html.dark .bg-secondary-container\/10 {
+    background-color: rgba(0, 111, 100, 0.1) !important;
+}
+
+/* ---- Map Panel (Smart Map) ---- */
+html.dark #map {
+    filter: invert(0.92) hue-rotate(180deg) brightness(0.85) saturate(0.9) !important;
+}
+html.dark .leaflet-popup-content-wrapper {
+    background: #1c2030 !important;
+    color: #e2e4e9 !important;
+    border: 1px solid rgba(42, 47, 69, 0.8) !important;
+}
+html.dark .leaflet-popup-tip {
+    background: #1c2030 !important;
+}
+
+/* ---- Admin Sidebar ---- */
+html.dark aside {
+    background-color: #141720 !important;
+    border-color: rgba(42, 47, 69, 0.8) !important;
+}
+
+/* ---- Scrollbars ---- */
+html.dark ::-webkit-scrollbar-track {
+    background: #141720;
+}
+html.dark ::-webkit-scrollbar-thumb {
+    background: #2a2f45;
+    border-radius: 4px;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #3a4060;
+}
+
+/* ---- Premium / Ambient Shadows ---- */
+html.dark .premium-shadow {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .ambient-shadow {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35) !important;
+}
+html.dark .shadow-sm {
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ---- Material Icons Safety ---- */
+html.dark .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined' !important;
+}
+
+/* ---- Profile Specific ---- */
+html.dark #darkModeToggle.bg-surface-container-highest {
+    background-color: #2a2f45 !important;
+}
+html.dark #darkModeToggle.bg-primary {
+    background-color: #2563eb !important;
+}

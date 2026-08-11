@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "echo 'Building CIVIS AI Platform...'",
-    "start": "serve public -l 3000"
+    "start": "serve public/user -l 3000"
   },
   "dependencies": {
     "marked": "^18.0.5",
