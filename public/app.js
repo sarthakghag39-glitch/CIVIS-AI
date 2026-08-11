@@ -46,9 +46,13 @@ async function checkAuthSession() {
 
 checkAuthSession().then(user => {
   if (!user && !isLoginPage) {
-    window.location.href = 'login.html';
+    window.location.href = '/login.html';
   } else if (user && isLoginPage) {
-    window.location.href = 'index.html';
+    if (isAdminUser()) {
+      window.location.href = '/admin/admin_dashboard.html';
+    } else {
+      window.location.href = '/user/index.html';
+    }
   }
 });
 
@@ -869,7 +873,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (headerRight && !document.getElementById('header-admin-btn')) {
       const adminLink = document.createElement('a');
       adminLink.id = 'header-admin-btn';
-      adminLink.href = 'admin_dashboard.html';
+      adminLink.href = '/admin/admin_dashboard.html';
       adminLink.className = 'flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-semibold hover:bg-primary/20 transition-colors mr-2';
       adminLink.innerHTML = `
         <span class="material-symbols-outlined text-[16px]">admin_panel_settings</span>
@@ -887,7 +891,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (document.referrer && document.referrer.includes(window.location.hostname)) {
         window.history.back();
       } else {
-        window.location.href = 'index.html';
+        window.location.href = '/user/index.html';
       }
     });
   }
@@ -897,7 +901,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (profileImg) {
     profileImg.parentElement.style.cursor = 'pointer';
     profileImg.parentElement.addEventListener('click', () => {
-      window.location.href = 'profile.html';
+      window.location.href = '/user/profile.html';
     });
   }
 
@@ -905,7 +909,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (notificationBell) {
     notificationBell.parentElement.style.cursor = 'pointer';
     notificationBell.parentElement.addEventListener('click', () => {
-      window.location.href = 'my_complaints.html';
+      window.location.href = '/user/my_complaints.html';
     });
   } else {
     const notifBtn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('notifications'));
@@ -932,7 +936,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Page Specific Inits
   const path = window.location.pathname;
-  if (path.includes('index') || path === '/' || path.endsWith('public/')) {
+  if (path.includes('index') || path === '/' || path.endsWith('public/') || path.includes('/user/index') || path.endsWith('/user/')) {
     initHomePage();
   } else if (path.includes('smart_map')) {
     await initMapPage();
@@ -961,15 +965,15 @@ function initHomePage() {
   const actionButtons = document.querySelectorAll('section button.group');
   if (actionButtons.length >= 4) {
     actionButtons[0].addEventListener('click', openReportModal);
-    actionButtons[1].addEventListener('click', () => window.location.href = 'smart_map.html');
-    actionButtons[2].addEventListener('click', () => window.location.href = 'my_complaints.html');
-    actionButtons[3].addEventListener('click', () => window.location.href = 'emergency.html');
+    actionButtons[1].addEventListener('click', () => window.location.href = '/user/smart_map.html');
+    actionButtons[2].addEventListener('click', () => window.location.href = '/user/my_complaints.html');
+    actionButtons[3].addEventListener('click', () => window.location.href = '/user/emergency.html');
   }
 
   const viewAlertBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('View') && btn.innerHTML.includes('chevron_right'));
   if (viewAlertBtn) {
     viewAlertBtn.addEventListener('click', () => {
-      window.location.href = 'smart_map.html?focus=101';
+      window.location.href = '/user/smart_map.html?focus=101';
     });
   }
 }
@@ -1571,7 +1575,7 @@ async function initProfilePage() {
         <span class="material-symbols-outlined text-primary">chevron_right</span>
       `;
       adminBtn.addEventListener('click', () => {
-        window.location.href = 'admin_dashboard.html';
+        window.location.href = '/admin/admin_dashboard.html';
       });
       settingsSection.insertBefore(adminBtn, settingsSection.firstChild);
       
@@ -1616,7 +1620,7 @@ async function initProfilePage() {
         console.warn("Supabase sign out failed:", e);
       }
       sessionStorage.removeItem('civis_user');
-      window.location.href = 'login.html';
+      window.location.href = '/login.html';
     });
   }
 }
@@ -1744,7 +1748,7 @@ function initLoginPageHandler() {
       };
       sessionStorage.setItem('civis_user', JSON.stringify(adminUser));
       alert("Welcome, Admin Sarthak! Logging in to Admin Portal...");
-      window.location.href = 'admin_dashboard.html';
+      window.location.href = '/admin/admin_dashboard.html';
       return;
     }
     
@@ -1761,16 +1765,16 @@ function initLoginPageHandler() {
         
         if (data.session) {
           sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = 'index.html';
+          window.location.href = '/user/index.html';
         } else {
           alert("Registration request submitted! Setting up local demo session.");
           sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = 'index.html';
+          window.location.href = '/user/index.html';
         }
       } catch (err) {
         console.warn("Supabase registration fallback:", err.message);
         sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-        window.location.href = 'index.html';
+        window.location.href = '/user/index.html';
       }
     } else {
       try {
@@ -1783,12 +1787,12 @@ function initLoginPageHandler() {
             name: data.user.user_metadata?.full_name || email.split('@')[0],
             phone: data.user.user_metadata?.phone || '+91 98765 43210'
           }));
-          window.location.href = 'index.html';
+          window.location.href = '/user/index.html';
         }
       } catch (err) {
         console.warn("Supabase signin fallback:", err.message);
         sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone: '+91 98765 43210' }));
-        window.location.href = 'index.html';
+        window.location.href = '/user/index.html';
       }
     }
   });
@@ -1899,7 +1903,7 @@ function openScanModal() {
     sessionStorage.removeItem('civis_captured_name');
     stopCamera();
     modal.remove();
-    window.location.href = 'ai_analysis.html';
+    window.location.href = '/user/ai_analysis.html';
   }
 
   captureBtn.addEventListener('click', captureFrame);
@@ -1919,7 +1923,7 @@ function openScanModal() {
         sessionStorage.setItem('civis_sim_category', targetSelect.value);
         stopCamera();
         modal.remove();
-        window.location.href = 'ai_analysis.html';
+        window.location.href = '/user/ai_analysis.html';
       };
       reader.readAsDataURL(file);
     }
@@ -2038,7 +2042,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       } else if (window.location.pathname.includes('smart_map')) {
         await renderMapMarkers();
       } else {
-        window.location.href = 'my_complaints.html';
+        window.location.href = '/user/my_complaints.html';
       }
     }
   });
