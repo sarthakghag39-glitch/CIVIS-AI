@@ -936,7 +936,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Page Specific Inits
   const path = window.location.pathname;
-  if (path.includes('index') || path === '/' || path.endsWith('public/') || path.includes('/index') || path.endsWith('/')) {
+  const isIndex = path.includes('index') || path === '/' || path.endsWith('public/') || path.includes('/index') || path.endsWith('/');
+  if (isIndex && isAdminUser()) {
+    window.location.replace('/admin_dashboard.html');
+    return;
+  }
+
+  if (isIndex) {
     initHomePage();
   } else if (path.includes('smart_map')) {
     await initMapPage();

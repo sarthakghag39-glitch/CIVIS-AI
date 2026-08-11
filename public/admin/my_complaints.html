@@ -1,0 +1,373 @@
+<!DOCTYPE html><html class="" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>My Complaints - CIVIS AI</title>
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="stylesheet" href="/dark-mode.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "success": "#22C55E",
+                    "outline": "#737686",
+                    "surface-container-highest": "#e0e3e5",
+                    "on-secondary-container": "#006f64",
+                    "on-secondary-fixed": "#00201c",
+                    "error-container": "#ffdad6",
+                    "tertiary-fixed": "#ffdbcd",
+                    "tertiary": "#943700",
+                    "on-surface-variant": "#434655",
+                    "surface": "#f7f9fb",
+                    "secondary-fixed-dim": "#4fdbc8",
+                    "inverse-on-surface": "#eff1f3",
+                    "primary-container": "#2563eb",
+                    "inverse-primary": "#b4c5ff",
+                    "background": "#f7f9fb",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed-variant": "#7d2d00",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#71f8e4",
+                    "on-tertiary-container": "#ffede6",
+                    "on-tertiary-fixed": "#360f00",
+                    "accent-gradient-start": "#2563EB",
+                    "surface-tint": "#0053db",
+                    "on-surface": "#191c1e",
+                    "secondary": "#006b5f",
+                    "surface-container": "#eceef0",
+                    "border-subtle": "#E2E8F0",
+                    "surface-container-high": "#e6e8ea",
+                    "tertiary-fixed-dim": "#ffb596",
+                    "on-background": "#191c1e",
+                    "surface-container-low": "#f2f4f6",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#eeefff",
+                    "critical": "#EF4444",
+                    "tertiary-container": "#bc4800",
+                    "primary-fixed": "#dbe1ff",
+                    "outline-variant": "#c3c6d7",
+                    "surface-dim": "#d8dadc",
+                    "warning": "#F59E0B",
+                    "card-bg": "#FFFFFF",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-secondary-fixed-variant": "#005048",
+                    "on-error-container": "#93000a",
+                    "on-tertiary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "surface-variant": "#e0e3e5",
+                    "surface-bright": "#f7f9fb",
+                    "accent-gradient-end": "#60A5FA",
+                    "primary": "#004ac6",
+                    "secondary-container": "#6df5e1",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-primary-fixed": "#00174b",
+                    "on-error": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "gutter": "24px",
+                    "container-max": "1440px",
+                    "margin": "32px"
+            },
+            "fontFamily": {
+                    "sans": ["Poppins", "sans-serif"],
+                    "headline-md": ["Poppins", "sans-serif"],
+                    "body-md": ["Poppins", "sans-serif"],
+                    "label-md": ["Poppins", "sans-serif"],
+                    "headline-lg": ["Poppins", "sans-serif"],
+                    "body-lg": ["Poppins", "sans-serif"],
+                    "headline-lg-mobile": ["Poppins", "sans-serif"],
+                    "display-lg": ["Poppins", "sans-serif"],
+                    "label-sm": ["Poppins", "sans-serif"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        /* Language-specific Devanagari Tweaks */
+        :lang(mr), :lang(hi), .lang-mr, .lang-hi {
+            font-family: 'Poppins', sans-serif !important;
+            line-height: 1.6 !important;
+        }
+        .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
+            font-weight: 500;
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        .ambient-shadow {
+            box-shadow: 0 4px 20px -2px hsla(220, 20%, 20%, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        /* ---- Dark Mode Inline Overrides ---- */
+        html.dark body { background-color: #0f1117 !important; color: #e2e4e9 !important; }
+        html.dark .glass-card { background: rgba(28, 32, 52, 0.9) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .glass-panel { background: rgba(28, 32, 52, 0.92) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .bg-surface-container-lowest { background-color: #1a1e2e !important; }
+        html.dark .bg-surface-container-low    { background-color: #141720 !important; }
+        html.dark .bg-surface-container        { background-color: #1c2030 !important; }
+        html.dark .bg-surface-container-high   { background-color: #222638 !important; }
+        html.dark .bg-surface-container-highest{ background-color: #2a2f45 !important; }
+        html.dark .bg-surface                  { background-color: #191c24 !important; }
+        html.dark .bg-white                    { background-color: #1a1e2e !important; }
+        html.dark .text-on-surface             { color: #e2e4e9 !important; }
+        html.dark .text-on-surface-variant     { color: #a8adc4 !important; }
+        html.dark .text-outline                { color: #6b7099 !important; }
+        html.dark .text-primary                { color: #60a5fa !important; }
+        html.dark .font-headline-md, html.dark .text-headline-md { color: #e2e4e9 !important; }
+        html.dark .font-headline-lg, html.dark .text-headline-lg { color: #e2e4e9 !important; }
+        html.dark h1, html.dark h2, html.dark h3, html.dark h4 { color: #e2e4e9 !important; }
+        html.dark p                            { color: #a8adc4 !important; }
+        html.dark .border-border-subtle        { border-color: rgba(52, 58, 80, 0.8) !important; }
+        html.dark header                       { background: rgba(25, 28, 36, 0.97) !important; }
+        html.dark nav.fixed                    { background: rgba(20, 23, 32, 0.97) !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #1c2030 !important; color: #e2e4e9 !important; border-color: rgba(52,58,80,0.8) !important; }
+        html.dark aside                        { background-color: #141720 !important; border-color: rgba(52,58,80,0.8) !important; }
+    </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-40 bg-surface dark:bg-inverse-surface shadow-sm flex items-center justify-between px-margin py-4 w-full glass-header">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A professional profile headshot of a young urban planner in a modern office, wearing a smart casual blazer. The background is softly blurred with cool blue and white tones, reflecting a high-tech gov-tech office environment. The lighting is bright and clean, consistent with a premium mobile application interface." src="/profile_photo.jpg">
+</div>
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed" style="font-weight: 800;">CIVIS AI</h1>
+</div>
+<button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-variant/50 transition-colors duration-200">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+</header>
+<main class="px-margin pt-6 max-w-[1440px] mx-auto">
+<!-- Search and Filter Bar -->
+<div class="flex flex-col gap-4 mb-8">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full pl-12 pr-4 py-4 bg-white border border-border-subtle rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all font-body-md text-body-md outline-none ambient-shadow" placeholder="Search your reports..." type="text">
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+<button class="px-4 py-2 bg-primary-container text-on-primary-container rounded-full font-label-md text-label-md whitespace-nowrap">All Issues</button>
+<button class="px-4 py-2 bg-white border border-border-subtle text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant/30 transition-colors">In Progress</button>
+<button class="px-4 py-2 bg-white border border-border-subtle text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant/30 transition-colors">Critical</button>
+<button class="px-4 py-2 bg-white border border-border-subtle text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant/30 transition-colors">Resolved</button>
+<button class="px-4 py-2 bg-white border border-border-subtle text-on-surface-variant rounded-full font-label-md text-label-md whitespace-nowrap hover:bg-surface-variant/30 transition-colors">
+<span class="material-symbols-outlined text-[18px] align-middle">filter_list</span> Filter
+                </button>
+</div>
+</div>
+<!-- Complaints Feed -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Card 1: Critical -->
+<div class="bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200">
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-border-subtle">
+<img class="w-full h-full object-cover" data-alt="A detailed close-up of a damaged urban water main pipe leaking onto a city street at dusk. The water reflects the cool blue and teal city lights. The photograph has a professional, documentary style with high contrast and sharp details, highlighting the urgency of infrastructure repair in a modern smart city context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAfQInrOquCa96lX5_TwoGWkPgoukejONw9HSTz6dsyOv5A6yHUaO-RLvFX4gkvHiYBMtrIzcC1T7SqcCabsZ819kZ1tvhwrsrSLf3VxpEkMZI_ZOx64VfZabkBjiPeR3MoyGLd9v5bd6RgE1gEL5Qz6WMpYz5TTByAmMNoyGPfd4QsKSaP6Hj52DctQnl04vrE8Fz_lxHjisTtalSzxH1hVvISu8__1HGCTk4o8k960LA4mS6irw8">
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">Water Main Leak</h3>
+<span class="px-2 py-0.5 bg-error-container text-error text-[10px] font-bold rounded-md uppercase tracking-wider">Critical</span>
+</div>
+<p class="font-label-sm text-label-sm text-outline">Oct 24, 2023 • Kothrud</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">Assigned</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-outline">Resolution Progress</span>
+<span class="text-primary font-bold">15%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-accent-gradient-start to-accent-gradient-end w-[15%] rounded-full transition-all duration-1000"></div>
+</div>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-1 italic">"Crew dispatched to Oak St. main valve."</p>
+</div>
+</div>
+<!-- Card 2: In Progress -->
+<div class="bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200">
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-border-subtle">
+<img class="w-full h-full object-cover" data-alt="A photo of a flickering modern street lamp in a clean, contemporary residential neighborhood during the blue hour. The street is lined with minimalist architecture. The image is crisp, with a cool-toned color palette and a cinematic feel, emphasizing a sense of public service and safety monitoring in a high-tech urban environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMwmNef01tUUEhmgxBsLmJuAKDnW_3pX81--TAiyvVf_4-HlRy_c29e9vfdHEl3MIw-laqOp2ECX24hvjg7Va_muGP6WSstVwWJhWa5TH0--cCi88pZJdbyeXtObm-1BqsUk_zFKA-D_POoYsJ4JAZGO-ogfn9abHbG6s40ows38yL9ResDnob_-Yp55ojLnO1-AL8xag-At0ezKqBdsZGLMyafMNMUhM7EX4onhA13hQ41XJAu1k">
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">Street Light Out</h3>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold rounded-md uppercase tracking-wider">Moderate</span>
+</div>
+<p class="font-label-sm text-label-sm text-outline">Oct 22, 2023 • Hinjewadi</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-primary-container/10 text-primary text-[11px] font-semibold rounded-md">In Progress</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-outline">Resolution Progress</span>
+<span class="text-primary font-bold">65%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-accent-gradient-start to-accent-gradient-end w-[65%] rounded-full transition-all duration-1000"></div>
+</div>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-1 italic">"Hardware replacement scheduled for tomorrow."</p>
+</div>
+</div>
+<!-- Card 3: Resolved -->
+<div class="bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200 opacity-80 hover:opacity-100">
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-border-subtle">
+<img class="w-full h-full object-cover" data-alt="A clean urban park walkway with a newly emptied designer trash receptacle. The scene is bright, with soft sunlight filtering through green trees, highlighting a well-maintained public space. The image conveys a sense of cleanliness and efficient municipal management, featuring a bright, airy aesthetic with vibrant greens and soft whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdrZybqq1iBE79OPZ9X4C1Sn5FsRF-jF55efaoPtsvUgHVE2MAtKx3cg0SmBrg-japRSd_ujJNfoujoXToedxaVx9bPaNCqAQ1QqsAJk0Bo8Dp1d8I4HqeH5LHf-a6nRzci6Bm3SOHl_vV7itXYSeyZHLWsATIktKS7msyVMe9HCIJdM5Nr1-qNkF6ZA00_O4FZF_GJDYmllWTkpMEH3YgABHPaixhFhh91A1o5Cy6nNYR3gYnI38">
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">Waste Collection</h3>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold rounded-md uppercase tracking-wider">Moderate</span>
+</div>
+<p class="font-label-sm text-label-sm text-outline">Oct 20, 2023 • Kalyani Nagar</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-success/10 text-success text-[11px] font-semibold rounded-md">Resolved</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-outline">Resolution Progress</span>
+<span class="text-success font-bold">100%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-success w-[100%] rounded-full transition-all duration-1000"></div>
+</div>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-1 italic">"Issue closed. Area inspected and cleared."</p>
+</div>
+</div>
+<!-- Card 4: Progress Sample -->
+<div class="bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200">
+<div class="flex gap-4">
+<div class="w-20 h-20 rounded-xl overflow-hidden shrink-0 border border-border-subtle">
+<img class="w-full h-full object-cover" data-alt="A close-up of a cracked pavement section on a modern city bike path, with technical markings for repair. The lighting is sharp and clinical, using a palette of grey, white, and a strike of safety orange. The image represents the data-driven approach to city maintenance in a futuristic gov-tech setting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-txKTYSmvrtUIxuvxqyVWncVSwCZOuSizOpp3kjOizjaRr_AUHKRWwG63UhAYzQvdCcBlLL49PiX7eteEsJPb4s2o-zavaAg_GpIL0wn5oY9VsT5vOxVYa3DeY_UKQYPnAV-yhoPsKiFUKU55U9Wu_snENiRsSeQyfoZ0_3hKYE8AbCFocW_Rn-PNiKGcGS2n38rq7zO7Efu8I0LsFea3c4DdzYVjaNRXW8M8CrLZoe_SqRLGtQQ">
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">Pavement Repair</h3>
+<span class="px-2 py-0.5 bg-surface-container-highest text-on-surface-variant text-[10px] font-bold rounded-md uppercase tracking-wider">Moderate</span>
+</div>
+<p class="font-label-sm text-label-sm text-outline">Oct 18, 2023 • Viman Nagar</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-primary-container/10 text-primary text-[11px] font-semibold rounded-md">In Progress</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-outline">Resolution Progress</span>
+<span class="text-primary font-bold">42%</span>
+</div>
+<div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-accent-gradient-start to-accent-gradient-end w-[42%] rounded-full transition-all duration-1000"></div>
+</div>
+<p class="font-body-md text-[13px] text-on-surface-variant line-clamp-1 italic">"Material procurement ongoing."</p>
+</div>
+</div>
+</div>
+<!-- Empty State Logic (Hidden) -->
+<div class="hidden flex flex-col items-center justify-center py-20 text-center" id="empty-state">
+<span class="material-symbols-outlined text-[64px] text-surface-container-highest mb-4">description</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">No reports found</h2>
+<p class="font-body-md text-on-surface-variant max-w-[280px]">Your citizen dashboard is clear. Use the '+' button to report a new issue.</p>
+</div>
+</main>
+<!-- FAB -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-6 bg-surface dark:bg-inverse-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150" href="/index.html">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150" href="/smart_map.html">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-sm text-label-sm">Map</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150" href="#">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="font-label-sm text-label-sm">Scan</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 transition-transform duration-150" href="/my_complaints.html">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="font-label-sm text-label-sm">Alerts</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-transform duration-150" href="/profile.html">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions for searching
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-[1.02]');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-[1.02]');
+        });
+
+        // Filter button behavior
+        const filterButtons = document.querySelectorAll('button[class*="rounded-full"]');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-primary-container', 'text-on-primary-container');
+                    b.classList.add('bg-white', 'text-on-surface-variant');
+                });
+                btn.classList.add('bg-primary-container', 'text-on-primary-container');
+                btn.classList.remove('bg-white', 'text-on-surface-variant');
+            });
+        });
+    </script>
+
+
+<script src="/app.js"></script></body></html>
