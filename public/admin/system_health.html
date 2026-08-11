@@ -269,6 +269,36 @@
                 </div>
             </div>
 
+            <!-- Logged-in Members Table -->
+            <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-border-subtle flex justify-between items-center">
+                    <h4 class="text-lg font-bold text-on-surface">Registered & Logged-in Members</h4>
+                    <span class="text-xs text-outline font-semibold uppercase tracking-wider">Live Database Sync</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-surface-container-low border-b border-border-subtle text-outline text-xs font-bold uppercase">
+                                <th class="px-6 py-4">User Details</th>
+                                <th class="px-6 py-4">Supabase ID</th>
+                                <th class="px-6 py-4">Contact Phone</th>
+                                <th class="px-6 py-4">Last Sync / Active</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-border-subtle text-sm text-on-surface-variant font-medium" id="members-list-body">
+                            <tr>
+                                <td class="px-6 py-8 text-center text-outline" colspan="4">
+                                    <div class="flex flex-col items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined animate-spin text-3xl text-primary">sync</span>
+                                        <p class="text-xs">Fetching active database profiles...</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Console System Logs -->
             <div class="bg-black text-[#00ff00] rounded-2xl p-6 shadow-lg border border-border-subtle/20 flex flex-col gap-3">
                 <div class="flex items-center justify-between border-b border-[#00ff00]/20 pb-3">
@@ -307,13 +337,15 @@
             let profilesCount = 0;
 
             // 1. Live Database Queries (Real Supabase integration)
+            let profiles = [];
             if (typeof supabaseClient !== 'undefined') {
                 try {
                     const startTime = performance.now();
-                    const { data: profiles, error: pError } = await supabaseClient.from('profiles').select('id, updated_at');
+                    const { data: dbProfiles, error: pError } = await supabaseClient.from('profiles').select('id, full_name, phone, updated_at');
                     dbPing = Math.round(performance.now() - startTime);
 
-                    if (!pError && profiles) {
+                    if (!pError && dbProfiles) {
+                        profiles = dbProfiles;
                         profilesCount = profiles.length;
                         
                         // Count users active in the last 15 minutes
@@ -336,6 +368,59 @@
             
             const elOnlineUpdate = document.getElementById('stat-online-users');
             if (elOnlineUpdate) elOnlineUpdate.innerText = onlineUsers.toLocaleString();
+
+            // Populate profiles table
+            const elListBody = document.getElementById('members-list-body');
+            if (elListBody) {
+                if (profilesCount === 0) {
+                    elListBody.innerHTML = `
+                        <tr>
+                            <td class="px-6 py-8 text-center text-outline" colspan="4">
+                                <div class="flex flex-col items-center justify-center gap-1.5 py-4">
+                                    <span class="material-symbols-outlined text-3xl text-outline/50">person_off</span>
+                                    <p class="text-xs font-semibold">No registered members found in Supabase database.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    elListBody.innerHTML = '';
+                    if (profiles && profiles.length) {
+                        profiles.forEach(p => {
+                            const name = p.full_name || 'Anonymous User';
+                            const phone = p.phone || 'N/A';
+                            const avatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`;
+                            const id = p.id || 'N/A';
+                            const activeTime = p.updated_at ? new Date(p.updated_at).toLocaleString() : 'N/A';
+                            
+                            const row = document.createElement('tr');
+                            row.className = 'hover:bg-surface-container-low/50 transition-colors border-b border-border-subtle';
+                            row.innerHTML = `
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full overflow-hidden bg-primary-container/10 border border-border-subtle shrink-0">
+                                            <img class="w-full h-full object-cover" src="${avatar}" alt="Avatar">
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-on-surface">${name}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-xs font-mono text-outline">
+                                    ${id}
+                                </td>
+                                <td class="px-6 py-4 text-outline font-semibold">
+                                    ${phone}
+                                </td>
+                                <td class="px-6 py-4 text-xs text-outline font-medium">
+                                    ${activeTime}
+                                </td>
+                            `;
+                            elListBody.appendChild(row);
+                        });
+                    }
+                }
+            }
 
             // Update DB latency ping bars
             const elPingText = document.getElementById('ping-text');
