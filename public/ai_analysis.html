@@ -1,13 +1,16 @@
-<!DOCTYPE html><html class="light" lang="en"><head>
+<!DOCTYPE html><html class="" lang="en"><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>CIVIS AI - AI Analysis</title>
 <!-- Google Fonts: Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dark-mode.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <!-- Material Symbols -->
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <!-- Tailwind CSS -->
+<link rel="stylesheet" href="dark-mode.css">
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
       tailwind.config = {
@@ -83,14 +86,15 @@
                     "margin": "32px"
             },
             "fontFamily": {
-                    "headline-md": ["Inter"],
-                    "body-md": ["Inter"],
-                    "label-md": ["Inter"],
-                    "headline-lg": ["Inter"],
-                    "body-lg": ["Inter"],
-                    "headline-lg-mobile": ["Inter"],
-                    "display-lg": ["Inter"],
-                    "label-sm": ["Inter"]
+                    "sans": ["Poppins", "sans-serif"],
+                    "headline-md": ["Poppins", "sans-serif"],
+                    "body-md": ["Poppins", "sans-serif"],
+                    "label-md": ["Poppins", "sans-serif"],
+                    "headline-lg": ["Poppins", "sans-serif"],
+                    "body-lg": ["Poppins", "sans-serif"],
+                    "headline-lg-mobile": ["Poppins", "sans-serif"],
+                    "display-lg": ["Poppins", "sans-serif"],
+                    "label-sm": ["Poppins", "sans-serif"]
             },
             "fontSize": {
                     "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
@@ -107,6 +111,20 @@
       }
     </script>
 <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        /* Language-specific Devanagari Tweaks */
+        :lang(mr), :lang(hi), .lang-mr, .lang-hi {
+            font-family: 'Poppins', sans-serif !important;
+            line-height: 1.6 !important;
+        }
+        .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
+            font-weight: 500;
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+        }
         .glass-panel {
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(16px);
@@ -128,6 +146,30 @@
         .pothole-overlay {
             box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.3);
         }
+        /* ---- Dark Mode Inline Overrides ---- */
+        html.dark body { background-color: #0f1117 !important; color: #e2e4e9 !important; }
+        html.dark .glass-card { background: rgba(28, 32, 52, 0.9) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .glass-panel { background: rgba(28, 32, 52, 0.92) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .bg-surface-container-lowest { background-color: #1a1e2e !important; }
+        html.dark .bg-surface-container-low    { background-color: #141720 !important; }
+        html.dark .bg-surface-container        { background-color: #1c2030 !important; }
+        html.dark .bg-surface-container-high   { background-color: #222638 !important; }
+        html.dark .bg-surface-container-highest{ background-color: #2a2f45 !important; }
+        html.dark .bg-surface                  { background-color: #191c24 !important; }
+        html.dark .bg-white                    { background-color: #1a1e2e !important; }
+        html.dark .text-on-surface             { color: #e2e4e9 !important; }
+        html.dark .text-on-surface-variant     { color: #a8adc4 !important; }
+        html.dark .text-outline                { color: #6b7099 !important; }
+        html.dark .text-primary                { color: #60a5fa !important; }
+        html.dark .font-headline-md, html.dark .text-headline-md { color: #e2e4e9 !important; }
+        html.dark .font-headline-lg, html.dark .text-headline-lg { color: #e2e4e9 !important; }
+        html.dark h1, html.dark h2, html.dark h3, html.dark h4 { color: #e2e4e9 !important; }
+        html.dark p                            { color: #a8adc4 !important; }
+        html.dark .border-border-subtle        { border-color: rgba(52, 58, 80, 0.8) !important; }
+        html.dark header                       { background: rgba(25, 28, 36, 0.97) !important; }
+        html.dark nav.fixed                    { background: rgba(20, 23, 32, 0.97) !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #1c2030 !important; color: #e2e4e9 !important; border-color: rgba(52,58,80,0.8) !important; }
+        html.dark aside                        { background-color: #141720 !important; border-color: rgba(52,58,80,0.8) !important; }
     </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -183,7 +225,12 @@
 <!-- Issue Type -->
 <div class="flex items-center justify-between">
 <span class="text-on-surface-variant font-label-md text-label-md">Issue Type</span>
-<span class="px-3 py-1 bg-surface-container-highest rounded-lg font-body-md text-body-md font-medium">Pothole</span>
+<select id="ai-category-select" class="px-3 py-1 bg-surface-container-highest rounded-lg font-body-md text-body-md font-medium text-on-surface border-none focus:ring-2 focus:ring-primary/40 outline-none cursor-pointer">
+  <option value="Road Damage">Road Damage</option>
+  <option value="Garbage">Garbage</option>
+  <option value="Water Leakage">Water Leakage</option>
+  <option value="Streetlights">Streetlights</option>
+</select>
 </div>
 <!-- Confidence Score -->
 <div class="space-y-2">

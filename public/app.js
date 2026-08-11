@@ -1,6 +1,16 @@
 // CIVIS AI Smart City Platform - Interactivity & State Management
 // This script runs globally on all pages and implements state sync using Supabase PostgreSQL.
 
+// --- Theme Persistent Handler (Applies dark mode immediately on page load) ---
+(function() {
+  const isDarkMode = localStorage.getItem('civis_dark_mode') === 'true';
+  if (isDarkMode) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+})();
+
 // --- 1. Shared Database Initialization ---
 const SUPABASE_URL = 'https://dppdyknjrryoljzzdulj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_DoV52AE_kw3GIMhY50tXTA_vUAgbAmm';
@@ -43,6 +53,707 @@ checkAuthSession().then(user => {
 });
 
 let cachedIssues = [];
+
+// --- 1b. Localization (English, Hindi, Marathi) ---
+const translations = {
+  en: {
+    "civis_ai": "CIVIS AI",
+    "home": "Home",
+    "map": "Map",
+    "scan": "Scan",
+    "alerts": "Alerts",
+    "profile": "Profile",
+    "welcome_back": "Welcome back,",
+    "good_morning": "Good Morning,",
+    "ai_scan": "AI Scan",
+    "ai_scan_desc": "Identify & report urban issues instantly using your camera.",
+    "start_scanning": "Start Scanning",
+    "today": "Today",
+    "new_reports": "New Reports",
+    "efficiency": "Efficiency",
+    "resolved": "Resolved",
+    "live_system_alert": "Live System Alert",
+    "critical_issue_in": "Critical Issue in Kothrud, Pune",
+    "water_leak_detected": "Water leak detected 5 mins ago",
+    "view": "View",
+    "quick_actions": "Quick Actions",
+    "report_issue": "Report Issue",
+    "live_map": "Live Map",
+    "my_complaints_menu": "My Complaints",
+    "emergency": "Emergency",
+    "nearby_alerts": "Nearby Alerts",
+    "see_all": "See all",
+    "my_complaints_title": "My Complaints",
+    "search_reports_placeholder": "Search your reports...",
+    "all_issues": "All Issues",
+    "in_progress": "In Progress",
+    "critical": "Critical",
+    "resolved_filter": "Resolved",
+    "filter": "Filter",
+    "no_reports_found": "No reports found",
+    "citizen_dashboard_clear": "Your citizen dashboard is clear. Use the '+' button to report a new issue.",
+    "trust_score": "Trust Score:",
+    "reports_sent": "Reports Sent",
+    "resolved_stat": "Resolved",
+    "achievements": "Achievements",
+    "view_all": "View All",
+    "top_reporter": "Top Reporter",
+    "gold_tier": "Gold Tier",
+    "road_guardian": "Road Guardian",
+    "master_badge": "Master Badge",
+    "edit_profile": "Edit Profile",
+    "language": "Language",
+    "dark_mode": "Dark Mode",
+    "notification_settings": "Notification Settings",
+    "logout": "Logout",
+    "live_smart_map": "Live Smart Map",
+    "potholes": "Potholes",
+    "garbage": "Garbage",
+    "streetlights": "Streetlights",
+    "water_leakage": "Water Leakage",
+    "road_damage": "Road Damage",
+    "ai_insights": "CIVIS AI Insights",
+    "critical_immediate": "Critical (Immediate Action)",
+    "moderate_queued": "Moderate (Queued)",
+    "resolved_past_24h": "Resolved (Past 24h)",
+    "your_reported_complaints": "Your Reported Complaints",
+    "report_urban_issue": "Report Urban Issue",
+    "issue_title": "Issue Title",
+    "category": "Category",
+    "location": "Location (Neighborhood)",
+    "description": "Description",
+    "submit_report": "Submit Report",
+    "ai_scan_active": "AI Scan Active",
+    "upload_image_instead": "Upload Image Instead",
+    "capture_and_analyze": "Capture and Analyze",
+    "align_issue_prompt": "Align the issue inside the frame and click 'Capture and Analyze'.",
+    "emergency_services": "Emergency Services",
+    "your_current_location": "Your Current Location",
+    "gps_active": "GPS Active",
+    "report_accident": "Report Accident",
+    "vehicle_collisions": "Vehicle collisions & traffic incidents",
+    "fire_emergency": "Fire Emergency",
+    "active_fire_detected": "Active fire or smoke detected",
+    "medical_assistance": "Medical Assistance",
+    "injuries_health_crises": "Injuries or health crises",
+    "flood_warning": "Flood Warning",
+    "severe_water_rising": "Severe water rising or leaks",
+    "fallen_tree": "Fallen Tree",
+    "road_blockages_hazards": "Road blockages & hazards",
+    "other_hazard": "Other Hazard",
+    "general_safety_reporting": "General safety reporting",
+    "active_local_alerts": "Active Local Alerts",
+    "direct_support": "Direct Support",
+    "speak_directly_dispatch": "Speak directly with emergency dispatch services via secure AI link.",
+    "national_emergency": "National Emergency",
+    "ai_insights_title": "AI Insights",
+    "ai_confidence": "AI Confidence",
+    "severity_level": "Severity Level",
+    "detected_location": "Detected Location (Click to Edit)",
+    "device_metadata": "Device Metadata",
+    "sensors": "SENSORS",
+    "active_lidar": "Active LiDAR",
+    "submit_complaint": "Submit Complaint",
+    "retake": "Retake"
+  },
+  hi: {
+    "civis_ai": "सिविस एआई",
+    "home": "होम",
+    "map": "नक्शा",
+    "scan": "स्कैन",
+    "alerts": "अलर्ट",
+    "profile": "प्रोफ़ाइल",
+    "welcome_back": "स्वागत है,",
+    "good_morning": "शुभ प्रभात,",
+    "ai_scan": "एआई स्कैन",
+    "ai_scan_desc": "कैमरे का उपयोग करके शहरी समस्याओं की तुरंत पहचान और रिपोर्ट करें।",
+    "start_scanning": "स्कैनिंग शुरू करें",
+    "today": "आज",
+    "new_reports": "नई रिपोर्टें",
+    "efficiency": "दक्षता",
+    "resolved": "समाधानित",
+    "live_system_alert": "लाइव सिस्टम अलर्ट",
+    "critical_issue_in": "कोथरुड, पुणे में गंभीर समस्या",
+    "water_leak_detected": "5 मिनट पहले पानी का रिसाव पाया गया",
+    "view": "देखें",
+    "quick_actions": "त्वरित कार्रवाई",
+    "report_issue": "समस्या रिपोर्ट करें",
+    "live_map": "लाइव नक्शा",
+    "my_complaints_menu": "मेरी शिकायतें",
+    "emergency": "आपातकालीन",
+    "nearby_alerts": "आस-पास के अलर्ट",
+    "see_all": "सभी देखें",
+    "my_complaints_title": "मेरी शिकायतें",
+    "search_reports_placeholder": "अपनी रिपोर्ट खोजें...",
+    "all_issues": "सभी मुद्दे",
+    "in_progress": "प्रगति पर",
+    "critical": "गंभीर",
+    "resolved_filter": "समाधानित",
+    "filter": "फ़िल्टर",
+    "no_reports_found": "कोई रिपोर्ट नहीं मिली",
+    "citizen_dashboard_clear": "आपका नागरिक डैशबोर्ड साफ है। नई समस्या की रिपोर्ट करने के लिए '+' बटन का उपयोग करें।",
+    "trust_score": "विश्वास स्कोर:",
+    "reports_sent": "रिपोर्ट भेजी गईं",
+    "resolved_stat": "समाधानित",
+    "achievements": "उपलब्धियां",
+    "view_all": "सभी देखें",
+    "top_reporter": "शीर्ष रिपोर्टर",
+    "gold_tier": "गोल्ड टियर",
+    "road_guardian": "सड़क रक्षक",
+    "master_badge": "मास्टर बैज",
+    "edit_profile": "प्रोफ़ाइल संपादित करें",
+    "language": "भाषा",
+    "dark_mode": "डार्क मोड",
+    "notification_settings": "अधिसूचना सेटिंग्स",
+    "logout": "लॉगआउट",
+    "live_smart_map": "लाइव नक्शा",
+    "potholes": "गड्ढे",
+    "garbage": "कचरा",
+    "streetlights": "स्ट्रीटलाइट्स",
+    "water_leakage": "पानी का रिसाव",
+    "road_damage": "सड़क क्षति",
+    "ai_insights": "सिविस एआई अंतर्दृष्टि",
+    "critical_immediate": "गंभीर (तत्काल कार्रवाई)",
+    "moderate_queued": "मध्यम (कतारबद्ध)",
+    "resolved_past_24h": "समाधानित (पिछले 24 घंटे)",
+    "your_reported_complaints": "आपकी रिपोर्ट की गई शिकायतें",
+    "report_urban_issue": "शहरी समस्या की रिपोर्ट करें",
+    "issue_title": "समस्या का शीर्षक",
+    "category": "श्रेणी",
+    "location": "स्थान (पड़ोस)",
+    "description": "विवरण",
+    "submit_report": "रिपोर्ट सबमिट करें",
+    "ai_scan_active": "एआई स्कैन सक्रिय",
+    "upload_image_instead": "इसके बजाय छवि अपलोड करें",
+    "capture_and_analyze": "कैप्चर और विश्लेषण करें",
+    "align_issue_prompt": "समस्या को फ्रेम के अंदर संरेखित करें और 'कैप्चर और विश्लेषण करें' पर क्लिक करें।",
+    "emergency_services": "आपातकालीन सेवाएं",
+    "your_current_location": "आपका वर्तमान स्थान",
+    "gps_active": "जीपीएस सक्रिय",
+    "report_accident": "दुर्घटना की रिपोर्ट करें",
+    "vehicle_collisions": "वाहन टक्कर और यातायात घटनाएं",
+    "fire_emergency": "अग्निशमन आपातकाल",
+    "active_fire_detected": "सक्रिय आग या धुआं पाया गया",
+    "medical_assistance": "चिकित्सा सहायता",
+    "injuries_health_crises": "चोटें या स्वास्थ्य संकट",
+    "flood_warning": "बाढ़ की चेतावनी",
+    "severe_water_rising": "गंभीर जल स्तर वृद्धि या रिसाव",
+    "fallen_tree": "गिरा हुआ पेड़",
+    "road_blockages_hazards": "सड़क अवरोध और खतरे",
+    "other_hazard": "अन्य खतरा",
+    "general_safety_reporting": "सामान्य सुरक्षा रिपोर्टिंग",
+    "active_local_alerts": "सक्रिय स्थानीय अलर्ट",
+    "direct_support": "सीधा समर्थन",
+    "speak_directly_dispatch": "सुरक्षित एआई लिंक के माध्यम से आपातकालीन प्रेषण सेवाओं से सीधे बात करें।",
+    "national_emergency": "राष्ट्रीय आपातकाल",
+    "ai_insights_title": "एआई अंतर्दृष्टि",
+    "ai_confidence": "एआई विश्वास",
+    "severity_level": "तीव्रता स्तर",
+    "detected_location": "पता चला स्थान (संपादित करने के लिए क्लिक करें)",
+    "device_metadata": "डिवाइस मेटाडेटा",
+    "sensors": "सेंसर",
+    "active_lidar": "सक्रिय लिडार",
+    "submit_complaint": "तक्रार सबमिट करें",
+    "retake": "पुनः लें"
+  },
+  mr: {
+    "civis_ai": "सिव्हिस एआय",
+    "home": "होम",
+    "map": "नकाशा",
+    "scan": "स्कॅन",
+    "alerts": "अलर्ट",
+    "profile": "प्रोफाईल",
+    "welcome_back": "पुन्हा स्वागत आहे,",
+    "good_morning": "शुभ प्रभात,",
+    "ai_scan": "एआय स्कॅन",
+    "ai_scan_desc": "तुमच्या कॅमेऱ्याचा वापर करून शहरातील समस्या लगेच ओळखा आणि नोंदवा.",
+    "start_scanning": "स्कॅनिंग सुरू करा",
+    "today": "आज",
+    "new_reports": "नवीन अहवाल",
+    "efficiency": "कार्यक्षमता",
+    "resolved": "निवारण झालेले",
+    "live_system_alert": "लाइव्ह प्रणाली अलर्ट",
+    "critical_issue_in": "कोथरूड, पुणे येथे गंभीर समस्या",
+    "water_leak_detected": "५ मिनिटांपूर्वी पाण्याचे गळती आढळली",
+    "view": "पहा",
+    "quick_actions": "त्वरित कृती",
+    "report_issue": "तक्रार नोंदवा",
+    "live_map": "लाइव्ह नकाशा",
+    "my_complaints_menu": "माझ्या तक्रारी",
+    "emergency": "आणीबाणी",
+    "nearby_alerts": "जवळील अलर्ट",
+    "see_all": "सर्व पहा",
+    "my_complaints_title": "माझ्या तक्रारी",
+    "search_reports_placeholder": "तुमचे अहवाल शोधा...",
+    "all_issues": "सर्व तक्रारी",
+    "in_progress": "प्रगतीपथावर",
+    "critical": "गंभीर",
+    "resolved_filter": "निवारण झालेले",
+    "filter": "फिल्टर",
+    "no_reports_found": "कोणतीही तक्रार आढळली नाही",
+    "citizen_dashboard_clear": "तुमचा नागरिक डॅशबोर्ड रिकामा आहे. नवीन तक्रार नोंदवण्यासाठी '+' बटण वापरा.",
+    "trust_score": "विश्वासू गुण:",
+    "reports_sent": "पाठवलेले अहवाल",
+    "resolved_stat": "निवारण झालेले",
+    "achievements": "यशस्वी कामगिरी",
+    "view_all": "सर्व पहा",
+    "top_reporter": "अव्वल तक्रारदार",
+    "gold_tier": "गोल्ड श्रेणी",
+    "road_guardian": "रस्ता रक्षक",
+    "master_badge": "मास्टर बैज",
+    "edit_profile": "माहिती संपादित करा",
+    "language": "भाषा",
+    "dark_mode": "डार्क मोड",
+    "notification_settings": "सूचना सेटिंग्ज",
+    "logout": "बाहेर पडा",
+    "live_smart_map": "लाइव्ह नकाशा",
+    "potholes": "खड्डे",
+    "garbage": "कचरा",
+    "streetlights": "स्ट्रीटलाइट्स",
+    "water_leakage": "पाणी गळती",
+    "road_damage": "रस्त्याचे नुकसान",
+    "ai_insights": "सिव्हिस एआय अंतर्दृष्टी",
+    "critical_immediate": "गंभीर (त्वरित कारवाई)",
+    "moderate_queued": "मध्यम (प्रतीक्षेत)",
+    "resolved_past_24h": "निवारण झालेले (मागील २४ तास)",
+    "your_reported_complaints": "तुमच्या नोंदवलेल्या तक्रारी",
+    "report_urban_issue": "नागरी समस्येची तक्रार करा",
+    "issue_title": "तक्रारीचे शीर्षक",
+    "category": "श्रेणी",
+    "location": "स्थान (परिसर)",
+    "description": "तपशील",
+    "submit_report": "तक्रार सादर करा",
+    "ai_scan_active": "एआय स्कॅन सक्रिय",
+    "upload_image_instead": "याऐवजी फोटो अपलोड करा",
+    "capture_and_analyze": "फोटो काढा आणि विश्लेषण करा",
+    "align_issue_prompt": "समस्या फ्रेमच्या आत आणा आणि 'फोटो काढा आणि विश्लेषण करा' वर क्लिक करा।",
+    "emergency_services": "आणीबाणी सेवा",
+    "your_current_location": "तुमचे सध्याचे स्थान",
+    "gps_active": "जीपीएस सक्रिय",
+    "report_accident": "अपघाताची तक्रार करा",
+    "vehicle_collisions": "वाहन अपघात आणि वाहतूक समस्या",
+    "fire_emergency": "अग्निशमन आणीबाणी",
+    "active_fire_detected": "सक्रिय आग किंवा धूर आढळला",
+    "medical_assistance": "वैद्यकीय मदत",
+    "injuries_health_crises": "जखम किंवा आरोग्य संकट",
+    "flood_warning": "पूर चेतावणी",
+    "severe_water_rising": "गंभीर पाणी पातळी वाढणे किंवा गळती",
+    "fallen_tree": "पडलेले झाड",
+    "road_blockages_hazards": "रस्ता अडथळे आणि धोके",
+    "other_hazard": "इतर धोका",
+    "general_safety_reporting": "सामान्य सुरक्षा अहवाल",
+    "active_local_alerts": "सक्रिय स्थानिक अलर्ट",
+    "direct_support": "थेट मदत",
+    "speak_directly_dispatch": "सुरक्षित एआय लिंकद्वारे थेट आपत्कालीन नियंत्रण कक्षाशी संपर्क साधा.",
+    "national_emergency": "राष्ट्रीय आणीबाणी",
+    "ai_insights_title": "एआय अंतर्दृष्टी",
+    "ai_confidence": "एआय विश्वास",
+    "severity_level": "तीव्रता पातळी",
+    "detected_location": "आढळलेले स्थान (संपादित करण्यासाठी क्लिक करा)",
+    "device_metadata": "डिव्हाइस मेटाडेटा",
+    "sensors": "सेन्सर्स",
+    "active_lidar": "सक्रिय लिडार",
+    "submit_complaint": "तक्रार सादर करा",
+    "retake": "पुन्हा घ्या"
+  }
+};
+
+function translatePage() {
+  const currentLang = localStorage.getItem('civis_language') || 'en';
+  
+  // Set html lang and class dynamically for Devanagari css tweaks
+  document.documentElement.lang = currentLang;
+  document.documentElement.classList.remove('lang-en', 'lang-hi', 'lang-mr');
+  document.documentElement.classList.add(`lang-${currentLang}`);
+
+  if (currentLang === 'en') return;
+  
+  const dict = translations[currentLang];
+  if (!dict) return;
+
+  // 1. Bottom Nav translation (supporting inline and floating layouts)
+  const navLinks = document.querySelectorAll('nav a, nav button, nav div.relative');
+  navLinks.forEach(link => {
+    const spans = link.querySelectorAll('span');
+    spans.forEach(span => {
+      if (span.classList.contains('material-symbols-outlined')) return;
+      const text = span.textContent.trim().toLowerCase();
+      if (text === 'home') span.textContent = dict.home;
+      if (text === 'map') span.textContent = dict.map;
+      if (text === 'scan') span.textContent = dict.scan;
+      if (text === 'alerts') span.textContent = dict.alerts;
+      if (text === 'profile') span.textContent = dict.profile;
+    });
+  });
+
+  // 2. CIVIS AI branding in headers
+  document.querySelectorAll('header span, header h1').forEach(el => {
+    if (el.textContent.trim() === 'CIVIS AI') {
+      el.textContent = dict.civis_ai;
+    }
+  });
+
+  // 3. Page specific translations
+  const path = window.location.pathname;
+
+  if (path.includes('index') || path === '/' || path.endsWith('public/')) {
+    const welcomeEl = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Welcome back'));
+    if (welcomeEl) welcomeEl.textContent = dict.welcome_back;
+
+    const goodMorningEl = document.querySelector('h1.font-headline-lg-mobile');
+    if (goodMorningEl) {
+      const name = goodMorningEl.textContent.split(',')[1] || '';
+      goodMorningEl.textContent = `${dict.good_morning}${name}`;
+    }
+
+    const aiScanEl = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.trim() === 'AI Scan');
+    if (aiScanEl) aiScanEl.textContent = dict.ai_scan;
+
+    const aiScanDescEl = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Identify & report'));
+    if (aiScanDescEl) aiScanDescEl.textContent = dict.ai_scan_desc;
+
+    const startScanBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Start Scanning'));
+    if (startScanBtn) {
+      const icon = startScanBtn.querySelector('span');
+      startScanBtn.innerHTML = '';
+      if (icon) startScanBtn.appendChild(icon);
+      startScanBtn.appendChild(document.createTextNode(' ' + dict.start_scanning));
+    }
+
+    const statsBoxes = document.querySelectorAll('main section.grid > div');
+    statsBoxes.forEach(box => {
+      const spans = box.querySelectorAll('span');
+      spans.forEach(span => {
+        if (span.textContent.trim() === 'Today') span.textContent = dict.today;
+        if (span.textContent.trim() === 'Efficiency') span.textContent = dict.efficiency;
+      });
+      const ps = box.querySelectorAll('p');
+      ps.forEach(p => {
+        if (p.textContent.trim() === 'New Reports') p.textContent = dict.new_reports;
+        if (p.textContent.trim() === 'Resolved') p.textContent = dict.resolved;
+      });
+    });
+
+    const liveSystemAlert = Array.from(document.querySelectorAll('span')).find(el => el.textContent.includes('Live System Alert'));
+    if (liveSystemAlert) liveSystemAlert.textContent = dict.live_system_alert;
+
+    const criticalIssueIn = Array.from(document.querySelectorAll('div')).find(el => el.textContent.includes('Critical Issue in Kothrud'));
+    if (criticalIssueIn) criticalIssueIn.textContent = dict.critical_issue_in;
+
+    const waterLeakDetected = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Water leak detected'));
+    if (waterLeakDetected) waterLeakDetected.textContent = dict.water_leak_detected;
+
+    const viewBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('View'));
+    if (viewBtn) {
+      const icon = viewBtn.querySelector('span');
+      viewBtn.innerHTML = dict.view + ' ';
+      if (icon) viewBtn.appendChild(icon);
+    }
+
+    const quickActionsHeader = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Quick Actions'));
+    if (quickActionsHeader) quickActionsHeader.textContent = dict.quick_actions;
+
+    const actionsButtons = document.querySelectorAll('main button.group');
+    actionsButtons.forEach(btn => {
+      const label = Array.from(btn.querySelectorAll('span')).find(s => !s.classList.contains('material-symbols-outlined'));
+      if (label) {
+        const text = label.textContent.trim();
+        if (text === 'Report Issue') label.textContent = dict.report_issue;
+        if (text === 'Live Map') label.textContent = dict.live_map;
+        if (text === 'My Complaints') label.textContent = dict.my_complaints_menu;
+        if (text === 'Emergency') label.textContent = dict.emergency;
+      }
+    });
+
+    const nearbyAlertsHeader = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Nearby Alerts'));
+    if (nearbyAlertsHeader) nearbyAlertsHeader.textContent = dict.nearby_alerts;
+
+    const seeAllLink = Array.from(document.querySelectorAll('a')).find(el => el.textContent.includes('See all'));
+    if (seeAllLink) seeAllLink.textContent = dict.see_all;
+  }
+
+  if (path.includes('smart_map')) {
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.innerText = `CIVIS AI | ${dict.live_smart_map}`;
+
+    const searchInput = document.querySelector('input[placeholder*="Search"]');
+    if (searchInput) searchInput.placeholder = dict.search_reports_placeholder;
+
+    const chips = document.querySelectorAll('main button.glass-panel');
+    chips.forEach(chip => {
+      const label = Array.from(chip.querySelectorAll('span')).find(s => !s.classList.contains('material-symbols-outlined'));
+      if (label) {
+        const text = label.textContent.trim();
+        if (text === 'All Issues') label.textContent = dict.all_issues;
+        if (text === 'Potholes') label.textContent = dict.potholes;
+        if (text === 'Garbage') label.textContent = dict.garbage;
+        if (text === 'Streetlights') label.textContent = dict.streetlights;
+        if (text === 'Water Leakage') label.textContent = dict.water_leakage;
+        if (text === 'Road Damage') label.textContent = dict.road_damage;
+      }
+    });
+
+    const legendTitle = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('CIVIS AI Insights'));
+    if (legendTitle) legendTitle.textContent = dict.ai_insights;
+
+    const legendLabels = document.querySelectorAll('main div.glass-panel span.font-label-sm');
+    legendLabels.forEach(label => {
+      const text = label.textContent.trim();
+      if (text.includes('Critical')) label.textContent = dict.critical_immediate;
+      if (text.includes('Moderate')) label.textContent = dict.moderate_queued;
+      if (text.includes('Resolved')) label.textContent = dict.resolved_past_24h;
+      if (text.includes('Your Reported')) label.textContent = dict.your_reported_complaints;
+    });
+  }
+
+  if (path.includes('my_complaints')) {
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.innerText = `${dict.my_complaints_title} - CIVIS AI`;
+
+    const searchInput = document.querySelector('input[placeholder*="Search"]');
+    if (searchInput) searchInput.placeholder = dict.search_reports_placeholder;
+
+    const filterChips = document.querySelectorAll('main .flex.gap-2 button');
+    filterChips.forEach(chip => {
+      const text = chip.textContent.trim();
+      if (text === 'All Issues') chip.textContent = dict.all_issues;
+      if (text === 'In Progress') chip.textContent = dict.in_progress;
+      if (text === 'Critical') chip.textContent = dict.critical;
+      if (text === 'Resolved') chip.textContent = dict.resolved_filter;
+      if (text.includes('Filter')) {
+        const icon = chip.querySelector('span');
+        chip.innerHTML = '';
+        if (icon) chip.appendChild(icon);
+        chip.appendChild(document.createTextNode(' ' + dict.filter));
+      }
+    });
+
+    const emptyTitle = document.querySelector('#empty-state h2');
+    if (emptyTitle) emptyTitle.textContent = dict.no_reports_found;
+
+    const emptyDesc = document.querySelector('#empty-state p');
+    if (emptyDesc) emptyDesc.textContent = dict.citizen_dashboard_clear;
+  }
+
+  if (path.includes('profile')) {
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.innerText = `CIVIS AI - ${dict.profile}`;
+
+    const trustScoreEl = Array.from(document.querySelectorAll('span')).find(el => el.textContent.includes('Trust Score'));
+    if (trustScoreEl) {
+      const score = trustScoreEl.textContent.split(':')[1] || '';
+      trustScoreEl.textContent = `${dict.trust_score}${score}`;
+    }
+
+    const statsBoxes = document.querySelectorAll('main section.grid > div');
+    statsBoxes.forEach(box => {
+      const sentP = Array.from(box.querySelectorAll('div')).find(d => d.textContent.trim() === 'Reports Sent');
+      if (sentP) sentP.textContent = dict.reports_sent;
+      const resP = Array.from(box.querySelectorAll('div')).find(d => d.textContent.trim() === 'Resolved');
+      if (resP) resP.textContent = dict.resolved_stat;
+    });
+
+    const achievementsTitle = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.trim() === 'ACHIEVEMENTS');
+    if (achievementsTitle) achievementsTitle.textContent = dict.achievements.toUpperCase();
+
+    const viewAllBtn = Array.from(document.querySelectorAll('button')).find(el => el.textContent.includes('View All'));
+    if (viewAllBtn) viewAllBtn.textContent = dict.view_all;
+
+    document.querySelectorAll('main div.font-label-md').forEach(el => {
+      if (el.textContent.trim() === 'Top Reporter') el.textContent = dict.top_reporter;
+      if (el.textContent.trim() === 'Road Guardian') el.textContent = dict.road_guardian;
+    });
+    document.querySelectorAll('main div.text-outline').forEach(el => {
+      if (el.textContent.trim() === 'Gold Tier') el.textContent = dict.gold_tier;
+      if (el.textContent.trim() === 'Master Badge') el.textContent = dict.master_badge;
+    });
+
+    document.querySelectorAll('main button span.font-body-md, main div span.font-body-md').forEach(el => {
+      const text = el.textContent.trim();
+      if (text === 'Edit Profile') el.textContent = dict.edit_profile;
+      if (text === 'Language') el.textContent = dict.language;
+      if (text === 'Dark Mode') el.textContent = dict.dark_mode;
+      if (text === 'Notification Settings') el.textContent = dict.notification_settings;
+      if (text === 'Logout') el.textContent = dict.logout;
+    });
+  }
+
+  if (path.includes('emergency')) {
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.innerText = `CIVIS AI - ${dict.emergency_services || 'Emergency Services'}`;
+
+    const headerTitle = document.querySelector('header h1');
+    if (headerTitle) headerTitle.textContent = dict.emergency_services;
+
+    const gpsTitle = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Your Current Location'));
+    if (gpsTitle) gpsTitle.textContent = dict.your_current_location;
+
+    const gpsStatus = Array.from(document.querySelectorAll('span')).find(el => el.textContent.includes('GPS Active'));
+    if (gpsStatus) {
+      const icon = gpsStatus.querySelector('span');
+      gpsStatus.innerHTML = '';
+      if (icon) gpsStatus.appendChild(icon);
+      gpsStatus.appendChild(document.createTextNode(' ' + (dict.gps_active || 'GPS Active')));
+    }
+
+    const cards = document.querySelectorAll('main button.group');
+    cards.forEach(card => {
+      const titleSpan = card.querySelector('span.font-headline-md');
+      const descSpan = card.querySelector('span.text-label-sm');
+      if (titleSpan) {
+        const text = titleSpan.textContent.trim();
+        if (text === 'Report Accident') {
+          titleSpan.textContent = dict.report_accident;
+          if (descSpan) descSpan.textContent = dict.vehicle_collisions;
+        }
+        if (text === 'Fire Emergency') {
+          titleSpan.textContent = dict.fire_emergency;
+          if (descSpan) descSpan.textContent = dict.active_fire_detected;
+        }
+        if (text === 'Medical Assistance') {
+          titleSpan.textContent = dict.medical_assistance;
+          if (descSpan) descSpan.textContent = dict.injuries_health_crises;
+        }
+        if (text === 'Flood Warning') {
+          titleSpan.textContent = dict.flood_warning;
+          if (descSpan) descSpan.textContent = dict.severe_water_rising;
+        }
+        if (text === 'Fallen Tree') {
+          titleSpan.textContent = dict.fallen_tree;
+          if (descSpan) descSpan.textContent = dict.road_blockages_hazards;
+        }
+        if (text === 'Other Hazard') {
+          titleSpan.textContent = dict.other_hazard;
+          if (descSpan) descSpan.textContent = dict.general_safety_reporting;
+        }
+      }
+    });
+
+    const activeAlertsTitle = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Active Local Alerts'));
+    if (activeAlertsTitle) {
+      const icon = activeAlertsTitle.querySelector('span');
+      activeAlertsTitle.innerHTML = '';
+      if (icon) activeAlertsTitle.appendChild(icon);
+      activeAlertsTitle.appendChild(document.createTextNode(' ' + dict.active_local_alerts));
+    }
+
+    const directSupportTitle = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Direct Support'));
+    if (directSupportTitle) directSupportTitle.textContent = dict.direct_support;
+
+    const directSupportDesc = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Speak directly with'));
+    if (directSupportDesc) directSupportDesc.textContent = dict.speak_directly_dispatch;
+
+    const nationalEmergencyLabel = Array.from(document.querySelectorAll('span')).find(el => el.textContent.includes('National Emergency'));
+    if (nationalEmergencyLabel) nationalEmergencyLabel.textContent = dict.national_emergency;
+  }
+
+  if (path.includes('ai_analysis')) {
+    const titleEl = document.querySelector('title');
+    if (titleEl) titleEl.innerText = `CIVIS AI - ${dict.ai_scan}`;
+
+    const headerTitle = document.querySelector('header h1');
+    if (headerTitle) headerTitle.textContent = dict.ai_scan;
+
+    const insightsTitle = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.includes('AI Insights'));
+    if (insightsTitle) insightsTitle.textContent = dict.ai_insights_title;
+
+    const issueTypeLabel = Array.from(document.querySelectorAll('span')).find(el => el.textContent.trim() === 'Issue Type');
+    if (issueTypeLabel) issueTypeLabel.textContent = dict.category;
+
+    const aiConfidenceLabel = Array.from(document.querySelectorAll('span')).find(el => el.textContent.trim() === 'AI Confidence');
+    if (aiConfidenceLabel) aiConfidenceLabel.textContent = dict.ai_confidence;
+
+    const severityLevelLabel = Array.from(document.querySelectorAll('span')).find(el => el.textContent.trim() === 'Severity Level');
+    if (severityLevelLabel) severityLevelLabel.textContent = dict.severity_level;
+
+    const locationLabel = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Detected Location'));
+    if (locationLabel) locationLabel.textContent = dict.detected_location;
+
+    const metadataLabel = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Device Metadata'));
+    if (metadataLabel) metadataLabel.textContent = dict.device_metadata;
+
+    const sensorLabel = Array.from(document.querySelectorAll('p')).find(el => el.textContent.trim() === 'SENSORS');
+    if (sensorLabel) {
+      sensorLabel.textContent = currentLang === 'hi' ? 'सेंसर' : currentLang === 'mr' ? 'सेन्सर्स' : 'SENSORS';
+      const activeLidarVal = sensorLabel.nextElementSibling;
+      if (activeLidarVal && activeLidarVal.textContent.trim() === 'Active LiDAR') {
+        activeLidarVal.textContent = dict.active_lidar;
+      }
+    }
+
+    const timestampLabel = Array.from(document.querySelectorAll('p')).find(el => el.textContent.trim() === 'TIMESTAMP');
+    if (timestampLabel) {
+      timestampLabel.textContent = currentLang === 'hi' ? 'समय' : currentLang === 'mr' ? 'वेळ' : 'TIMESTAMP';
+    }
+
+    const submitBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Submit Complaint'));
+    if (submitBtn) {
+      const icon = submitBtn.querySelector('span');
+      submitBtn.innerHTML = dict.submit_complaint + ' ';
+      if (icon) submitBtn.appendChild(icon);
+    }
+
+    const retakeBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Retake'));
+    if (retakeBtn) {
+      const icon = retakeBtn.querySelector('span');
+      retakeBtn.innerHTML = dict.retake + ' ';
+      if (icon) retakeBtn.appendChild(icon);
+    }
+
+    const categorySelect = document.getElementById('ai-category-select');
+    if (categorySelect) {
+      Array.from(categorySelect.options).forEach(opt => {
+        if (opt.value === 'Road Damage') opt.text = dict.road_damage;
+        if (opt.value === 'Garbage') opt.text = dict.garbage;
+        if (opt.value === 'Water Leakage') opt.text = dict.water_leakage;
+        if (opt.value === 'Streetlights') opt.text = dict.streetlights;
+      });
+    }
+  }
+}
+
+function openLanguageModal() {
+  if (document.getElementById('language-select-modal')) return;
+  const currentLang = localStorage.getItem('civis_language') || 'en';
+
+  const modal = document.createElement('div');
+  modal.id = 'language-select-modal';
+  modal.className = 'fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 transition-opacity duration-300 animate-in fade-in';
+  modal.innerHTML = `
+    <div class="bg-white rounded-2xl p-6 w-full max-w-sm relative shadow-2xl">
+      <button class="absolute top-4 right-4 text-outline hover:text-on-surface" onclick="this.closest('.fixed').remove()">✕</button>
+      
+      <h3 class="text-xl font-bold text-primary mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined">translate</span> Select Language / भाषा चुनें
+      </h3>
+      
+      <div class="flex flex-col gap-3">
+        <button data-lang="en" class="flex items-center justify-between p-4 border rounded-xl hover:bg-primary/5 active:scale-95 transition-all text-left ${currentLang === 'en' ? 'border-primary bg-primary/5 font-bold text-primary' : 'border-border-subtle text-on-surface-variant'}">
+          <span class="font-semibold">English</span>
+          ${currentLang === 'en' ? '<span class="material-symbols-outlined text-primary" style="font-variation-settings: \'FILL\' 1;">check_circle</span>' : ''}
+        </button>
+        <button data-lang="hi" class="flex items-center justify-between p-4 border rounded-xl hover:bg-primary/5 active:scale-95 transition-all text-left ${currentLang === 'hi' ? 'border-primary bg-primary/5 font-bold text-primary' : 'border-border-subtle text-on-surface-variant'}">
+          <span class="font-semibold">Hindi (हिन्दी)</span>
+          ${currentLang === 'hi' ? '<span class="material-symbols-outlined text-primary" style="font-variation-settings: \'FILL\' 1;">check_circle</span>' : ''}
+        </button>
+        <button data-lang="mr" class="flex items-center justify-between p-4 border rounded-xl hover:bg-primary/5 active:scale-95 transition-all text-left ${currentLang === 'mr' ? 'border-primary bg-primary/5 font-bold text-primary' : 'border-border-subtle text-on-surface-variant'}">
+          <span class="font-semibold">Marathi (मराठी)</span>
+          ${currentLang === 'mr' ? '<span class="material-symbols-outlined text-primary" style="font-variation-settings: \'FILL\' 1;">check_circle</span>' : ''}
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.querySelectorAll('button[data-lang]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const selectedLang = btn.getAttribute('data-lang');
+      localStorage.setItem('civis_language', selectedLang);
+      modal.remove();
+      window.location.reload();
+    });
+  });
+}
 
 async function getIssues() {
   const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
@@ -127,6 +838,9 @@ function mapPredictionsToIssue(predictions, defaultAnalysis) {
 
 // --- 2. Global Event Listeners & Page Handlers ---
 document.addEventListener("DOMContentLoaded", async () => {
+  // Apply translation
+  translatePage();
+
   // Initialize DB
   await getIssues();
 
@@ -320,33 +1034,52 @@ async function initAiAnalysisPage() {
 
   const randomConfidence = Math.floor(Math.random() * 4) + 95;
   const curTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const categorySelect = document.getElementById('ai-category-select');
 
-  if (issueTypeSpan) issueTypeSpan.innerText = analysis.category;
-  if (confidenceSpan) confidenceSpan.innerText = analysis.tag.includes('%') ? analysis.tag.split(' ').pop() : `${randomConfidence}%`;
-  if (confidenceBar) {
-    const rawVal = parseInt(confidenceSpan.innerText);
-    confidenceBar.style.width = isNaN(rawVal) ? '95%' : `${rawVal}%`;
-  }
-  
-  if (severitySpan) severitySpan.innerText = `${analysis.severity}/100`;
-  if (severityBar) severityBar.style.width = `${analysis.severity}%`;
+  function updateAiAnalysisUI(targetAnalysis) {
+    if (categorySelect) categorySelect.value = targetAnalysis.category;
+    
+    if (confidenceSpan) {
+      confidenceSpan.innerText = targetAnalysis.tag.includes('%') ? targetAnalysis.tag.split(' ').pop() : `${randomConfidence}%`;
+    }
+    if (confidenceBar) {
+      const rawVal = parseInt(confidenceSpan.innerText);
+      confidenceBar.style.width = isNaN(rawVal) ? '95%' : `${rawVal}%`;
+    }
+    
+    if (severitySpan) severitySpan.innerText = `${targetAnalysis.severity}/100`;
+    if (severityBar) severityBar.style.width = `${targetAnalysis.severity}%`;
 
-  if (timestampText) timestampText.innerText = curTime;
-  if (insightsDesc) insightsDesc.innerText = analysis.description;
+    if (insightsDesc) insightsDesc.innerText = targetAnalysis.description;
 
-  if (boundingBoxText) {
-    boundingBoxText.innerText = analysis.tag.toUpperCase();
-    if (analysis.severity > 80) {
-      boundingBox.style.borderColor = '#EF4444';
-      boundingBoxText.style.backgroundColor = '#EF4444';
-    } else if (analysis.severity > 60) {
-      boundingBox.style.borderColor = '#F59E0B';
-      boundingBoxText.style.backgroundColor = '#F59E0B';
-    } else {
-      boundingBox.style.borderColor = '#2563EB';
-      boundingBoxText.style.backgroundColor = '#2563EB';
+    if (boundingBoxText) {
+      boundingBoxText.innerText = targetAnalysis.tag.toUpperCase();
+      if (targetAnalysis.severity > 80) {
+        boundingBox.style.borderColor = '#EF4444';
+        boundingBoxText.style.backgroundColor = '#EF4444';
+      } else if (targetAnalysis.severity > 60) {
+        boundingBox.style.borderColor = '#F59E0B';
+        boundingBoxText.style.backgroundColor = '#F59E0B';
+      } else {
+        boundingBox.style.borderColor = '#2563EB';
+        boundingBoxText.style.backgroundColor = '#2563EB';
+      }
     }
   }
+
+  // Initial call to render values
+  updateAiAnalysisUI(analysis);
+
+  if (categorySelect) {
+    categorySelect.addEventListener('change', (e) => {
+      const newCategory = e.target.value;
+      const newAnalysis = classifyImage(null, newCategory);
+      analysis = newAnalysis;
+      updateAiAnalysisUI(analysis);
+    });
+  }
+
+  if (timestampText) timestampText.innerText = curTime;
 
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -595,7 +1328,7 @@ async function renderComplaintsList() {
     card.innerHTML = `
       <div class="flex gap-4">
         <div class="w-20 h-20 bg-primary-container/10 text-primary rounded-xl flex items-center justify-center shrink-0 border border-border-subtle">
-          <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : 'warning'}</span>
+          <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
         </div>
         <div class="flex-1 flex flex-col justify-between">
           <div>
@@ -736,7 +1469,7 @@ async function renderAdminIssues() {
       <td class="px-6 py-4">
         <div class="flex items-center gap-4">
           <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
-            <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : 'warning'}</span>
+            <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
           </div>
           <div>
             <p class="font-label-md text-label-md font-bold text-on-surface">${issue.title}</p>
@@ -855,6 +1588,22 @@ async function initProfilePage() {
     const newEditBtn = editProfileBtn.cloneNode(true);
     editProfileBtn.parentNode.replaceChild(newEditBtn, editProfileBtn);
     newEditBtn.addEventListener('click', openEditProfileModal);
+  }
+
+  const languageBtn = Array.from(document.querySelectorAll('button')).find(btn => {
+    return Array.from(btn.querySelectorAll('span')).some(span => span.textContent.trim() === 'translate');
+  });
+  if (languageBtn) {
+    languageBtn.style.cursor = 'pointer';
+    languageBtn.addEventListener('click', openLanguageModal);
+    
+    const currentLang = localStorage.getItem('civis_language') || 'en';
+    const textLabel = languageBtn.querySelector('div.flex.items-center.gap-1 span.text-outline');
+    if (textLabel) {
+      if (currentLang === 'hi') textLabel.textContent = 'हिन्दी';
+      else if (currentLang === 'mr') textLabel.textContent = 'मराठी';
+      else textLabel.textContent = 'English';
+    }
   }
 
   const logoutBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.toLowerCase().includes('log') || btn.textContent.toLowerCase().includes('sign') || btn.textContent.toLowerCase().includes('out'));
@@ -1047,6 +1796,9 @@ function initLoginPageHandler() {
 
 // --- 10. Modals UI & Implementations ---
 function openScanModal() {
+  const currentLang = localStorage.getItem('civis_language') || 'en';
+  const dict = translations[currentLang] || translations.en;
+
   const modal = document.createElement('div');
   modal.className = 'fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4';
   modal.innerHTML = `
@@ -1055,14 +1807,14 @@ function openScanModal() {
       
       <div class="w-full flex justify-between items-center mb-4">
         <h3 class="text-xl font-bold text-primary flex items-center gap-2">
-          <span class="material-symbols-outlined">psychology</span> AI Scan Active
+          <span class="material-symbols-outlined">psychology</span> ${dict.ai_scan_active}
         </h3>
         
         <select id="simulate-target-select" class="text-xs p-1 bg-surface-container-high border border-border-subtle rounded-md outline-none focus:ring-1 focus:ring-primary">
-          <option value="Road Damage">🚗 Scan Pothole</option>
-          <option value="Garbage">🗑️ Scan Garbage</option>
-          <option value="Water Leakage">💧 Scan Water Leak</option>
-          <option value="Streetlights">💡 Scan Streetlight</option>
+          <option value="Road Damage">🚗 ${currentLang === 'hi' ? 'गड्ढे स्कैन करें' : currentLang === 'mr' ? 'खड्डे स्कॅन करा' : 'Scan Pothole'}</option>
+          <option value="Garbage">🗑️ ${currentLang === 'hi' ? 'कचरा स्कैन करें' : currentLang === 'mr' ? 'कचरा स्कॅन करा' : 'Scan Garbage'}</option>
+          <option value="Water Leakage">💧 ${currentLang === 'hi' ? 'पानी का रिसाव स्कैन करें' : currentLang === 'mr' ? 'पाणी गळती स्कॅन करा' : 'Scan Water Leak'}</option>
+          <option value="Streetlights">💡 ${currentLang === 'hi' ? 'स्ट्रीटलाइट स्कैन करें' : currentLang === 'mr' ? 'स्ट्रीटलाइट स्कॅन करा' : 'Scan Streetlight'}</option>
         </select>
       </div>
 
@@ -1071,15 +1823,15 @@ function openScanModal() {
         <div id="scan-bounding-box" class="absolute w-40 h-28 border-2 border-dashed border-primary rounded-lg hidden animate-pulse"></div>
         <div id="scan-line" class="absolute inset-x-0 h-0.5 bg-primary shadow-[0_0_10px_#2563eb] hidden" style="animation: scan 2.5s infinite ease-in-out;"></div>
         <span id="webcam-placeholder" class="text-white font-label-sm text-xs opacity-50 flex items-center gap-2">
-          <span class="material-symbols-outlined animate-spin text-sm">sync</span> Initializing Camera...
+          <span class="material-symbols-outlined animate-spin text-sm">sync</span> ${currentLang === 'hi' ? 'कैमरा शुरू किया जा रहा है...' : currentLang === 'mr' ? 'कॅमेरा सुरू होत आहे...' : 'Initializing Camera...'}
         </span>
       </div>
-      <div id="scan-status" class="text-center font-semibold text-on-surface mb-4">Starting scanner...</div>
+      <div id="scan-status" class="text-center font-semibold text-on-surface mb-4">${currentLang === 'hi' ? 'स्कैनर शुरू हो रहा है...' : currentLang === 'mr' ? 'स्कॅनर सुरू होत आहे...' : 'Starting scanner...'}</div>
       <div class="w-full flex flex-col gap-2">
-        <button id="capture-frame-btn" class="w-full py-3 bg-primary text-white font-semibold rounded-xl hidden">Capture and Analyze</button>
+        <button id="capture-frame-btn" class="w-full py-3 bg-primary text-white font-semibold rounded-xl hidden">${dict.capture_and_analyze}</button>
         <button id="upload-fallback-btn" class="w-full py-3 bg-surface-container-high text-on-surface font-semibold rounded-xl flex items-center justify-center gap-2 hover:bg-surface-variant">
           <span class="material-symbols-outlined text-[20px]">upload_file</span>
-          Upload Image Instead
+          ${dict.upload_image_instead}
         </button>
         <input type="file" id="upload-scan-file" class="hidden" accept="image/*">
       </div>
@@ -1124,23 +1876,13 @@ function openScanModal() {
       placeholder.classList.add('hidden');
       scanLine.classList.remove('hidden');
       scanBoundingBox.classList.remove('hidden');
-      scanStatus.innerText = "Analyzing live environment...";
+      scanStatus.innerText = dict.align_issue_prompt;
       captureBtn.classList.remove('hidden');
-      
-      setTimeout(() => {
-        if (stream && document.body.contains(modal)) {
-          const selectedLabel = targetSelect.options[targetSelect.selectedIndex].text.replace(/[^a-zA-Z\s]/g, '').trim();
-          scanStatus.innerHTML = `<span class="text-error font-bold flex items-center justify-center gap-1"><span class="material-symbols-outlined">warning</span> ${selectedLabel} Detected! Capturing...</span>`;
-          setTimeout(() => {
-            captureFrame();
-          }, 1000);
-        }
-      }, 4000);
     })
     .catch(err => {
       console.warn("Webcam access failed or denied, using static upload fallback.", err);
-      placeholder.innerHTML = `<span class="material-symbols-outlined text-[32px]">photo_camera_off</span><br>Camera not available`;
-      scanStatus.innerText = "Please upload an image to analyze.";
+      placeholder.innerHTML = `<span class="material-symbols-outlined text-[32px]">photo_camera_off</span><br>${currentLang === 'hi' ? 'कैमरा उपलब्ध नहीं है' : currentLang === 'mr' ? 'कॅमेरा उपलब्ध नाही' : 'Camera not available'}`;
+      scanStatus.innerText = currentLang === 'hi' ? 'कृपया विश्लेषण के लिए एक छवि अपलोड करें।' : currentLang === 'mr' ? 'कृपया विश्लेषणासाठी फोटो अपलोड करा.' : 'Please upload an image to analyze.';
     });
 
   function captureFrame() {
@@ -1174,7 +1916,7 @@ function openScanModal() {
         const dataUrl = event.target.result;
         sessionStorage.setItem('civis_captured_img', dataUrl);
         sessionStorage.setItem('civis_captured_name', file.name);
-        sessionStorage.removeItem('civis_sim_category');
+        sessionStorage.setItem('civis_sim_category', targetSelect.value);
         stopCamera();
         modal.remove();
         window.location.href = 'ai_analysis.html';
@@ -1215,37 +1957,40 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   // Prevent duplicate modals from spawning
   if (document.getElementById('report-issue-modal')) return;
 
+  const currentLang = localStorage.getItem('civis_language') || 'en';
+  const dict = translations[currentLang] || translations.en;
+
   const modal = document.createElement('div');
   modal.id = 'report-issue-modal';
   modal.className = 'fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4';
   modal.innerHTML = `
     <div class="bg-white rounded-2xl p-6 w-full max-w-md relative">
       <button class="absolute top-4 right-4 text-outline" onclick="this.closest('.fixed').remove()">✕</button>
-      <h3 class="text-xl font-bold text-primary mb-4">Report Urban Issue</h3>
+      <h3 class="text-xl font-bold text-primary mb-4">${dict.report_urban_issue}</h3>
       <form id="new-complaint-form" class="flex flex-col gap-4">
         <div>
-          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Issue Title</label>
+          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.issue_title}</label>
           <input required id="form-title" value="${defaultTitle}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Broken Water Pipe">
         </div>
         <div>
-          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Category</label>
+          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.category}</label>
           <select required id="form-category" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40">
-            <option value="" disabled ${!defaultCategory ? 'selected' : ''}>Select Category</option>
-            <option value="Water Leakage" ${defaultCategory === 'Water Leakage' ? 'selected' : ''}>Water Leakage</option>
-            <option value="Garbage" ${defaultCategory === 'Garbage' ? 'selected' : ''}>Garbage</option>
-            <option value="Streetlights" ${defaultCategory === 'Streetlights' ? 'selected' : ''}>Streetlights</option>
-            <option value="Road Damage" ${defaultCategory === 'Road Damage' ? 'selected' : ''}>Road Damage</option>
+            <option value="" disabled ${!defaultCategory ? 'selected' : ''}>${currentLang === 'hi' ? 'श्रेणी चुनें' : currentLang === 'mr' ? 'श्रेणी निवडा' : 'Select Category'}</option>
+            <option value="Water Leakage" ${defaultCategory === 'Water Leakage' ? 'selected' : ''}>${dict.water_leakage}</option>
+            <option value="Garbage" ${defaultCategory === 'Garbage' ? 'selected' : ''}>${dict.garbage}</option>
+            <option value="Streetlights" ${defaultCategory === 'Streetlights' ? 'selected' : ''}>${dict.streetlights}</option>
+            <option value="Road Damage" ${defaultCategory === 'Road Damage' ? 'selected' : ''}>${dict.road_damage}</option>
           </select>
         </div>
         <div>
-          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Location (Neighborhood)</label>
+          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.location}</label>
           <input required id="form-location" value="${defaultLocation}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Kothrud">
         </div>
         <div>
-          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Description</label>
+          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.description}</label>
           <textarea required id="form-desc" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="Describe the issue...">${defaultDesc}</textarea>
         </div>
-        <button type="submit" class="w-full py-3 bg-primary text-white font-semibold rounded-xl mt-2">Submit Report</button>
+        <button type="submit" class="w-full py-3 bg-primary text-white font-semibold rounded-xl mt-2">${dict.submit_report}</button>
       </form>
     </div>
   `;

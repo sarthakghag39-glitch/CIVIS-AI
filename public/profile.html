@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 
-<html class="light" lang="en"><head>
+<html class="" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>CIVIS AI - Profile</title>
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="dark-mode.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
@@ -82,14 +84,15 @@
                     "margin": "32px"
             },
             "fontFamily": {
-                    "headline-md": ["Inter"],
-                    "body-md": ["Inter"],
-                    "label-md": ["Inter"],
-                    "headline-lg": ["Inter"],
-                    "body-lg": ["Inter"],
-                    "headline-lg-mobile": ["Inter"],
-                    "display-lg": ["Inter"],
-                    "label-sm": ["Inter"]
+                    "sans": ["Poppins", "sans-serif"],
+                    "headline-md": ["Poppins", "sans-serif"],
+                    "body-md": ["Poppins", "sans-serif"],
+                    "label-md": ["Poppins", "sans-serif"],
+                    "headline-lg": ["Poppins", "sans-serif"],
+                    "body-lg": ["Poppins", "sans-serif"],
+                    "headline-lg-mobile": ["Poppins", "sans-serif"],
+                    "display-lg": ["Poppins", "sans-serif"],
+                    "label-sm": ["Poppins", "sans-serif"]
             },
             "fontSize": {
                     "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
@@ -107,9 +110,17 @@
     </script>
 <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Poppins', sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+        }
+        /* Language-specific Devanagari Tweaks */
+        :lang(mr), :lang(hi), .lang-mr, .lang-hi {
+            font-family: 'Poppins', sans-serif !important;
+            line-height: 1.6 !important;
+        }
+        .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
+            font-weight: 500;
         }
         .glass-panel {
             background: rgba(255, 255, 255, 0.7);
@@ -117,6 +128,7 @@
             -webkit-backdrop-filter: blur(12px);
         }
         .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         .active-pill {
@@ -128,11 +140,45 @@
         .ios-toggle-dot {
             transition: transform 0.2s ease;
         }
+        /* ---- Dark Mode Inline Overrides ---- */
+        html.dark .glass-panel {
+            background: rgba(28, 32, 52, 0.92) !important;
+            border-color: rgba(52, 58, 80, 0.7) !important;
+        }
+        html.dark body {
+            background-color: #0f1117 !important;
+            color: #e2e4e9 !important;
+        }
+        html.dark .bg-surface-container-lowest {
+            background-color: #1a1e2e !important;
+        }
+        html.dark .font-headline-md,
+        html.dark .text-headline-md {
+            color: #e2e4e9 !important;
+        }
+        html.dark .text-outline {
+            color: #6b7099 !important;
+        }
+        html.dark .text-on-surface-variant {
+            color: #a8adc4 !important;
+        }
+        html.dark .text-on-surface {
+            color: #e2e4e9 !important;
+        }
+        html.dark .border-border-subtle {
+            border-color: rgba(52, 58, 80, 0.8) !important;
+        }
+        html.dark .shadow-sm {
+            box-shadow: 0 1px 8px rgba(0,0,0,0.4) !important;
+        }
     </style>
 <style>
     body {
       min-height: max(884px, 100dvh);
     }
+    html.dark .bg-background { background-color: #0f1117 !important; }
+    html.dark .bg-surface-variant { background-color: #2d3250 !important; }
+    html.dark .hover\:bg-surface-variant\/50:hover { background-color: rgba(45,50,80,0.5) !important; }
   </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -140,7 +186,7 @@
 <!-- Top App Bar -->
 <header class="bg-surface sticky top-0 z-40 w-full shadow-sm flex items-center justify-between px-6 py-4">
 <div class="flex items-center gap-3">
-<span class="font-headline-md text-headline-md font-bold text-primary">CIVIS AI</span>
+<span class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</span>
 </div>
 <div class="flex items-center gap-4">
 <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors">
@@ -310,13 +356,31 @@
                 toggle.classList.remove('bg-primary');
                 toggle.classList.add('bg-surface-container-highest');
                 dot.style.transform = 'translateX(0px)';
+                localStorage.setItem('civis_dark_mode', 'false');
             } else {
                 html.classList.add('dark');
                 toggle.classList.remove('bg-surface-container-highest');
                 toggle.classList.add('bg-primary');
                 dot.style.transform = 'translateX(24px)';
+                localStorage.setItem('civis_dark_mode', 'true');
             }
         }
+
+        // Initialize theme UI toggle state
+        (function() {
+            const isDarkMode = localStorage.getItem('civis_dark_mode') === 'true';
+            const toggle = document.getElementById('darkModeToggle');
+            const dot = document.getElementById('toggleDot');
+            if (isDarkMode) {
+                toggle.classList.remove('bg-surface-container-highest');
+                toggle.classList.add('bg-primary');
+                dot.style.transform = 'translateX(24px)';
+            } else {
+                toggle.classList.remove('bg-primary');
+                toggle.classList.add('bg-surface-container-highest');
+                dot.style.transform = 'translateX(0px)';
+            }
+        })();
 
         // Add small interaction observers
         document.querySelectorAll('button').forEach(btn => {

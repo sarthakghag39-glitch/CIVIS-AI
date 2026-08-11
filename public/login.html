@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - CIVIS AI</title>
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link rel="stylesheet" href="dark-mode.css">
   <script>
     tailwind.config = {
       theme: {
@@ -24,8 +26,8 @@
             'on-surface': '#191c1e'
           },
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['Outfit', 'sans-serif']
+            sans: ['Poppins', 'sans-serif'],
+            display: ['Poppins', 'sans-serif']
           }
         }
       }
@@ -34,16 +36,27 @@
   <!-- Google Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Styles -->
   <style>
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Poppins', sans-serif;
       background-color: #f5f7fa;
       color: #191c1e;
+    }
+    /* Language-specific Devanagari Tweaks */
+    :lang(mr), :lang(hi), .lang-mr, .lang-hi {
+      font-family: 'Poppins', sans-serif !important;
+      line-height: 1.6 !important;
+    }
+    .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
+      font-weight: 500;
+    }
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined' !important;
     }
     .glass-panel {
       background: rgba(255, 255, 255, 0.7);
@@ -52,7 +65,8 @@
       border: 1px solid rgba(255, 255, 255, 0.4);
     }
     .font-display {
-      font-family: 'Outfit', sans-serif;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
     }
   </style>
 </head>

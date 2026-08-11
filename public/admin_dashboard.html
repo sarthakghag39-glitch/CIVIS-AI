@@ -1,9 +1,11 @@
-<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<!DOCTYPE html><html class="" lang="en" style=""><head>
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>CIVIS AI | Municipality Admin Dashboard</title>
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="dark-mode.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <script id="tailwind-config">
@@ -80,14 +82,15 @@
                         "margin": "32px"
                     },
                     "fontFamily": {
-                        "headline-md": ["Inter"],
-                        "body-md": ["Inter"],
-                        "label-md": ["Inter"],
-                        "headline-lg": ["Inter"],
-                        "body-lg": ["Inter"],
-                        "headline-lg-mobile": ["Inter"],
-                        "display-lg": ["Inter"],
-                        "label-sm": ["Inter"]
+                        "sans": ["Poppins", "sans-serif"],
+                        "headline-md": ["Poppins", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"],
+                        "label-md": ["Poppins", "sans-serif"],
+                        "headline-lg": ["Poppins", "sans-serif"],
+                        "body-lg": ["Poppins", "sans-serif"],
+                        "headline-lg-mobile": ["Poppins", "sans-serif"],
+                        "display-lg": ["Poppins", "sans-serif"],
+                        "label-sm": ["Poppins", "sans-serif"]
                     },
                     "fontSize": {
                         "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
@@ -104,14 +107,49 @@
         }
     </script>
 <style>
-        body { font-family: 'Inter', sans-serif; }
-        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { font-family: 'Poppins', sans-serif; }
+        /* Language-specific Devanagari Tweaks */
+        :lang(mr), :lang(hi), .lang-mr, .lang-hi {
+            font-family: 'Poppins', sans-serif !important;
+            line-height: 1.6 !important;
+        }
+        .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
+            font-weight: 500;
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
         .glass-effect { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.9); }
         .ambient-shadow { box-shadow: 0 4px 20px -2px hsla(220, 20%, 20%, 0.05); }
         .chart-bar-glow:hover { filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3)); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        /* ---- Dark Mode Inline Overrides ---- */
+        html.dark body { background-color: #0f1117 !important; color: #e2e4e9 !important; }
+        html.dark .glass-card { background: rgba(28, 32, 52, 0.9) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .glass-panel { background: rgba(28, 32, 52, 0.92) !important; border-color: rgba(52, 58, 80, 0.7) !important; }
+        html.dark .bg-surface-container-lowest { background-color: #1a1e2e !important; }
+        html.dark .bg-surface-container-low    { background-color: #141720 !important; }
+        html.dark .bg-surface-container        { background-color: #1c2030 !important; }
+        html.dark .bg-surface-container-high   { background-color: #222638 !important; }
+        html.dark .bg-surface-container-highest{ background-color: #2a2f45 !important; }
+        html.dark .bg-surface                  { background-color: #191c24 !important; }
+        html.dark .bg-white                    { background-color: #1a1e2e !important; }
+        html.dark .text-on-surface             { color: #e2e4e9 !important; }
+        html.dark .text-on-surface-variant     { color: #a8adc4 !important; }
+        html.dark .text-outline                { color: #6b7099 !important; }
+        html.dark .text-primary                { color: #60a5fa !important; }
+        html.dark .font-headline-md, html.dark .text-headline-md { color: #e2e4e9 !important; }
+        html.dark .font-headline-lg, html.dark .text-headline-lg { color: #e2e4e9 !important; }
+        html.dark h1, html.dark h2, html.dark h3, html.dark h4 { color: #e2e4e9 !important; }
+        html.dark p                            { color: #a8adc4 !important; }
+        html.dark .border-border-subtle        { border-color: rgba(52, 58, 80, 0.8) !important; }
+        html.dark header                       { background: rgba(25, 28, 36, 0.97) !important; }
+        html.dark nav.fixed                    { background: rgba(20, 23, 32, 0.97) !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #1c2030 !important; color: #e2e4e9 !important; border-color: rgba(52,58,80,0.8) !important; }
+        html.dark aside                        { background-color: #141720 !important; border-color: rgba(52,58,80,0.8) !important; }
     </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -119,7 +157,7 @@
 <!-- Navigation Drawer -->
 <aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
 <div class="px-6 mb-8">
-<h1 class="font-headline-md text-headline-md font-black text-primary">CIVIS AI</h1>
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
 </div>
 <nav class="flex-1 space-y-1">
 <a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-semibold rounded-lg mx-2 transition-all duration-200" href="admin_dashboard.html">
