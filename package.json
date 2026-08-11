@@ -2,6 +2,7 @@
   "name": "civis-ai-platform",
   "version": "1.0.0",
   "scripts": {
+    "build": "echo 'Building CIVIS AI Platform...'",
     "start": "serve public -l 3000"
   },
   "dependencies": {
