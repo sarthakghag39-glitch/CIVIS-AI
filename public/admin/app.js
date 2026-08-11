@@ -1430,6 +1430,15 @@ function initAdminDashboard() {
     renderAdminIssues();
   }
 
+  // Wire up the Search Bar
+  const searchInput = document.getElementById('admin-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase().trim();
+      filterAdminIssuesTable(query);
+    });
+  }
+
   // Wire up the CSV Export Button
   const exportBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Export'));
   if (exportBtn) {
@@ -1474,6 +1483,18 @@ function initAdminDashboard() {
       document.body.removeChild(link);
     });
   }
+}
+
+function filterAdminIssuesTable(query) {
+  const rows = document.querySelectorAll('table tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(query)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
 }
 
 async function renderAdminIssues() {
