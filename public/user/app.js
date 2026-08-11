@@ -867,21 +867,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  // Admin Quick Redirect Shortcut Pill in Headers
-  if (isAdminUser() && !window.location.pathname.includes('admin_dashboard')) {
-    const headerRight = document.querySelector('header .flex.items-center.gap-4, header .flex.items-center.gap-2, header div.flex.items-center.gap-4');
-    if (headerRight && !document.getElementById('header-admin-btn')) {
-      const adminLink = document.createElement('a');
-      adminLink.id = 'header-admin-btn';
-      adminLink.href = '/admin_dashboard.html';
-      adminLink.className = 'flex items-center gap-1 px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs font-semibold hover:bg-primary/20 transition-colors mr-2';
-      adminLink.innerHTML = `
-        <span class="material-symbols-outlined text-[16px]">admin_panel_settings</span>
-        Admin Portal
-      `;
-      headerRight.insertBefore(adminLink, headerRight.firstChild);
-    }
-  }
+  // Admin Quick Redirect Shortcut Pill in Headers removed for user portal
 
   // Back Button Wire-up
   const backBtn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('arrow_back') || b.querySelector('.material-symbols-outlined')?.textContent.trim() === 'arrow_back');
@@ -1560,31 +1546,7 @@ async function initProfilePage() {
     console.warn("Could not calculate dynamic user stats:", err);
   }
 
-  // Inject Admin Portal Shortcut to Settings if user has Admin Privileges
-  if (isAdminUser()) {
-    const settingsSection = document.querySelector('main section.bg-surface-container-lowest');
-    if (settingsSection && !document.getElementById('profile-admin-shortcut')) {
-      const adminBtn = document.createElement('button');
-      adminBtn.id = 'profile-admin-shortcut';
-      adminBtn.className = 'w-full flex items-center justify-between p-5 hover:bg-primary/5 transition-colors group text-primary font-bold';
-      adminBtn.innerHTML = `
-        <div class="flex items-center gap-4">
-          <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">admin_panel_settings</span>
-          <span class="font-body-md text-body-md text-primary">Admin Portal</span>
-        </div>
-        <span class="material-symbols-outlined text-primary">chevron_right</span>
-      `;
-      adminBtn.addEventListener('click', () => {
-        window.location.href = '/admin_dashboard.html';
-      });
-      settingsSection.insertBefore(adminBtn, settingsSection.firstChild);
-      
-      const divider = document.createElement('div');
-      divider.id = 'profile-admin-divider';
-      divider.className = 'mx-5 h-px bg-border-subtle';
-      settingsSection.insertBefore(divider, settingsSection.children[1]);
-    }
-  }
+  // Admin Portal Shortcut to Settings removed for user portal
 
   // Setup Edit Profile Button Click Handler
   const editProfileBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Edit Profile'));
