@@ -255,10 +255,10 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
 <span class="material-symbols-outlined">forum</span>
 </div>
-<span class="text-success text-[12px] font-bold">+12% vs LW</span>
+<span class="text-success text-[12px] font-bold" id="stat-total-percent">+0% vs LW</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Total Complaints</p>
-<h4 class="text-display-lg font-display-lg text-on-surface mt-1">1,248</h4>
+<h4 class="text-display-lg font-display-lg text-on-surface mt-1" id="stat-total-complaints">0</h4>
 </div>
 <!-- Card 2 -->
 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-critical/30 transition-all">
@@ -266,10 +266,10 @@
 <div class="p-3 rounded-xl bg-error-container text-on-error-container group-hover:bg-critical group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">warning</span>
 </div>
-<span class="text-critical text-[12px] font-bold">+4 Today</span>
+<span class="text-critical text-[12px] font-bold" id="stat-critical-today">+0 Today</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Critical Issues</p>
-<h4 class="text-display-lg font-display-lg text-critical mt-1">42</h4>
+<h4 class="text-display-lg font-display-lg text-critical mt-1" id="stat-critical-issues">0</h4>
 </div>
 <!-- Card 3 -->
 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-success/30 transition-all">
@@ -277,10 +277,10 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-success group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">check_circle</span>
 </div>
-<span class="text-success text-[12px] font-bold">88% Efficiency</span>
+<span class="text-success text-[12px] font-bold" id="stat-efficiency-percent">0% Efficiency</span>
 </div>
-<p class="text-outline font-label-md text-label-md">Resolved Today</p>
-<h4 class="text-display-lg font-display-lg text-success mt-1">156</h4>
+<p class="text-outline font-label-md text-label-md">Resolved Cases</p>
+<h4 class="text-display-lg font-display-lg text-success mt-1" id="stat-resolved-cases">0</h4>
 </div>
 <!-- Card 4 -->
 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow group hover:border-warning/30 transition-all">
@@ -288,10 +288,10 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-warning group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">schedule</span>
 </div>
-<span class="text-outline text-[12px] font-bold">Avg 2.4 days</span>
+<span class="text-outline text-[12px] font-bold" id="stat-avg-days">Avg 1.2 days</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Pending Cases</p>
-<h4 class="text-display-lg font-display-lg text-on-surface mt-1">850</h4>
+<h4 class="text-display-lg font-display-lg text-on-surface mt-1" id="stat-pending-cases">0</h4>
 </div>
 </div>
 <!-- Analytics Section: Bento Grid -->
@@ -306,37 +306,37 @@
 <div class="space-y-2">
 <div class="flex justify-between text-label-md font-medium">
 <span class="">Roads &amp; Potholes</span>
-<span class="text-on-surface-variant">420</span>
+<span class="text-on-surface-variant" id="cat-roads-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-primary rounded-full" style="width: 75%"></div>
+<div class="h-full bg-primary rounded-full transition-all duration-500" id="cat-roads-bar" style="width: 0%"></div>
 </div>
 </div>
 <div class="space-y-2">
 <div class="flex justify-between text-label-md font-medium">
 <span class="">Sanitation</span>
-<span class="text-on-surface-variant">310</span>
+<span class="text-on-surface-variant" id="cat-garbage-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-secondary rounded-full" style="width: 55%"></div>
+<div class="h-full bg-secondary rounded-full transition-all duration-500" id="cat-garbage-bar" style="width: 0%"></div>
 </div>
 </div>
 <div class="space-y-2">
 <div class="flex justify-between text-label-md font-medium">
 <span class="">Street Lighting</span>
-<span class="text-on-surface-variant">240</span>
+<span class="text-on-surface-variant" id="cat-lighting-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-warning rounded-full" style="width: 40%"></div>
+<div class="h-full bg-warning rounded-full transition-all duration-500" id="cat-lighting-bar" style="width: 0%"></div>
 </div>
 </div>
 <div class="space-y-2">
 <div class="flex justify-between text-label-md font-medium">
 <span class="">Water Leakage</span>
-<span class="text-on-surface-variant">158</span>
+<span class="text-on-surface-variant" id="cat-water-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-<div class="h-full bg-accent-gradient-end rounded-full" style="width: 30%"></div>
+<div class="h-full bg-accent-gradient-end rounded-full transition-all duration-500" id="cat-water-bar" style="width: 0%"></div>
 </div>
 </div>
 </div>
