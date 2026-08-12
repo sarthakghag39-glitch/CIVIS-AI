@@ -1466,7 +1466,7 @@ async function renderComplaintsList() {
               <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${issue.title}</h3>
               <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality}</span>
             </div>
-            <p class="font-label-sm text-label-sm text-outline">${issue.date} • ${issue.location} • By ${issue.reported_by || 'Anonymous'}</p>
+            <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">CIV-2026-${String(issue.id).padStart(5, '0')}</span> • ${issue.date} • ${issue.location} • By ${issue.reported_by || 'Anonymous'}</p>
           </div>
           <div class="flex items-center gap-2">
             <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${issue.status}</span>
@@ -1734,7 +1734,7 @@ async function renderAdminIssues() {
           </div>
           <div>
             <p class="font-label-md text-label-md font-bold text-on-surface">${issue.title}</p>
-            <p class="text-[12px] text-on-surface-variant">ID: #${issue.id}</p>
+            <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: CIV-2026-${String(issue.id).padStart(5, '0')}</p>
           </div>
         </div>
       </td>
