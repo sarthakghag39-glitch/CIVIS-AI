@@ -1385,6 +1385,43 @@ function initEmergencyPage() {
       openDialerModal(serviceName);
     });
   });
+
+  // Fetch real geolocation address details
+  const locEl = document.getElementById('gps-location-text');
+  if (locEl && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(async (position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+        const data = await response.json();
+        if (data && data.display_name) {
+          const addr = data.address;
+          const suburb = addr.suburb || addr.neighbourhood || addr.village || addr.subdivision || '';
+          const city = addr.city || addr.town || addr.municipality || '';
+          const state = addr.state || '';
+          
+          let formattedLoc = '';
+          if (suburb) formattedLoc += suburb + ', ';
+          if (city) formattedLoc += city;
+          if (state) formattedLoc += (formattedLoc ? ', ' : '') + state;
+          
+          if (!formattedLoc) {
+            formattedLoc = data.display_name.split(',').slice(0, 3).join(', ');
+          }
+          locEl.innerText = formattedLoc;
+        } else {
+          locEl.innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        }
+      } catch (err) {
+        console.error("Reverse geocoding failed:", err);
+        locEl.innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      }
+    }, (error) => {
+      console.warn("Geolocation access denied or failed:", error);
+    });
+  }
 }
 
 // --- 7. Admin Dashboard Handler ---
