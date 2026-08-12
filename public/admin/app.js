@@ -1235,11 +1235,29 @@ async function initMapPage() {
 
   const urlParams = new URLSearchParams(window.location.search);
   const focusId = urlParams.get('focus');
-  if (focusId) {
+  const latParam = urlParams.get('lat');
+  const lngParam = urlParams.get('lng');
+
+  if (latParam && lngParam) {
+    setTimeout(() => {
+      const latVal = parseFloat(latParam);
+      const lngVal = parseFloat(lngParam);
+      leafletMap.setView([latVal, lngVal], 16);
+      
+      // Auto open popup for matching marker
+      const targetMarker = mapMarkers.find(m => {
+        const latlng = m.getLatLng();
+        return Math.abs(latlng.lat - latVal) < 0.0001 && Math.abs(latlng.lng - lngVal) < 0.0001;
+      });
+      if (targetMarker) targetMarker.openPopup();
+    }, 1000);
+  } else if (focusId) {
     setTimeout(() => {
       const issue = cachedIssues.find(i => i.id == focusId);
       if (issue) {
         leafletMap.setView([issue.lat, issue.lng], 16);
+        const targetMarker = mapMarkers.find(m => m.issue && m.issue.id == focusId);
+        if (targetMarker) targetMarker.openPopup();
       }
     }, 1000);
   }
@@ -1288,6 +1306,92 @@ async function renderMapMarkers() {
     marker.issue = issue;
     mapMarkers.push(marker);
   });
+
+  // Add Social Pulse Mock Markers
+  const socialIncidents = [
+    {
+      id: "CIV-PUN-KOT-001",
+      title: "Pothole",
+      location: "Kothrud Bus Stop",
+      sources: 18,
+      severity: "Critical",
+      confidence: 96,
+      lat: 18.5074,
+      lng: 73.8077,
+      description: "Multiple public social signals indicate a potentially hazardous pothole near Kothrud Bus Stop."
+    },
+    {
+      id: "CIV-PUN-BAN-002",
+      title: "Garbage",
+      location: "Baner Road",
+      sources: 11,
+      severity: "High",
+      confidence: 94,
+      lat: 18.5590,
+      lng: 73.7925,
+      description: "Garbage has not been collected near Baner Road for the last three days."
+    }
+  ];
+
+  socialIncidents.forEach(incident => {
+    const marker = L.circleMarker([incident.lat, incident.lng], {
+      radius: 12,
+      fillColor: '#8B5CF6',
+      color: '#ffffff',
+      weight: 3,
+      fillOpacity: 0.9
+    }).addTo(leafletMap);
+
+    const popupContent = `
+      <div class="p-2" style="font-family: 'Inter', sans-serif; color: #191c1e; min-width: 220px;">
+        <div class="flex justify-between items-center gap-4 mb-1">
+          <span style="font-weight: bold; font-size: 13px;">CIVIS SOCIAL INCIDENT</span>
+          <span class="px-2 py-0.5 text-[9px] font-bold rounded bg-purple-100 text-purple-800">Social Signal</span>
+        </div>
+        <p style="font-size: 11px; margin: 0 0 4px 0; color: #737686;"><b>Issue:</b> ${incident.title}</p>
+        <p style="font-size: 11px; margin: 0 0 4px 0; color: #737686;"><b>Location:</b> ${incident.location}</p>
+        <p style="font-size: 11px; margin: 0 0 4px 0; color: #737686;"><b>Sources:</b> ${incident.sources} social signals</p>
+        <p style="font-size: 11px; margin: 0 0 8px 0; color: #737686;"><b>AI Confidence:</b> ${incident.confidence}%</p>
+        <div style="font-size: 11px; font-weight: 600; color: ${incident.severity === 'Critical' ? '#EF4444' : '#F59E0B'}; margin-bottom: 8px;">Severity: ${incident.severity} (Needs Verification)</div>
+        <div style="display: flex; gap: 8px; margin-top: 8px;">
+          <button onclick="window.location.href='/social_pulse.html?incident=${incident.id}'" style="padding: 4px 8px; background: #8B5CF6; color: white; border: none; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; border-bottom: 2px solid rgba(0,0,0,0.15);">View Signals</button>
+          <button onclick="convertSocialPulseToComplaint('${incident.title}', '${incident.location}, Pune', '${incident.severity}', ${incident.sources}, ${incident.confidence}, 'Road Maintenance', '${incident.description}', ${incident.lat}, ${incident.lng})" style="padding: 4px 8px; background: #22C55E; color: white; border: none; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; border-bottom: 2px solid rgba(0,0,0,0.15);">Create Complaint</button>
+        </div>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
+    marker.issue = { category: 'Social Signal', title: incident.title };
+    mapMarkers.push(marker);
+  });
+}
+
+window.convertSocialPulseToComplaint = async function(title, location, criticality, supportingSignals, confidence, department, description, lat, lng) {
+  const newIssue = {
+    title: `${title} - ${location.split(',')[0]} (Social Pulse)`,
+    category: title === 'Pothole' ? 'Road Damage' : title === 'Garbage' ? 'Garbage' : title === 'Streetlight' ? 'Streetlights' : 'Water Leakage',
+    location: location,
+    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    status: "Pending Verification",
+    progress: 0,
+    criticality: criticality,
+    description: `[Social Intelligence Report: ${supportingSignals} signals clustered, ${confidence}% confidence]\n${description}`,
+    lat: lat,
+    lng: lng,
+    reported_by: "Social Pulse",
+    reported_by_email: "social-pulse@civis.ai",
+    reported_by_phone: "N/A"
+  };
+
+  const { data, error } = await supabaseClient.from('issues').insert([newIssue]);
+  if (error) {
+    alert(`Error creating complaint: ${error.message}`);
+  } else {
+    alert(`Civic complaint created successfully from Social Pulse!\nStatus: Pending Verification`);
+    if (typeof renderMapMarkers !== 'undefined') {
+      await renderMapMarkers();
+    }
+  }
 }
 
 function filterMapMarkers(category) {

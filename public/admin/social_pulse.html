@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>CIVIS AI - Social Pulse</title>
+    <link rel="stylesheet" href="/dark-mode.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "error-container": "#ffdad6",
+                        "primary-container": "#2563eb",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "critical": "#EF4444",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Poppins", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f7f9fb;
+        }
+        html.dark body {
+            background-color: #0f1117 !important;
+            color: #e2e4e9 !important;
+        }
+        html.dark .bg-card-bg {
+            background-color: #1a1e2e !important;
+        }
+        html.dark .border-border-subtle {
+            border-color: rgba(52, 58, 80, 0.8) !important;
+        }
+        html.dark aside {
+            background-color: #141720 !important;
+            border-color: rgba(52, 58, 80, 0.8) !important;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-background text-on-surface">
+
+    <!-- Navigation Drawer -->
+    <aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-8 gap-unit z-50">
+        <div class="px-6 mb-8">
+            <h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800; font-size: 24px; color: #2563eb;">CIVIS AI</h1>
+        </div>
+        <nav class="flex-1 space-y-1">
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span class="font-label-md text-label-md">Dashboard</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/smart_map.html" id="nav-map">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="font-label-md text-label-md">Live Map</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/social_pulse.html" id="nav-social-pulse">
+                <span class="material-symbols-outlined">radar</span>
+                <span class="font-label-md text-label-md">Social Pulse</span>
+                <span class="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">New</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/my_complaints.html" id="nav-issues">
+                <span class="material-symbols-outlined">assignment</span>
+                <span class="font-label-md text-label-md">Citizen Issues</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/ai_analysis.html" id="nav-analytics">
+                <span class="material-symbols-outlined">psychology</span>
+                <span class="font-label-md text-label-md">AI Analytics</span>
+            </a>
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/system_health.html" id="nav-health">
+                <span class="material-symbols-outlined">settings_heart</span>
+                <span class="font-label-md text-label-md">System Health</span>
+            </a>
+        </nav>
+        <div class="mt-auto px-2 space-y-1">
+            <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/profile.html" id="nav-settings">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="font-label-md text-label-md">Settings</span>
+            </a>
+            <div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
+                        <img class="w-full h-full object-cover" data-alt="..." src="/profile_photo.jpg">
+                    </div>
+                    <div>
+                        <p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
+                        <p class="text-[10px] font-semibold text-primary uppercase tracking-wider">PUNE CITY</p>
+                    </div>
+                </div>
+                <div class="mt-3 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-success"></span>
+                    <span class="text-[11px] text-on-surface-variant font-medium">System Online</span>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="ml-64 min-h-screen flex flex-col pb-16">
+        <!-- TopAppBar -->
+        <header class="sticky top-0 z-40 w-full bg-surface/90 border-b border-border-subtle px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-8 flex-1">
+                <h2 class="font-headline-md text-headline-md text-primary font-bold text-2xl">Social Pulse</h2>
+                <div class="flex items-center gap-2">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                    </span>
+                    <span class="text-[12px] font-bold text-success uppercase tracking-wider">Demo Feed Active</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="px-4 py-2 bg-primary/15 text-primary text-xs font-bold rounded-xl border border-primary/20 hover:bg-primary/20 transition-all flex items-center gap-2" id="btn-simulate">
+                    <span class="material-symbols-outlined text-[16px] animate-pulse">add_circle</span>
+                    Simulate Signal
+                </button>
+                <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-high border border-border-subtle hover:bg-surface-variant/50 transition-colors" id="btn-refresh">
+                    <span class="material-symbols-outlined text-on-surface-variant">refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="px-8 py-6 space-y-8 max-w-[1440px] mx-auto w-full">
+            <!-- Hero Description Card -->
+            <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-[#8B5CF6] p-[1px] shadow-lg">
+                <div class="bg-card-bg rounded-[15px] p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-3xl">radar</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-on-surface">Hear what the city is saying.</h3>
+                            <p class="text-sm text-outline mt-1 leading-relaxed">
+                                Monitor public social media signals (X, Instagram, Facebook, News) and use AI duplicate clustering to map, filter, and convert crowdsourced public intelligence into verified civic tickets.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-[#8B5CF6]/30 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-[#8B5CF6]/10 text-[#8B5CF6]">
+                            <span class="material-symbols-outlined">rss_feed</span>
+                        </div>
+                        <span class="text-success text-xs font-bold">+18% today</span>
+                    </div>
+                    <span class="text-outline text-xs font-semibold uppercase tracking-wider">Social Signals</span>
+                    <h4 class="text-4xl font-extrabold text-on-surface mt-1" id="kpi-signals">47</h4>
+                </div>
+                <!-- Card 2 -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-warning/30 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-warning/10 text-warning">
+                            <span class="material-symbols-outlined">warning</span>
+                        </div>
+                        <span class="text-critical text-xs font-bold">6 critical</span>
+                    </div>
+                    <span class="text-outline text-xs font-semibold uppercase tracking-wider">Civic Issues Detected</span>
+                    <h4 class="text-4xl font-extrabold text-warning mt-1" id="kpi-issues">18</h4>
+                </div>
+                <!-- Card 3 -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-primary/30 transition-all">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-primary/10 text-primary">
+                            <span class="material-symbols-outlined">pin_drop</span>
+                        </div>
+                        <span class="text-outline text-xs font-bold">Across Pune</span>
+                    </div>
+                    <span class="text-outline text-xs font-semibold uppercase tracking-wider">Locations Identified</span>
+                    <h4 class="text-4xl font-extrabold text-primary mt-1" id="kpi-locations">12</h4>
+                </div>
+                <!-- Card 4 (Duplicate Clustering) -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-success/30 transition-all relative overflow-hidden">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="p-3 rounded-xl bg-success/10 text-success">
+                            <span class="material-symbols-outlined">layers</span>
+                        </div>
+                        <span class="text-success text-xs font-bold">88% reduction</span>
+                    </div>
+                    <span class="text-outline text-xs font-semibold uppercase tracking-wider">Incidents Clustered</span>
+                    <h4 class="text-4xl font-extrabold text-success mt-1" id="kpi-clustered">8</h4>
+                </div>
+            </div>
+
+            <!-- Bento Row: Signal Sources + Duplicate Clustering Breakdown -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Platform Sources breakdown -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-base font-bold text-on-surface mb-1">Social Signal Sources</h4>
+                        <p class="text-xs text-outline mb-6">Distribution across public monitoring hooks</p>
+                        
+                        <div class="space-y-4">
+                            <!-- X -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="flex items-center gap-1.5"><span class="text-[#1da1f2] font-bold">🐦 X (Twitter)</span></span>
+                                    <span class="text-on-surface-variant">21 signals</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#1da1f2]" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <!-- Instagram -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="flex items-center gap-1.5"><span class="text-[#e1306c] font-bold">📸 Instagram</span></span>
+                                    <span class="text-on-surface-variant">14 signals</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#e1306c]" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            <!-- Facebook -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="flex items-center gap-1.5"><span class="text-[#1877f2] font-bold">👥 Facebook</span></span>
+                                    <span class="text-on-surface-variant">7 signals</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div class="h-full bg-[#1877f2]" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <!-- News/Web -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="flex items-center gap-1.5"><span class="text-outline font-bold">📰 News / Web</span></span>
+                                    <span class="text-on-surface-variant">5 signals</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
+                                    <div class="h-full bg-outline" style="width: 10%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- One Incident Many Signals concept -->
+                <div class="lg:col-span-2 bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h4 class="text-base font-bold text-[#8B5CF6] mb-1">Key Differentiator: One Incident. Many Signals.</h4>
+                        <p class="text-xs text-outline mb-6">CIVIS AI automatically clusters duplicate public social signals into unique, manageable incidents.</p>
+                        
+                        <!-- Visual Pipeline diagram -->
+                        <div class="grid grid-cols-5 gap-3 items-center text-center">
+                            <div class="p-3 bg-surface-container-low border border-border-subtle rounded-xl flex flex-col items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[#1da1f2] text-xl">forum</span>
+                                <span class="text-[10px] font-bold text-outline">X Posts</span>
+                            </div>
+                            <div class="text-outline text-lg font-bold">+</div>
+                            <div class="p-3 bg-surface-container-low border border-border-subtle rounded-xl flex flex-col items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[#e1306c] text-xl">photo_camera</span>
+                                <span class="text-[10px] font-bold text-outline">Instagram</span>
+                            </div>
+                            <div class="text-outline text-lg font-bold">➔</div>
+                            <div class="p-3 bg-[#8B5CF6]/15 border border-[#8B5CF6]/20 rounded-xl flex flex-col items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[#8B5CF6] text-xl">layers</span>
+                                <span class="text-[10px] font-bold text-[#8B5CF6]">1 Incident</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle text-xs text-on-surface-variant leading-relaxed">
+                            <strong>How it works:</strong> CIVIS AI ingests noisy social streams, parses context and descriptions, uses location coordinates/names to extract physical coordinates, matches reports within 100 meters, and clusters them. This prevents dispatching multiple crew resources to resolve the same pothole or streetlight error.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emerging Civic Incidents (Clustered Incidents Panel) -->
+            <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-border-subtle flex justify-between items-center">
+                    <h4 class="text-lg font-bold text-on-surface">Emerging Civic Incidents (Active Clusters)</h4>
+                    <span class="text-[11px] font-bold text-[#8B5CF6] px-2 py-0.5 bg-[#8B5CF6]/10 rounded-full">Requires verification</span>
+                </div>
+                <div class="divide-y divide-border-subtle" id="incident-clusters-body">
+                    <!-- Incident 1 -->
+                    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group" id="cluster-CIV-PUN-KOT-001">
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-critical/10 text-critical rounded-xl shrink-0">
+                                <span class="material-symbols-outlined text-2xl">layers</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h5 class="font-bold text-on-surface">Kothrud Bus Stop Pothole Damage</h5>
+                                    <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">CIV-PUN-KOT-001</span>
+                                </div>
+                                <p class="text-xs text-outline mt-1 font-medium">Clustered: 18 public social signals (X: 10, Instagram: 5, Facebook: 3)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
+                            <span class="px-2.5 py-1 bg-error-container text-error text-xs font-bold rounded-full">Critical</span>
+                            <span class="text-xs font-semibold text-outline">AI: 96% confidence</span>
+                            <button onclick="focusIncidentOnMap(18.5074, 73.8077)" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>
+                        </div>
+                    </div>
+
+                    <!-- Incident 2 -->
+                    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group" id="cluster-CIV-PUN-BAN-002">
+                        <div class="flex items-start gap-4">
+                            <div class="p-3 bg-warning/10 text-warning rounded-xl shrink-0">
+                                <span class="material-symbols-outlined text-2xl">layers</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h5 class="font-bold text-on-surface">Baner Road Garbage Accumulation</h5>
+                                    <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">CIV-PUN-BAN-002</span>
+                                </div>
+                                <p class="text-xs text-outline mt-1 font-medium">Clustered: 11 public social signals (X: 6, Instagram: 3, Facebook: 2)</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
+                            <span class="px-2.5 py-1 bg-[#ffede6] text-warning text-xs font-bold rounded-full">High</span>
+                            <span class="text-xs font-semibold text-outline">AI: 94% confidence</span>
+                            <button onclick="focusIncidentOnMap(18.5590, 73.7925)" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed Section -->
+            <div class="space-y-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <h3 class="text-lg font-bold text-on-surface">Live Social Signals Feed</h3>
+                    <div class="flex items-center gap-3">
+                        <input class="px-4 py-2 bg-surface-container-high border border-border-subtle rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 w-64" id="search-location" placeholder="Search location..." type="text">
+                        <select class="px-4 py-2 bg-surface-container-high border border-border-subtle rounded-xl text-xs font-semibold outline-none" id="filter-platform">
+                            <option value="All">All Platforms</option>
+                            <option value="X">X (Twitter)</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="News">News/Web</option>
+                        </select>
+                        <select class="px-4 py-2 bg-surface-container-high border border-border-subtle rounded-xl text-xs font-semibold outline-none" id="filter-category">
+                            <option value="All">All Categories</option>
+                            <option value="Pothole">Pothole</option>
+                            <option value="Garbage">Garbage</option>
+                            <option value="Streetlight">Streetlights</option>
+                            <option value="Water Leakage">Water Leakage</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Feed Cards List -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="feed-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- AI Analysis Modal (Bottom/Right Drawer) -->
+    <div class="fixed inset-0 z-50 hidden flex items-center justify-end px-4" id="analysisModal">
+        <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="closeModal('analysisModal')"></div>
+        <div class="relative bg-card-bg w-full max-w-lg h-full p-8 shadow-2xl overflow-y-auto flex flex-col justify-between transition-transform duration-300 translate-x-full" id="analysisModalContent">
+            <div>
+                <div class="flex justify-between items-center pb-4 border-b border-border-subtle mb-6">
+                    <h3 class="font-headline-md text-lg font-bold text-on-surface flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">psychology</span>
+                        AI Civic Analysis
+                    </h3>
+                    <button class="material-symbols-outlined text-outline hover:text-on-surface" onclick="closeModal('analysisModal')">close</button>
+                </div>
+                <div class="space-y-5" id="analysis-details">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+            <div class="pt-6 border-t border-border-subtle mt-6 flex gap-3">
+                <button class="flex-1 py-3 border border-border-subtle rounded-xl font-bold text-xs hover:bg-surface-variant transition-colors" onclick="closeModal('analysisModal')">Dismiss</button>
+                <button class="flex-grow-[2] py-3 bg-[#22C55E] text-white rounded-xl font-bold text-xs hover:opacity-90 active:scale-95 transition-all shadow-md" id="btn-convert-complaint">Convert to Complaint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Complaint Confirmation Modal -->
+    <div class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4" id="confirmModal">
+        <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="closeModal('confirmModal')"></div>
+        <div class="relative bg-card-bg w-full max-w-md p-6 rounded-2xl border border-border-subtle shadow-2xl flex flex-col gap-4 scale-95 transition-transform duration-300" id="confirmModalContent">
+            <h3 class="font-bold text-lg text-on-surface">Convert Social Signal to Civic Complaint</h3>
+            <div class="space-y-3 text-xs leading-relaxed text-on-surface-variant bg-surface-container-low p-4 rounded-xl border border-border-subtle" id="confirm-details">
+                <!-- Dynamic details -->
+            </div>
+            <div class="flex gap-3 justify-end mt-4">
+                <button class="px-4 py-2 border border-border-subtle rounded-xl text-xs font-semibold hover:bg-surface-variant transition-colors" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="px-5 py-2 bg-[#22C55E] text-white rounded-xl text-xs font-bold hover:opacity-90 transition-all active:scale-95" id="btn-confirm-submit">Create Complaint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="fixed inset-0 z-[70] hidden flex items-center justify-center px-4" id="successModal">
+        <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-md"></div>
+        <div class="relative bg-card-bg w-full max-w-sm p-8 rounded-3xl border border-border-subtle shadow-2xl flex flex-col items-center text-center gap-4 scale-95 transition-transform duration-300" id="successModalContent">
+            <div class="w-16 h-16 bg-success/10 text-success rounded-full flex items-center justify-center">
+                <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            </div>
+            <h3 class="font-bold text-lg text-on-surface">Complaint Created Successfully</h3>
+            <div class="text-xs text-outline leading-normal" id="success-details">
+                <!-- ID info -->
+            </div>
+            <button class="w-full py-3 bg-primary text-white font-bold rounded-xl text-xs hover:opacity-90 transition-colors" onclick="closeModal('successModal'); window.location.href='/my_complaints.html';">View in My Complaints</button>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+    <script>
+        // Mock data
+        const mockSignals = [
+            {
+                id: "SOC-001",
+                platform: "X",
+                username: "@punecitizen24",
+                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=pune1",
+                timestamp: "12 minutes ago",
+                content: "Massive pothole near Kothrud bus stop. Two bikes almost slipped here today. Someone please fix this before there is an accident.",
+                issueType: "Pothole",
+                category: "Road Infrastructure",
+                location: "Kothrud Bus Stop, Pune",
+                latitude: 18.5074,
+                longitude: 73.8077,
+                severity: "Critical",
+                aiConfidence: 96,
+                sentiment: "Negative",
+                supportingSignals: 18,
+                clusterId: "CIV-PUN-KOT-001",
+                status: "Clustered",
+                department: "Road Maintenance",
+                recommendedAction: "Priority inspection and patch works required",
+                engagement: 18
+            },
+            {
+                id: "SOC-002",
+                platform: "Instagram",
+                username: "@citywatch_pune",
+                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=citywatch",
+                timestamp: "45 minutes ago",
+                content: "Garbage has not been collected near Baner Road for the last three days. The area is becoming unhygienic.",
+                issueType: "Garbage",
+                category: "Waste Management",
+                location: "Baner Road, Pune",
+                latitude: 18.5590,
+                longitude: 73.7925,
+                severity: "High",
+                aiConfidence: 94,
+                sentiment: "Negative",
+                supportingSignals: 11,
+                clusterId: "CIV-PUN-BAN-002",
+                status: "Clustered",
+                department: "Sanitation",
+                recommendedAction: "Dispatch waste collection truck",
+                engagement: 22
+            },
+            {
+                id: "SOC-003",
+                platform: "X",
+                username: "@puneresident",
+                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=resident",
+                timestamp: "1 hour ago",
+                content: "Streetlight has been broken outside the school on FC Road for almost a week. Very dark after 8 PM.",
+                issueType: "Streetlight",
+                category: "Electrical Infrastructure",
+                location: "FC Road, Pune",
+                latitude: 18.5244,
+                longitude: 73.8413,
+                severity: "High",
+                aiConfidence: 91,
+                sentiment: "Negative",
+                supportingSignals: 7,
+                clusterId: "CIV-PUN-FC-003",
+                status: "New",
+                department: "Electrical",
+                recommendedAction: "Replace light fixture",
+                engagement: 14
+            },
+            {
+                id: "SOC-004",
+                platform: "Facebook",
+                username: "@aundh_community",
+                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=aundh",
+                timestamp: "2 hours ago",
+                content: "Water is leaking continuously near Aundh IT Park. Road is getting flooded.",
+                issueType: "Water Leakage",
+                category: "Utility Issues",
+                location: "Aundh IT Park, Pune",
+                latitude: 18.5596,
+                longitude: 73.8054,
+                severity: "Critical",
+                aiConfidence: 97,
+                sentiment: "Negative",
+                supportingSignals: 23,
+                clusterId: "CIV-PUN-AUN-004",
+                status: "Clustered",
+                department: "Water Supply",
+                recommendedAction: "Inspect pipeline leak",
+                engagement: 36
+            },
+            {
+                id: "SOC-005",
+                platform: "News",
+                username: "@punenews_alert",
+                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=news",
+                timestamp: "3 hours ago",
+                content: "Heavy waterlogging reported on major Pune road after drainage failure near FC Road.",
+                issueType: "Water Leakage",
+                category: "Drainage",
+                location: "FC Road, Pune",
+                latitude: 18.5244,
+                longitude: 73.8413,
+                severity: "High",
+                aiConfidence: 89,
+                sentiment: "Negative",
+                supportingSignals: 8,
+                clusterId: "CIV-PUN-FC-005",
+                status: "New",
+                department: "Drainage & Sewerage",
+                recommendedAction: "Clear blockage",
+                engagement: 45
+            }
+        ];
+
+        let activeTargetSignal = null;
+
+        // Render loop
+        function renderFeed() {
+            const container = document.getElementById('feed-container');
+            if (!container) return;
+
+            const searchVal = document.getElementById('search-location').value.toLowerCase().trim();
+            const platformVal = document.getElementById('filter-platform').value;
+            const categoryVal = document.getElementById('filter-category').value;
+
+            container.innerHTML = '';
+
+            const filtered = mockSignals.filter(s => {
+                const matchesSearch = s.location.toLowerCase().includes(searchVal) || s.content.toLowerCase().includes(searchVal);
+                const matchesPlatform = platformVal === 'All' || s.platform === platformVal;
+                const matchesCategory = categoryVal === 'All' || s.issueType === categoryVal;
+                return matchesSearch && matchesPlatform && matchesCategory;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-outline">
+                        <span class="material-symbols-outlined text-4xl opacity-50 mb-2">forum</span>
+                        <p class="text-xs font-semibold">No social signals found matching the filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(s => {
+                const card = document.createElement('div');
+                card.className = `bg-card-bg border border-border-subtle rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/20 hover:scale-[1.01] transition-all duration-200`;
+                
+                let platBadge = ``;
+                if (s.platform === 'X') platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1da1f2]/10 text-[#1da1f2]">🐦 X</span>`;
+                else if (s.platform === 'Instagram') platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#e1306c]/10 text-[#e1306c]">📸 Instagram</span>`;
+                else if (s.platform === 'Facebook') platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1877f2]/10 text-[#1877f2]">👥 Facebook</span>`;
+                else platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-outline/10 text-outline">📰 News</span>`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container/10 border border-border-subtle">
+                                <img src="${s.avatar}" alt="User" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <p class="font-bold text-xs text-on-surface">${s.username}</p>
+                                <p class="text-[10px] text-outline">${s.timestamp} • ${platBadge}</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full ${s.severity === 'Critical' ? 'bg-error-container text-error' : 'bg-[#ffede6] text-warning'}">${s.severity}</span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">"${s.content}"</p>
+                    <div class="grid grid-cols-2 gap-3 text-[11px] text-outline font-semibold bg-surface-container-low border border-border-subtle/50 p-3 rounded-xl">
+                        <div>Issue: <span class="text-on-surface">${s.issueType}</span></div>
+                        <div>Confidence: <span class="text-on-surface">${s.aiConfidence}%</span></div>
+                        <div class="col-span-2">Location: <span class="text-on-surface">${s.location}</span></div>
+                        <div class="col-span-2 text-[#8B5CF6]">Cluster ID: ${s.clusterId} (${s.supportingSignals} similar signals)</div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-border-subtle/50 pt-4 mt-2">
+                        <span class="text-[11px] text-outline font-bold">♥ ${s.engagement} supporting signals</span>
+                        <div class="flex gap-2">
+                            <button onclick="focusIncidentOnMap(${s.latitude}, ${s.longitude})" class="px-3 py-1.5 bg-surface-container-high border border-border-subtle rounded-lg text-[10px] font-bold hover:bg-surface-variant transition-colors">Map</button>
+                            <button onclick="openAnalysis('${s.id}')" class="px-3 py-1.5 bg-[#8B5CF6]/10 text-[#8B5CF6] rounded-lg text-[10px] font-bold hover:bg-[#8B5CF6]/20 transition-colors">Analysis</button>
+                            <button onclick="openConfirmModal('${s.id}')" class="px-3 py-1.5 bg-[#22C55E] text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition-colors">Complaint</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Action details
+        function focusIncidentOnMap(lat, lng) {
+            window.location.href = `/smart_map.html?focus=true&lat=${lat}&lng=${lng}`;
+        }
+
+        // Modal operations
+        function openAnalysis(id) {
+            const signal = mockSignals.find(s => s.id === id);
+            if (!signal) return;
+            activeTargetSignal = signal;
+
+            const container = document.getElementById('analysis-details');
+            container.innerHTML = `
+                <div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl space-y-2">
+                    <p class="text-xs text-outline font-bold">Original Signal (${signal.platform})</p>
+                    <p class="text-xs text-on-surface italic leading-normal">"${signal.content}"</p>
+                    <p class="text-[10px] text-outline font-semibold">Posted by ${signal.username} • ${signal.timestamp}</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
+                        <p class="text-[10px] text-outline uppercase font-bold">AI Category</p>
+                        <p class="text-xs font-bold text-on-surface">${signal.issueType}</p>
+                        <p class="text-[9px] text-outline">${signal.category}</p>
+                    </div>
+                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
+                        <p class="text-[10px] text-outline uppercase font-bold">AI Confidence</p>
+                        <p class="text-xs font-bold text-primary">${signal.aiConfidence}%</p>
+                        <p class="text-[9px] text-outline">MobileNet Text Classification</p>
+                    </div>
+                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1 col-span-2">
+                        <p class="text-[10px] text-outline uppercase font-bold">Location Intelligence</p>
+                        <p class="text-xs font-bold text-on-surface">${signal.location}</p>
+                        <p class="text-[9px] text-outline">Lat: ${signal.latitude} • Lng: ${signal.longitude}</p>
+                    </div>
+                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
+                        <p class="text-[10px] text-outline uppercase font-bold">Severity Rating</p>
+                        <p class="text-xs font-bold text-critical">${signal.severity}</p>
+                        <p class="text-[9px] text-outline">Accident risk flags detected</p>
+                    </div>
+                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
+                        <p class="text-[10px] text-outline uppercase font-bold">Clustering Index</p>
+                        <p class="text-xs font-bold text-[#8B5CF6]">${signal.supportingSignals} signals</p>
+                        <p class="text-[9px] text-outline">Cluster: ${signal.clusterId}</p>
+                    </div>
+                </div>
+                <div class="bg-surface-container-high border border-border-subtle p-4 rounded-xl space-y-1.5 text-xs">
+                    <p class="font-bold text-on-surface">Recommended Routing Action:</p>
+                    <p class="text-on-surface-variant"><b>Department:</b> ${signal.department}</p>
+                    <p class="text-on-surface-variant"><b>Action:</b> ${signal.recommendedAction}</p>
+                </div>
+            `;
+
+            const modal = document.getElementById('analysisModal');
+            const modalContent = document.getElementById('analysisModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function openConfirmModal(id) {
+            const signal = mockSignals.find(s => s.id === id);
+            if (!signal) return;
+            activeTargetSignal = signal;
+
+            const details = document.getElementById('confirm-details');
+            details.innerHTML = `
+                <div class="flex justify-between font-bold border-b border-border-subtle/50 pb-2 mb-2 text-on-surface">
+                    <span>Issue: ${signal.issueType}</span>
+                    <span class="text-critical">${signal.severity}</span>
+                </div>
+                <p class="mb-1"><strong>Location:</strong> ${signal.location}</p>
+                <p class="mb-1"><strong>AI Confidence:</strong> ${signal.aiConfidence}% (${signal.supportingSignals} clustered signals)</p>
+                <p class="mb-1"><strong>Department:</strong> ${signal.department}</p>
+                <p class="mt-2 text-outline italic">Description: "Multiple public social signals indicate a potentially hazardous ${signal.issueType.toLowerCase()} near ${signal.location}."</p>
+            `;
+
+            const modal = document.getElementById('confirmModal');
+            const modalContent = document.getElementById('confirmModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const modalContent = modal?.querySelector('div:last-child');
+            if (modalContent) {
+                if (modalId === 'analysisModal') modalContent.classList.add('translate-x-full');
+                else {
+                    modalContent.classList.add('scale-95');
+                    modalContent.classList.remove('scale-100');
+                }
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Real Complaint Creation Flow (Supabase Insert)
+        document.getElementById('btn-confirm-submit').addEventListener('click', async () => {
+            if (!activeTargetSignal) return;
+            
+            const signal = activeTargetSignal;
+            closeModal('confirmModal');
+
+            const complaintId = `CIV-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+            const newIssue = {
+                title: `${signal.issueType} - ${signal.location.split(',')[0]} (Social Pulse)`,
+                category: signal.issueType === 'Pothole' ? 'Road Damage' : signal.issueType === 'Garbage' ? 'Garbage' : signal.issueType === 'Streetlight' ? 'Streetlights' : 'Water Leakage',
+                location: signal.location,
+                date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                status: "Pending Verification",
+                progress: 0,
+                criticality: signal.severity,
+                description: `[Social Intelligence Report: ${signal.supportingSignals} signals clustered, ${signal.aiConfidence}% confidence]\nMultiple public social signals indicate a potentially hazardous ${signal.issueType.toLowerCase()} near ${signal.location}.`,
+                lat: signal.latitude,
+                lng: signal.longitude,
+                reported_by: "Social Pulse",
+                reported_by_email: "social-pulse@civis.ai",
+                reported_by_phone: "N/A"
+            };
+
+            try {
+                if (typeof supabaseClient !== 'undefined') {
+                    const { data, error } = await supabaseClient.from('issues').insert([newIssue]);
+                    if (error) throw error;
+                }
+                
+                const successDetails = document.getElementById('success-details');
+                successDetails.innerHTML = `
+                    <p class="font-bold text-on-surface text-base">${newIssue.title}</p>
+                    <p class="font-mono text-outline mt-1 font-bold">Complaint ID: ${complaintId}</p>
+                    <p class="text-success font-semibold mt-2">Status: Pending Verification</p>
+                `;
+
+                const sModal = document.getElementById('successModal');
+                const sModalContent = document.getElementById('successModalContent');
+                sModal.classList.remove('hidden');
+                setTimeout(() => {
+                    sModalContent.classList.remove('scale-95');
+                    sModalContent.classList.add('scale-100');
+                }, 10);
+            } catch (err) {
+                console.error("Failed to insert complaint in DB:", err);
+                alert(`Error: ${err.message || err}`);
+            }
+        });
+
+        document.getElementById('btn-convert-complaint').addEventListener('click', () => {
+            if (!activeTargetSignal) return;
+            closeModal('analysisModal');
+            setTimeout(() => {
+                openConfirmModal(activeTargetSignal.id);
+            }, 300);
+        });
+
+        // Search and filter listeners
+        document.getElementById('search-location').addEventListener('input', renderFeed);
+        document.getElementById('filter-platform').addEventListener('change', renderFeed);
+        document.getElementById('filter-category').addEventListener('change', renderFeed);
+
+        // Simulation signal logic
+        document.getElementById('btn-simulate').addEventListener('click', () => {
+            const simulatedPost = {
+                id: `SOC-${Math.floor(100 + Math.random() * 900)}`,
+                platform: ["X", "Instagram", "Facebook", "News"][Math.floor(Math.random() * 4)],
+                username: `@citizen_simulation_${Math.floor(Math.random() * 100)}`,
+                avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=sim${Math.floor(Math.random() * 100)}`,
+                timestamp: "Just now",
+                content: [
+                    "Broken streetlight is causing dark zones outside the playground. Please fix this soon.",
+                    "Garbage bin is overflowing and spilling garbage on the footpath near Baner.",
+                    "Another pothole detected after heavy rain. Near Kothrud bus station.",
+                    "Water leakage observed near the IT park road. Water is getting accumulated."
+                ][Math.floor(Math.random() * 4)],
+                issueType: ["Streetlight", "Garbage", "Pothole", "Water Leakage"][Math.floor(Math.random() * 4)],
+                category: "Urban Infrastructure",
+                location: ["FC Road, Pune", "Baner Road, Pune", "Kothrud, Pune", "Aundh, Pune"][Math.floor(Math.random() * 4)],
+                latitude: [18.5244, 18.5590, 18.5074, 18.5596][Math.floor(Math.random() * 4)],
+                longitude: [73.8413, 73.7925, 73.8077, 73.8054][Math.floor(Math.random() * 4)],
+                severity: ["Critical", "High", "Moderate"][Math.floor(Math.random() * 3)],
+                aiConfidence: Math.floor(Math.random() * (98 - 85) + 85),
+                sentiment: "Negative",
+                supportingSignals: Math.floor(Math.random() * 10 + 2),
+                clusterId: `CIV-SIM-${Math.floor(100 + Math.random() * 900)}`,
+                status: "New",
+                department: "Municipal Infrastructure",
+                recommendedAction: "Deploy repair crew immediately",
+                engagement: Math.floor(Math.random() * 20 + 5)
+            };
+
+            mockSignals.unshift(simulatedPost);
+            
+            // Increment KPIs
+            const sigKpi = document.getElementById('kpi-signals');
+            if (sigKpi) sigKpi.innerText = parseInt(sigKpi.innerText) + 1;
+            
+            renderFeed();
+
+            // Notify
+            alert(`🔔 New crowdsourced signal detected: "${simulatedPost.content.substring(0, 40)}..."`);
+        });
+
+        document.getElementById('btn-refresh').addEventListener('click', () => {
+            alert("Social Pulse feed refreshed successfully!");
+            renderFeed();
+        });
+
+        // Initialize
+        renderFeed();
+
+        // Check for incident focus query parameters
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetIncident = urlParams.get('incident');
+            if (targetIncident) {
+                const signal = mockSignals.find(s => s.clusterId === targetIncident);
+                if (signal) {
+                    setTimeout(() => {
+                        openAnalysis(signal.id);
+                    }, 500);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
