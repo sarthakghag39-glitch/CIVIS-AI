@@ -441,8 +441,8 @@
 
     <script src="/app.js"></script>
     <script>
-        // Mock data
-        const mockSignals = [
+        // Fallback local mock data
+        const localMockSignals = [
             {
                 id: "SOC-001",
                 platform: "X",
@@ -554,6 +554,53 @@
                 engagement: 45
             }
         ];
+
+        let mockSignals = [...localMockSignals];
+
+        async function fetchSignalsFromDb() {
+            if (typeof supabaseClient !== 'undefined') {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('social_signals')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (!error && data && data.length > 0) {
+                        mockSignals = data.map(row => ({
+                            id: row.id,
+                            platform: row.platform,
+                            username: row.username,
+                            avatar: row.avatar,
+                            timestamp: row.timestamp,
+                            content: row.content,
+                            issueType: row.issue_type,
+                            category: row.category,
+                            location: row.location,
+                            latitude: row.latitude,
+                            longitude: row.longitude,
+                            severity: row.severity,
+                            aiConfidence: row.ai_confidence,
+                            sentiment: row.sentiment,
+                            supportingSignals: row.supporting_signals,
+                            clusterId: row.cluster_id,
+                            status: row.status,
+                            department: row.department,
+                            recommendedAction: row.recommended_action,
+                            engagement: row.engagement
+                        }));
+                        console.log("Successfully loaded social signals from Supabase!");
+                    } else {
+                        if (error && error.code !== 'PGRST205') {
+                            console.warn("Supabase social_signals error:", error.message);
+                        }
+                        mockSignals = [...localMockSignals];
+                    }
+                } catch (e) {
+                    console.warn("Failed to fetch social_signals, using fallback:", e);
+                    mockSignals = [...localMockSignals];
+                }
+            }
+        }
 
         let activeTargetSignal = null;
 
@@ -834,13 +881,18 @@
             alert(`🔔 New crowdsourced signal detected: "${simulatedPost.content.substring(0, 40)}..."`);
         });
 
-        document.getElementById('btn-refresh').addEventListener('click', () => {
-            alert("Social Pulse feed refreshed successfully!");
+        document.getElementById('btn-refresh').addEventListener('click', async () => {
+            await fetchSignalsFromDb();
             renderFeed();
+            alert("Social Pulse feed refreshed successfully!");
         });
 
         // Initialize
-        renderFeed();
+        async function init() {
+            await fetchSignalsFromDb();
+            renderFeed();
+        }
+        init();
 
         // Check for incident focus query parameters
         window.addEventListener('DOMContentLoaded', () => {
