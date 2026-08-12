@@ -805,7 +805,9 @@
                     const { data, error } = await supabaseClient.from('issues').insert([newIssue]).select();
                     if (error) throw error;
                     if (data && data.length > 0) {
-                        complaintId = `CIV-2026-${String(data[0].id).padStart(5, '0')}`;
+                        const insertedId = data[0].id;
+                        complaintId = `CIV-2026-${String(insertedId).padStart(5, '0')}`;
+                        await supabaseClient.from('issues').update({ complaint_id: complaintId }).eq('id', insertedId);
                     }
                 }
                 
