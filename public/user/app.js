@@ -1442,11 +1442,13 @@ function initAdminDashboard() {
         return;
       }
       
-      const headers = ['ID', 'Title', 'Category', 'Location', 'Date', 'Status', 'Progress', 'Criticality', 'Description', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
+      const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Location', 'Date', 'Status', 'Progress', 'Criticality', 'Description', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
       const csvRows = [headers.join(',')];
       
       issues.forEach(issue => {
+        const complaintId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
         const values = [
+          `"${complaintId}"`,
           issue.id,
           `"${(issue.title || '').replace(/"/g, '""')}"`,
           `"${(issue.category || '').replace(/"/g, '""')}"`,
