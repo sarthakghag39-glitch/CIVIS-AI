@@ -558,7 +558,17 @@
         let mockSignals = [...localMockSignals];
 
         async function fetchSignalsFromDb() {
+            let dbIssues = [];
             if (typeof supabaseClient !== 'undefined') {
+                try {
+                    const { data: issuesData, error: issuesError } = await supabaseClient.from('issues').select('*');
+                    if (!issuesError && issuesData) {
+                        dbIssues = issuesData;
+                    }
+                } catch(err) {
+                    console.warn("Could not load live issues:", err);
+                }
+
                 try {
                     const { data, error } = await supabaseClient
                         .from('social_signals')
@@ -600,6 +610,20 @@
                     mockSignals = [...localMockSignals];
                 }
             }
+
+            // Cross-reference with live issues in database
+            mockSignals.forEach(s => {
+                const matchedIssue = dbIssues.find(issue => 
+                    issue.reported_by === 'Social Pulse' &&
+                    issue.title.startsWith(s.issueType) &&
+                    Math.abs(issue.lat - s.latitude) < 0.001 &&
+                    Math.abs(issue.lng - s.longitude) < 0.001
+                );
+                if (matchedIssue) {
+                    s.status = "Converted";
+                    s.complaintId = matchedIssue.complaint_id || `CIV-2026-${String(matchedIssue.id).padStart(5, '0')}`;
+                }
+            });
         }
 
         let activeTargetSignal = null;
@@ -660,14 +684,25 @@
                         <div>Issue: <span class="text-on-surface">${s.issueType}</span></div>
                         <div>Confidence: <span class="text-on-surface">${s.aiConfidence}%</span></div>
                         <div class="col-span-2">Location: <span class="text-on-surface">${s.location}</span></div>
-                        <div class="col-span-2 text-[#8B5CF6]">Cluster ID: ${s.clusterId} (${s.supportingSignals} similar signals)</div>
+                        ${s.status === 'Converted' ? `
+                            <div class="col-span-2 text-success font-bold flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                Converted to Ticket: ${s.complaintId}
+                            </div>
+                        ` : `
+                            <div class="col-span-2 text-[#8B5CF6]">Cluster ID: ${s.clusterId} (${s.supportingSignals} similar signals)</div>
+                        `}
                     </div>
                     <div class="flex items-center justify-between border-t border-border-subtle/50 pt-4 mt-2">
                         <span class="text-[11px] text-outline font-bold">♥ ${s.engagement} supporting signals</span>
                         <div class="flex gap-2">
                             <button onclick="focusIncidentOnMap(${s.latitude}, ${s.longitude})" class="px-3 py-1.5 bg-surface-container-high border border-border-subtle rounded-lg text-[10px] font-bold hover:bg-surface-variant transition-colors">Map</button>
                             <button onclick="openAnalysis('${s.id}')" class="px-3 py-1.5 bg-[#8B5CF6]/10 text-[#8B5CF6] rounded-lg text-[10px] font-bold hover:bg-[#8B5CF6]/20 transition-colors">Analysis</button>
-                            <button onclick="openConfirmModal('${s.id}')" class="px-3 py-1.5 bg-[#22C55E] text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition-colors">Complaint</button>
+                            ${s.status === 'Converted' ? `
+                                <button disabled class="px-3 py-1.5 bg-[#eceef0] dark:bg-slate-800 text-outline rounded-lg text-[10px] font-bold cursor-not-allowed flex items-center gap-1"><span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> Converted</button>
+                            ` : `
+                                <button onclick="openConfirmModal('${s.id}')" class="px-3 py-1.5 bg-[#22C55E] text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition-colors">Complaint</button>
+                            `}
                         </div>
                     </div>
                 `;
@@ -678,6 +713,85 @@
         // Action details
         function focusIncidentOnMap(lat, lng) {
             window.location.href = `/smart_map.html?focus=true&lat=${lat}&lng=${lng}`;
+        }
+
+        function renderClusters() {
+            const container = document.getElementById('incident-clusters-body');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Group signals by cluster ID
+            const clusters = {};
+            mockSignals.forEach(s => {
+                if (s.clusterId) {
+                    if (!clusters[s.clusterId]) {
+                        clusters[s.clusterId] = {
+                            id: s.clusterId,
+                            title: `${s.location.split(',')[0]} ${s.issueType}`,
+                            issueType: s.issueType,
+                            location: s.location,
+                            severity: s.severity,
+                            aiConfidence: s.aiConfidence,
+                            signals: s.supportingSignals || 1,
+                            platforms: { X: 0, Instagram: 0, Facebook: 0, News: 0 },
+                            status: s.status,
+                            complaintId: s.complaintId || null,
+                            lat: s.latitude,
+                            lng: s.longitude
+                        };
+                    }
+                    clusters[s.clusterId].platforms[s.platform] = (clusters[s.clusterId].platforms[s.platform] || 0) + 1;
+                    if (s.status === 'Converted') {
+                        clusters[s.clusterId].status = 'Converted';
+                        clusters[s.clusterId].complaintId = s.complaintId;
+                    }
+                }
+            });
+
+            Object.values(clusters).forEach(c => {
+                const isConverted = c.status === 'Converted';
+                const statusBadge = isConverted 
+                    ? `<span class="px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Converted (${c.complaintId})</span>`
+                    : `<span class="px-2.5 py-1 ${c.severity === 'Critical' ? 'bg-error-container text-error' : 'bg-[#ffede6] text-warning'} text-xs font-bold rounded-full">${c.severity}</span>`;
+
+                const actionButton = isConverted
+                    ? `<button disabled class="px-4 py-2 bg-[#eceef0] dark:bg-slate-800 text-outline text-xs font-bold rounded-xl cursor-not-allowed">Converted</button>`
+                    : `<button onclick="focusIncidentOnMap(${c.lat}, ${c.lng})" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>`;
+
+                const div = document.createElement('div');
+                div.className = 'p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group';
+                div.id = `cluster-${c.id}`;
+
+                // Create plat text
+                const platTexts = [];
+                if (c.platforms.X > 0) platTexts.push(`X: ${c.platforms.X}`);
+                if (c.platforms.Instagram > 0) platTexts.push(`Instagram: ${c.platforms.Instagram}`);
+                if (c.platforms.Facebook > 0) platTexts.push(`Facebook: ${c.platforms.Facebook}`);
+                if (c.platforms.News > 0) platTexts.push(`News: ${c.platforms.News}`);
+                const platSummary = platTexts.length > 0 ? ` (${platTexts.join(', ')})` : '';
+
+                div.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="p-3 ${isConverted ? 'bg-success/10 text-success' : c.severity === 'Critical' ? 'bg-critical/10 text-critical' : 'bg-warning/10 text-warning'} rounded-xl shrink-0">
+                            <span class="material-symbols-outlined text-2xl">layers</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h5 class="font-bold text-on-surface">${c.title}</h5>
+                                <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">${c.id}</span>
+                            </div>
+                            <p class="text-xs text-outline mt-1 font-medium">Clustered: ${c.signals} public social signals${platSummary}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
+                        ${statusBadge}
+                        <span class="text-xs font-semibold text-outline">AI: ${c.aiConfidence}% confidence</span>
+                        ${actionButton}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         }
 
         // Modal operations
@@ -818,6 +932,11 @@
                     <p class="text-success font-semibold mt-2">Status: Pending Verification</p>
                 `;
 
+                // Immediately sync UI feeds
+                await fetchSignalsFromDb();
+                renderFeed();
+                renderClusters();
+
                 const sModal = document.getElementById('successModal');
                 const sModalContent = document.getElementById('successModalContent');
                 sModal.classList.remove('hidden');
@@ -881,6 +1000,7 @@
             if (sigKpi) sigKpi.innerText = parseInt(sigKpi.innerText) + 1;
             
             renderFeed();
+            renderClusters();
 
             // Notify
             alert(`🔔 New crowdsourced signal detected: "${simulatedPost.content.substring(0, 40)}..."`);
@@ -889,6 +1009,7 @@
         document.getElementById('btn-refresh').addEventListener('click', async () => {
             await fetchSignalsFromDb();
             renderFeed();
+            renderClusters();
             alert("Social Pulse feed refreshed successfully!");
         });
 
@@ -896,6 +1017,7 @@
         async function init() {
             await fetchSignalsFromDb();
             renderFeed();
+            renderClusters();
         }
         init();
 
