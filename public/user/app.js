@@ -1062,9 +1062,11 @@ function renderWeatherUI(weather) {
   const header = document.querySelector('header');
   if (!header) return;
 
-  // Accurately target the rightmost header container div
-  const headerDivs = Array.from(header.querySelectorAll('div')).filter(d => d.parentElement === header || d.classList.contains('flex'));
-  let headerRight = headerDivs.length > 0 ? headerDivs[headerDivs.length - 1] : header;
+  // Accurately target the top-level rightmost header container (never a nested child badge/pill)
+  let headerRight = Array.from(header.children).find(c => c.tagName === 'DIV' && c !== header.firstElementChild) || header.lastElementChild;
+  if (!headerRight || headerRight.tagName !== 'DIV') {
+    headerRight = header;
+  }
 
   let weatherPill = document.getElementById('civis-weather-pill');
   if (!weatherPill) {
