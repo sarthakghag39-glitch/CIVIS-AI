@@ -897,6 +897,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize DB
   await getIssues();
 
+  // Helper for computing user initials
+  function getInitials(name) {
+    if (!name) return 'U';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    if (parts.length === 1 && parts[0].length >= 2) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return parts[0] ? parts[0][0].toUpperCase() : 'U';
+  }
+
   // Welcome & Avatar dynamic sync
   const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
   if (localUser.name) {
@@ -905,6 +918,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       const text = el.innerText.trim();
       if (text.includes('Hi,') || text.includes('Good Morning,') || text.includes('Good Afternoon,')) {
         el.innerText = text.replace(/Hi,.*$/, `Hi, ${localUser.name}`).replace(/Good Morning,.*$/, `Good Morning, ${localUser.name}`);
+      }
+    });
+
+    const userInitials = getInitials(localUser.name);
+    document.querySelectorAll('.rounded-full').forEach(el => {
+      const txt = el.textContent ? el.textContent.trim() : '';
+      if ((txt === 'IS' || txt === 'A' || (txt.length >= 1 && txt.length <= 3 && /^[A-Za-z]{1,3}$/.test(txt))) && !el.children.length) {
+        el.textContent = userInitials;
       }
     });
 
