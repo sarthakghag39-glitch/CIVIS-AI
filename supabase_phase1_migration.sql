@@ -66,9 +66,13 @@ CREATE POLICY "Admins can view all profiles" ON public.profiles
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin')
   );
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+CREATE POLICY "Users can insert own profile" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
 DROP POLICY IF EXISTS "Users can update own name and phone" ON public.profiles;
 CREATE POLICY "Users can update own name and phone" ON public.profiles
-  FOR SELECT USING (auth.uid() = id)
+  FOR UPDATE USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
 -- 5. RLS Policies for public.issues
