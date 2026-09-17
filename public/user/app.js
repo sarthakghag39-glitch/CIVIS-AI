@@ -1092,7 +1092,7 @@ async function initAiAnalysisPage() {
 
     newBtn.addEventListener('click', () => {
       const dbCategory = analysis.category === 'Road Damage' ? 'Road Damage' : analysis.category;
-      const customLocation = locationInput ? locationInput.value.trim() : "Nearby detected coordinates";
+      const customLocation = locationInput ? locationInput.value.trim() : "";
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -1992,7 +1992,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         </div>
         <div>
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.location}</label>
-          <input required id="form-location" value="${defaultLocation}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Kothrud">
+          <input required id="form-location" value="${defaultLocation}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Street name, Landmark, Area">
         </div>
         <div>
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.description}</label>
@@ -2011,6 +2011,11 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
     const category = form.querySelector('#form-category').value.trim();
     const location = form.querySelector('#form-location').value.trim();
     const description = form.querySelector('#form-desc').value.trim();
+
+    if (!location) {
+      alert("Please enter the correct address manually.");
+      return;
+    }
 
     const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
     const reported_by = localUser.name || 'Anonymous';
