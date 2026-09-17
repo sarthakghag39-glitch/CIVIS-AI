@@ -889,6 +889,142 @@ function mapPredictionsToIssue(predictions, defaultAnalysis) {
   };
 }
 
+// --- OpenWeatherMap Live Forecast Integration ---
+const OPENWEATHER_API_KEY = atob('MmZlODVjNjBkMmY5MWQyM2M0OGFjOGJjMTgzZmM3Mjc=');
+
+async function fetchLiveWeather(city = 'Pune') {
+  try {
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)},IN&appid=${OPENWEATHER_API_KEY}&units=metric`);
+    if (!response.ok) throw new Error(`Weather API error: ${response.status}`);
+    const data = await response.json();
+    return {
+      city: data.name,
+      temp: Math.round(data.main.temp * 10) / 10,
+      feelsLike: Math.round(data.main.feels_like * 10) / 10,
+      tempMin: Math.round(data.main.temp_min),
+      tempMax: Math.round(data.main.temp_max),
+      humidity: data.main.humidity,
+      pressure: data.main.pressure,
+      windSpeed: Math.round(data.wind.speed * 3.6), // m/s -> km/h
+      condition: data.weather[0].main,
+      description: data.weather[0].description,
+      icon: data.weather[0].icon,
+      iconUrl: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`
+    };
+  } catch (err) {
+    console.warn("Weather API fetch failed:", err);
+    return null;
+  }
+}
+
+async function initWeatherSystem() {
+  const weather = await fetchLiveWeather('Pune');
+  if (!weather) return;
+
+  // Insert or update weather pill in header
+  const headerRight = document.querySelector('header div.flex.items-center.gap-4') || document.querySelector('header div.flex.items-center');
+  if (headerRight && !document.getElementById('civis-weather-pill')) {
+    const weatherPill = document.createElement('button');
+    weatherPill.id = 'civis-weather-pill';
+    weatherPill.type = 'button';
+    weatherPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100 border border-blue-200 text-blue-900 transition-all cursor-pointer shadow-sm text-xs font-semibold shrink-0';
+    weatherPill.title = 'Click for detailed live weather forecast';
+    weatherPill.innerHTML = `
+      <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
+      <span>${weather.temp}°C</span>
+      <span class="hidden sm:inline text-blue-700/80 font-medium capitalize">(${weather.description})</span>
+    `;
+    weatherPill.addEventListener('click', () => openWeatherModal(weather));
+    headerRight.insertBefore(weatherPill, headerRight.firstChild);
+  } else if (document.getElementById('civis-weather-pill')) {
+    const weatherPill = document.getElementById('civis-weather-pill');
+    weatherPill.innerHTML = `
+      <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
+      <span>${weather.temp}°C</span>
+      <span class="hidden sm:inline text-blue-700/80 font-medium capitalize">(${weather.description})</span>
+    `;
+  }
+}
+
+function openWeatherModal(weather) {
+  const existingModal = document.getElementById('weather-modal');
+  if (existingModal) existingModal.remove();
+
+  let advisory = "Normal meteorological conditions for civic operations.";
+  const cond = weather.condition.toLowerCase();
+  if (cond.includes('rain') || cond.includes('drizzle') || cond.includes('thunderstorm')) {
+    advisory = "🌧️ Wet road conditions detected. Drainage, waterlogging telemetry & pothole dispatch teams active.";
+  } else if (cond.includes('clear') || cond.includes('sun')) {
+    advisory = "☀️ Clear skies. Ideal window for asphalt paving, streetlight repairs & solar infrastructure audits.";
+  } else if (cond.includes('cloud')) {
+    advisory = "⛅ Overcast skies. Regular civic monitoring across all Pune ward jurisdictions.";
+  } else if (cond.includes('mist') || cond.includes('fog') || cond.includes('haze')) {
+    advisory = "🌫️ Low visibility reported. Traffic monitoring & street illumination sensors active.";
+  }
+
+  const modal = document.createElement('div');
+  modal.id = 'weather-modal';
+  modal.className = 'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 selection:bg-brand-500 selection:text-white';
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
+      <button id="close-weather-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm transition-colors cursor-pointer">✕</button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+          <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-10 h-10">
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="font-bold text-xl text-slate-900">${weather.city}, IN</h3>
+            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">Live Telemetry</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium capitalize">${weather.description} • OpenWeather Gateway</p>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-2xl p-4 border border-blue-100/80 mb-4 flex items-center justify-between">
+        <div>
+          <div class="text-4xl font-extrabold text-slate-900 tracking-tight">${weather.temp}°C</div>
+          <div class="text-xs text-slate-600 mt-1 font-medium">Feels like <b>${weather.feelsLike}°C</b></div>
+        </div>
+        <div class="text-right text-xs text-slate-500 space-y-1 font-medium">
+          <div>High: <b class="text-slate-800">${weather.tempMax}°C</b></div>
+          <div>Low: <b class="text-slate-800">${weather.tempMin}°C</b></div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-xl text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Humidity</span>
+          <span class="text-sm font-bold text-slate-800">${weather.humidity}%</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-xl text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Wind Speed</span>
+          <span class="text-sm font-bold text-slate-800">${weather.windSpeed} km/h</span>
+        </div>
+        <div class="bg-slate-50 border border-slate-200/80 p-3 rounded-xl text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Pressure</span>
+          <span class="text-sm font-bold text-slate-800">${weather.pressure} hPa</span>
+        </div>
+      </div>
+
+      <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-start space-x-2 text-xs text-indigo-950">
+        <span class="text-base leading-none">💡</span>
+        <div class="font-medium leading-relaxed">
+          <b>CIVIS AI Advisory:</b> ${advisory}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById('close-weather-modal').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
 // --- 2. Global Event Listeners & Page Handlers ---
 document.addEventListener("DOMContentLoaded", async () => {
   // Apply translation
@@ -896,6 +1032,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initialize DB
   await getIssues();
+
+  // Initialize Live Weather System
+  initWeatherSystem();
 
   // Helper for computing user initials
   function getInitials(name) {
