@@ -1303,6 +1303,8 @@ function initComplaintsPage() {
   });
 }
 
+let userComplaintsCache = [];
+
 async function renderComplaintsList() {
   const container = document.querySelector('main .grid');
   if (!container) return;
@@ -1310,10 +1312,33 @@ async function renderComplaintsList() {
   container.innerHTML = '';
   const issues = await getIssues();
   const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
 
-  // Filter issues based on user role (Admin sees all, Citizen sees only their own)
-  const displayIssues = isUserAdmin ? issues : issues.filter(issue => issue.reported_by_email === localUser.email);
+  const userEmail = (localUser.email || '').toLowerCase().trim();
+  const userName = (localUser.name || '').toLowerCase().trim();
+
+  // Filter issues to ONLY show those registered by the logged-in user
+  const displayIssues = issues.filter(issue => {
+    if (!userEmail && !userName) return false;
+    const issueEmail = (issue.reported_by_email || '').toLowerCase().trim();
+    const issueName = (issue.reported_by || '').toLowerCase().trim();
+
+    return (userEmail && issueEmail === userEmail) ||
+           (userName && issueName === userName) ||
+           (userEmail && issueName === userEmail);
+  });
+
+  userComplaintsCache = displayIssues;
+
+  if (displayIssues.length === 0) {
+    container.innerHTML = `
+      <div class="col-span-full py-12 text-center text-on-surface-variant">
+        <span class="material-symbols-outlined text-[48px] mb-2 text-outline">assignment_late</span>
+        <h3 class="font-headline-md text-lg font-bold">No Complaints Found</h3>
+        <p class="text-sm">You haven't registered any complaints yet under this account.</p>
+      </div>
+    `;
+    return;
+  }
 
   displayIssues.forEach(issue => {
     const card = document.createElement('div');
@@ -1353,14 +1378,9 @@ async function renderComplaintsList() {
 
 function filterComplaintsList(query, filterStatus) {
   const cards = document.querySelectorAll('main .grid > div');
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
-  
-  // Make sure issues array matches the exact filtered cards structure
-  const issues = isUserAdmin ? cachedIssues : cachedIssues.filter(issue => issue.reported_by_email === localUser.email);
 
   cards.forEach((card, idx) => {
-    const issue = issues[idx];
+    const issue = userComplaintsCache[idx];
     if (!issue) return;
 
     const matchesSearch = issue.title.toLowerCase().includes(query) || issue.location.toLowerCase().includes(query) || issue.description.toLowerCase().includes(query);
@@ -1635,7 +1655,7 @@ function isAdminUser() {
   if (!localUser.email) return false;
   const email = localUser.email.toLowerCase();
   const name = (localUser.name || '').toLowerCase();
-  return email.includes('admin') || name.includes('ishita') || name.includes('sarthak') || email === 'sarthakloghop30@gmail.com';
+  return email === 'admin@civis.ai' || email.startsWith('admin') || name === 'sarthak (admin)';
 }
 
 // Edit Profile Modal Window

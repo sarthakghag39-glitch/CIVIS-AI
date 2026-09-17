@@ -1889,7 +1889,7 @@ function isAdminUser() {
   if (!localUser.email) return false;
   const email = localUser.email.toLowerCase();
   const name = (localUser.name || '').toLowerCase();
-  return email.includes('admin') || name.includes('ishita') || name.includes('sarthak') || email === 'sarthakloghop30@gmail.com';
+  return email === 'admin@civis.ai' || email.startsWith('admin') || name === 'sarthak (admin)';
 }
 
 // Edit Profile Modal Window
