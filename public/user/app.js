@@ -653,10 +653,10 @@ function translatePage() {
 
   if (path.includes('ai_analysis')) {
     const titleEl = document.querySelector('title');
-    if (titleEl) titleEl.innerText = `CIVIS AI - ${dict.ai_scan}`;
+    if (titleEl) titleEl.innerText = `CIVIS AI - Civic AI`;
 
     const headerTitle = document.querySelector('header h1');
-    if (headerTitle) headerTitle.textContent = dict.ai_scan;
+    if (headerTitle) headerTitle.textContent = "Civic AI";
 
     const insightsTitle = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.includes('AI Insights'));
     if (insightsTitle) insightsTitle.textContent = dict.ai_insights_title;
