@@ -808,6 +808,47 @@ function openLanguageModal() {
   });
 }
 
+async function getImageUrlForIssue(imageRef) {
+  if (!imageRef) return null;
+  if (imageRef.startsWith('http://') || imageRef.startsWith('https://') || imageRef.startsWith('data:')) {
+    return imageRef;
+  }
+  try {
+    const { data } = await supabaseClient.storage
+      .from('civis-complaint-images')
+      .createSignedUrl(imageRef, 3600);
+    if (data && data.signedUrl) {
+      return data.signedUrl;
+    }
+  } catch (e) {
+    console.warn("createSignedUrl failed, using public URL fallback:", e);
+  }
+  try {
+    const { data: pubData } = supabaseClient.storage
+      .from('civis-complaint-images')
+      .getPublicUrl(imageRef);
+    return pubData?.publicUrl || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function openImageLightbox(imgSrc) {
+  if (!imgSrc) return;
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-4 animate-in fade-in';
+  modal.innerHTML = `
+    <div class="relative max-w-3xl max-h-[90vh] flex flex-col items-center">
+      <button class="absolute -top-10 right-0 text-white font-bold text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg transition-colors cursor-pointer" onclick="this.closest('.fixed').remove()">✕ Close</button>
+      <img src="${imgSrc}" class="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10" alt="Complaint Photo Attachment">
+    </div>
+  `;
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  document.body.appendChild(modal);
+}
+
 async function getIssues() {
   const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
   if (error) {
@@ -2072,22 +2113,35 @@ async function renderAdminIssues() {
       </tr>
     `;
   } else {
-    pageIssues.forEach(issue => {
+    for (const issue of pageIssues) {
       let markerColor = '#2563EB';
       if (issue.criticality === 'Critical') markerColor = '#EF4444';
       else if (issue.criticality === 'Moderate') markerColor = '#F59E0B';
       else if (issue.status === 'Resolved') markerColor = '#22C55E';
+
+      const resolvedUrl = await getImageUrlForIssue(issue.image_url);
+
+      const iconOrThumbnail = resolvedUrl ? `
+        <div class="w-10 h-10 rounded-lg overflow-hidden bg-black/10 border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageLightbox('${resolvedUrl}')" title="Click to view full complaint photo">
+          <img src="${resolvedUrl}" class="w-full h-full object-cover" alt="Photo" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-xl text-primary\\'>broken_image</span>'">
+        </div>
+      ` : `
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
+          <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
+        </div>
+      `;
 
       const row = document.createElement('tr');
       row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
       row.innerHTML = `
         <td class="px-6 py-4">
           <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
-              <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
-            </div>
+            ${iconOrThumbnail}
             <div>
-              <p class="font-label-md text-label-md font-bold text-on-surface">${issue.title}</p>
+              <p class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
+                ${issue.title}
+                ${resolvedUrl ? `<span class="material-symbols-outlined text-sm text-primary cursor-pointer" onclick="openImageLightbox('${resolvedUrl}')" title="Photo attached">photo</span>` : ''}
+              </p>
               <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
             </div>
           </div>
@@ -2112,14 +2166,15 @@ async function renderAdminIssues() {
           </span>
         </td>
         <td class="px-6 py-4">
-          <div class="flex gap-2">
+          <div class="flex items-center gap-2">
+            ${resolvedUrl ? `<button onclick="openImageLightbox('${resolvedUrl}')" class="px-2.5 py-1 bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg hover:bg-surface-variant transition-all cursor-pointer flex items-center gap-1" title="View attached photo"><span class="material-symbols-outlined text-sm text-primary">photo</span> View</button>` : ''}
             <button onclick="updateIssueStatus(${issue.id}, 'In Progress', 50)" class="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Assign</button>
             <button onclick="updateIssueStatus(${issue.id}, 'Resolved', 100)" class="px-3 py-1 bg-success text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Resolve</button>
           </div>
         </td>
       `;
       tbody.appendChild(row);
-    });
+    }
   }
 
   // 5. Update Pagination Footer UI

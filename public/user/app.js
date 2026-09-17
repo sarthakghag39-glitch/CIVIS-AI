@@ -808,6 +808,107 @@ function openLanguageModal() {
   });
 }
 
+// --- Helper Utilities for Image Upload & Storage ---
+function dataURLtoBlob(dataurl) {
+  try {
+    const arr = dataurl.split(',');
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  } catch (e) {
+    console.error("Failed to convert DataURL to Blob:", e);
+    return null;
+  }
+}
+
+async function compressImageBlob(blob, maxDim = 1200, quality = 0.82) {
+  return new Promise((resolve) => {
+    if (!blob || !blob.type.startsWith('image/')) {
+      resolve(blob);
+      return;
+    }
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let width = img.width;
+      let height = img.height;
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (compressedBlob) => {
+          resolve(compressedBlob || blob);
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+    img.onerror = () => resolve(blob);
+    img.src = url;
+  });
+}
+
+async function getImageUrlForIssue(imageRef) {
+  if (!imageRef) return null;
+  if (imageRef.startsWith('http://') || imageRef.startsWith('https://') || imageRef.startsWith('data:')) {
+    return imageRef;
+  }
+  try {
+    const { data } = await supabaseClient.storage
+      .from('civis-complaint-images')
+      .createSignedUrl(imageRef, 3600);
+    if (data && data.signedUrl) {
+      return data.signedUrl;
+    }
+  } catch (e) {
+    console.warn("createSignedUrl failed, using public URL fallback:", e);
+  }
+  try {
+    const { data: pubData } = supabaseClient.storage
+      .from('civis-complaint-images')
+      .getPublicUrl(imageRef);
+    return pubData?.publicUrl || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function openImageLightbox(imgSrc) {
+  if (!imgSrc) return;
+  const modal = document.createElement('div');
+  modal.className = 'fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center p-4 animate-in fade-in';
+  modal.innerHTML = `
+    <div class="relative max-w-3xl max-h-[90vh] flex flex-col items-center">
+      <button class="absolute -top-10 right-0 text-white font-bold text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg transition-colors cursor-pointer" onclick="this.closest('.fixed').remove()">✕ Close</button>
+      <img src="${imgSrc}" class="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10" alt="Complaint Photo Attachment">
+    </div>
+  `;
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+  document.body.appendChild(modal);
+}
+
 async function getIssues() {
   const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
   if (error) {
@@ -1604,14 +1705,26 @@ async function renderComplaintsList() {
     return;
   }
 
-  displayIssues.forEach(issue => {
+  for (const issue of displayIssues) {
+    const resolvedImageUrl = await getImageUrlForIssue(issue.image_url);
+
     const card = document.createElement('div');
     card.className = 'bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200';
+    
+    const iconOrImageHtml = resolvedImageUrl ? `
+      <div class="w-20 h-20 bg-black/5 rounded-xl overflow-hidden shrink-0 border border-border-subtle relative group cursor-pointer" onclick="openImageLightbox('${resolvedImageUrl}')" title="Click to view full photo">
+        <img src="${resolvedImageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" alt="Complaint Photo" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-[36px] text-primary flex items-center justify-center h-full\\'>broken_image</span>'">
+        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold">View</div>
+      </div>
+    ` : `
+      <div class="w-20 h-20 bg-primary-container/10 text-primary rounded-xl flex items-center justify-center shrink-0 border border-border-subtle">
+        <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
+      </div>
+    `;
+
     card.innerHTML = `
       <div class="flex gap-4">
-        <div class="w-20 h-20 bg-primary-container/10 text-primary rounded-xl flex items-center justify-center shrink-0 border border-border-subtle">
-          <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
-        </div>
+        ${iconOrImageHtml}
         <div class="flex-1 flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
@@ -1622,6 +1735,7 @@ async function renderComplaintsList() {
           </div>
           <div class="flex items-center gap-2">
             <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${issue.status}</span>
+            ${resolvedImageUrl ? '<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-md flex items-center gap-1 cursor-pointer" onclick="openImageLightbox(\'' + resolvedImageUrl + '\')"><span class="material-symbols-outlined text-xs">photo</span> Photo Attached</span>' : ''}
           </div>
         </div>
       </div>
@@ -1637,7 +1751,7 @@ async function renderComplaintsList() {
       <p class="text-body-md text-on-surface-variant text-sm">${issue.description}</p>
     `;
     container.appendChild(card);
-  });
+  }
 }
 
 function filterComplaintsList(query, filterStatus) {
@@ -2262,13 +2376,14 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
   const currentLang = localStorage.getItem('civis_language') || 'en';
   const dict = translations[currentLang] || translations.en;
+  const hasCapturedImg = !!sessionStorage.getItem('civis_captured_img');
 
   const modal = document.createElement('div');
   modal.id = 'report-issue-modal';
   modal.className = 'fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4';
   modal.innerHTML = `
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative">
-      <button class="absolute top-4 right-4 text-outline" onclick="this.closest('.fixed').remove()">✕</button>
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
+      <button class="absolute top-4 right-4 text-outline hover:text-on-surface" onclick="this.closest('.fixed').remove()">✕</button>
       <h3 class="text-xl font-bold text-primary mb-4">${dict.report_urban_issue}</h3>
       <form id="new-complaint-form" class="flex flex-col gap-4">
         <div>
@@ -2293,13 +2408,57 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.description}</label>
           <textarea required id="form-desc" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="Describe the issue...">${defaultDesc}</textarea>
         </div>
-        <button type="submit" class="w-full py-3 bg-primary text-white font-semibold rounded-xl mt-2">${dict.submit_report}</button>
+
+        <div>
+          <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Complaint Photo (Optional)</label>
+          <input type="file" id="form-image-file" accept="image/jpeg,image/png,image/webp" class="w-full text-xs p-2 border border-border-subtle rounded-xl bg-surface-container-low outline-none focus:ring-2 focus:ring-primary/40">
+          <div id="image-attached-badge" class="${hasCapturedImg ? 'flex' : 'hidden'} mt-2 items-center gap-1.5 text-xs text-primary font-semibold bg-primary/10 p-2 rounded-lg border border-primary/20">
+            <span class="material-symbols-outlined text-sm">photo_camera</span>
+            <span>Image attached from AI Scan / Selection</span>
+          </div>
+        </div>
+
+        <button type="submit" id="submit-report-btn" class="w-full py-3 bg-primary text-white font-semibold rounded-xl mt-2 flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+          <span>${dict.submit_report}</span>
+        </button>
       </form>
     </div>
   `;
   document.body.appendChild(modal);
 
   const form = modal.querySelector('form');
+  const fileInput = modal.querySelector('#form-image-file');
+  const attachedBadge = modal.querySelector('#image-attached-badge');
+  const submitBtn = modal.querySelector('#submit-report-btn');
+
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type.toLowerCase())) {
+        alert("Unsupported file type! Please upload a JPEG, PNG, or WEBP image.");
+        fileInput.value = '';
+        return;
+      }
+
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size is too large! Maximum allowed image size is 10MB.");
+        fileInput.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        sessionStorage.setItem('civis_captured_img', event.target.result);
+        attachedBadge.classList.remove('hidden');
+        attachedBadge.classList.add('flex');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = form.querySelector('#form-title').value.trim();
@@ -2312,10 +2471,66 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       return;
     }
 
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Uploading & Submitting...`;
+
     const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
     const reported_by = localUser.name || 'Anonymous';
     const reported_by_email = localUser.email || 'N/A';
     const reported_by_phone = localUser.phone || 'N/A';
+
+    let uploadedImagePath = null;
+    const capturedDataUrl = sessionStorage.getItem('civis_captured_img');
+
+    if (capturedDataUrl) {
+      try {
+        let rawBlob = dataURLtoBlob(capturedDataUrl);
+        if (rawBlob) {
+          if (!['image/jpeg', 'image/png', 'image/webp'].includes(rawBlob.type)) {
+            alert("Unsupported image format detected. Please select a valid JPEG, PNG, or WEBP image.");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
+            return;
+          }
+
+          let finalBlob = rawBlob;
+          if (rawBlob.size > 1024 * 1024) {
+            finalBlob = await compressImageBlob(rawBlob, 1200, 0.82);
+          }
+
+          if (finalBlob.size > 5 * 1024 * 1024) {
+            alert("The selected photo exceeds the maximum allowed 5MB limit even after compression.");
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
+            return;
+          }
+
+          const userId = localUser.id || (supabaseClient.auth.session ? supabaseClient.auth.session()?.user?.id : null) || 'anon';
+          const randHash = Math.random().toString(36).substring(2, 9);
+          const filePath = `complaints/${userId}/${Date.now()}-${randHash}.jpg`;
+
+          const { data: uploadData, error: uploadError } = await supabaseClient.storage
+            .from('civis-complaint-images')
+            .upload(filePath, finalBlob, { contentType: 'image/jpeg', upsert: false });
+
+          if (uploadError) {
+            console.error("Storage upload error:", uploadError);
+            alert(`Failed to upload complaint image: ${uploadError.message}\n\nPlease try submitting again.`);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
+            return;
+          }
+
+          uploadedImagePath = filePath;
+        }
+      } catch (err) {
+        console.error("Image processing error:", err);
+        alert(`An error occurred while preparing your image: ${err.message}`);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
+        return;
+      }
+    }
 
     const isDefaultCoords = (lat === 18.5204 && lng === 73.8567);
     const newIssue = {
@@ -2327,6 +2542,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       progress: 10,
       criticality: "Moderate",
       description,
+      image_url: uploadedImagePath,
       lat: isDefaultCoords ? lat + (Math.random() - 0.5) * 0.01 : lat,
       lng: isDefaultCoords ? lng + (Math.random() - 0.5) * 0.01 : lng,
       reported_by: reported_by,
@@ -2336,8 +2552,21 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
     const { data, error } = await supabaseClient.from('issues').insert([newIssue]).select();
     if (error) {
+      if (uploadedImagePath) {
+        try {
+          await supabaseClient.storage.from('civis-complaint-images').remove([uploadedImagePath]);
+        } catch (cleanupErr) {
+          console.warn("Orphan storage cleanup error:", cleanupErr);
+        }
+      }
       alert(`Error submitting report: ${error.message}`);
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
     } else {
+      sessionStorage.removeItem('civis_captured_img');
+      sessionStorage.removeItem('civis_captured_name');
+      sessionStorage.removeItem('civis_sim_category');
+
       let generatedIdMsg = "";
       if (data && data.length > 0) {
         const insertedId = data[0].id;
