@@ -3,226 +3,227 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - CIVIS AI</title>
-  <!-- Tailwind CSS -->
-<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link rel="stylesheet" href="/dark-mode.css">
+  <title>CIVIS AI - Citizen Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            primary: '#004ac6',
-            'on-primary': '#ffffff',
-            secondary: '#006b5f',
-            critical: '#ba1a1a',
-            success: '#22c55e',
-            'card-bg': '#ffffff',
-            'border-subtle': '#e2e8f0',
-            'surface-container-low': '#f5f7fa',
-            'on-surface-variant': '#737686',
-            outline: '#737686',
-            'on-surface': '#191c1e'
-          },
           fontFamily: {
-            sans: ['Poppins', 'sans-serif'],
-            display: ['Poppins', 'sans-serif']
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a'
+            }
           }
         }
       }
     }
   </script>
-  <!-- Google Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Styles -->
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f5f7fa;
-      color: #191c1e;
-    }
-    /* Language-specific Devanagari Tweaks */
-    :lang(mr), :lang(hi), .lang-mr, .lang-hi {
-      font-family: 'Poppins', sans-serif !important;
-      line-height: 1.6 !important;
-    }
-    .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
-      font-weight: 500;
-    }
-    .material-symbols-outlined {
-      font-family: 'Material Symbols Outlined' !important;
-    }
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.7);
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-    .font-display {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 800;
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
-
-  <!-- Container Box -->
-  <div class="w-full max-w-[1000px] h-[650px] bg-white rounded-[32px] overflow-hidden shadow-2xl flex border border-border-subtle">
+<body class="bg-[#F8FAFC] text-slate-800 font-sans min-h-screen flex items-center justify-center p-0 sm:p-4 selection:bg-brand-500 selection:text-white antialiased">
+  <!-- Mobile App / Desktop Container -->
+  <div class="w-full max-w-[460px] min-h-screen sm:min-h-auto bg-[#F8FAFC] relative overflow-hidden flex flex-col justify-between shadow-2xl sm:rounded-[36px] border border-slate-200/80 my-auto">
     
-    <!-- Left Column: Branding Decorative Panel (Hidden on Mobile) -->
-    <div class="hidden md:flex flex-[1.1] bg-gradient-to-br from-primary via-primary to-secondary p-12 flex-col justify-between text-white relative">
-      <!-- Glow Gradients -->
-      <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-teal-400/20 rounded-full blur-[80px] pointer-events-none"></div>
-      
-      <div>
-        <div class="flex items-center gap-2 mb-8">
-          <span class="material-symbols-outlined text-[36px] text-white">apartment</span>
-          <span class="font-display font-bold text-2xl tracking-tight">CIVIS AI</span>
-        </div>
-        <h1 class="font-display font-extrabold text-4xl leading-tight mb-4">Empowering Smart Cities through AI</h1>
-        <p class="opacity-80 text-sm leading-relaxed max-w-sm">Scan anomalies, log complaints, check live resource trackers, and connect directly with municipal authorities.</p>
-      </div>
+    <!-- Ambient glowing backgrounds for gov-tech aesthetic -->
+    <div class="absolute -top-24 -right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute top-1/3 -left-20 w-64 h-64 bg-teal-400/15 rounded-full blur-3xl pointer-events-none"></div>
 
-      <!-- Feature Badges -->
-      <div class="space-y-4">
-        <div class="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/15">
-          <span class="material-symbols-outlined text-white">psychology</span>
+    <!-- Header Area -->
+    <div class="pt-8 px-6 z-10">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-blue-400 p-0.5 shadow-md shadow-blue-500/20 flex items-center justify-center">
+            <div class="w-full h-full bg-white rounded-[10px] flex items-center justify-center">
+              <span class="material-symbols-outlined text-brand-600 text-[24px]">layers</span>
+            </div>
+          </div>
           <div>
-            <p class="text-xs font-bold">TensorFlow.js Driven</p>
-            <p class="text-[10px] opacity-70">Real-time browser-based computer vision</p>
+            <div class="flex items-center space-x-1.5">
+              <span class="font-display font-extrabold text-xl text-slate-900 tracking-tight">CIVIS AI</span>
+              <span class="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-brand-700 border border-blue-200 rounded-md">Pune</span>
+            </div>
+            <p class="text-[10px] text-slate-500 font-medium">Smart Citizen Network</p>
           </div>
         </div>
-        <div class="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/15">
-          <span class="material-symbols-outlined text-white">map</span>
-          <div>
-            <p class="text-xs font-bold">Interactive Geolocation</p>
-            <p class="text-[10px] opacity-70">Leaflet-powered real-time tracking heatmaps</p>
-          </div>
+        
+        <div class="flex items-center space-x-1 text-xs font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>PMC Live</span>
         </div>
       </div>
 
-      <div class="text-xs opacity-60">© 2026 CIVIS AI Inc. All rights reserved.</div>
+      <!-- Welcome Banner -->
+      <div class="mt-2">
+        <h1 class="font-display text-2xl font-bold text-slate-900 leading-tight">
+          Civic Action,<br><span class="text-brand-600">Powered by AI</span>
+        </h1>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          Report civic issues across Pune in seconds. Verified reports get dispatched instantly to ward officers.
+        </p>
+      </div>
     </div>
 
-    <!-- Right Column: Interactive Login/Register Form -->
-    <div class="flex-1 p-8 md:p-12 flex flex-col justify-between bg-surface-container-low/30 relative">
-      <!-- Tab Controls -->
-      <div class="flex bg-surface-container-low p-1.5 rounded-2xl border border-border-subtle mb-6">
-        <button id="tab-login" class="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm">Sign In</button>
-        <button id="tab-register" class="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface">Create Account</button>
-      </div>
-
-      <!-- Form Panels -->
-      <div class="flex-1 flex flex-col justify-center">
-        <!-- HEADER -->
-        <div class="mb-6">
-          <h2 id="auth-title" class="font-display font-bold text-2xl mb-1 text-on-surface">Welcome Back</h2>
-          <p id="auth-subtitle" class="text-sm text-on-surface-variant">Sign in to access your civic dashboard.</p>
+    <!-- Card Main Content -->
+    <div class="px-6 py-4 z-10 flex-1 flex flex-col justify-center">
+      <div class="glass-card rounded-3xl border border-white/80 p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
+        
+        <!-- Toggle login/register tab -->
+        <div class="flex p-1 bg-slate-100/90 rounded-2xl">
+          <button id="tab-login" type="button" class="flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center space-x-1.5">
+            <span class="material-symbols-outlined text-[16px] text-brand-600">login</span>
+            <span>Sign In</span>
+          </button>
+          <button id="tab-register" type="button" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center space-x-1.5">
+            <span class="material-symbols-outlined text-[16px]">person_add</span>
+            <span>Create Account</span>
+          </button>
         </div>
 
-        <!-- FORM -->
-        <form id="auth-form" class="space-y-4">
-          <!-- Username Input (Hidden on Sign In) -->
-          <div id="username-container" class="hidden">
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Full Name</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">person</span>
-              <input type="text" id="auth-name" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="e.g. Sarthak">
+        <!-- Title & Subtitle Header -->
+        <div>
+          <h2 id="auth-title" class="font-display font-bold text-lg text-slate-900">Welcome Back</h2>
+          <p id="auth-subtitle" class="text-xs text-slate-500 mt-0.5">Sign in to access your citizen dashboard.</p>
+        </div>
+
+        <!-- AUTH FORM -->
+        <form id="auth-form" class="space-y-3">
+          <!-- Full Name (Hidden on Sign In) -->
+          <div id="username-container" class="hidden space-y-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Full Name</label>
+            <div class="flex items-center bg-white border border-slate-200 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 rounded-2xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2">person</span>
+              <input type="text" id="auth-name" placeholder="e.g. Sarthak Patil" class="w-full bg-transparent text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none">
             </div>
           </div>
 
-          <!-- Phone Number Input (Hidden on Sign In) -->
-          <div id="phone-container" class="hidden">
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Phone Number</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">phone</span>
-              <input type="tel" id="auth-phone" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="e.g. +91 98765 43210">
+          <!-- Phone Number (Hidden on Sign In) -->
+          <div id="phone-container" class="hidden space-y-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Mobile Number</label>
+            <div class="flex items-center bg-white border border-slate-200 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 rounded-2xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2">smartphone</span>
+              <input type="tel" id="auth-phone" placeholder="98765 43210" class="w-full bg-transparent text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none">
             </div>
           </div>
 
           <!-- Email Input -->
-          <div>
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Email Address</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-              <input type="email" required id="auth-email" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="you@domain.com">
+          <div class="space-y-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Email Address</label>
+            <div class="flex items-center bg-white border border-slate-200 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 rounded-2xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2">mail</span>
+              <input type="email" id="auth-email" required placeholder="you@domain.com" class="w-full bg-transparent text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none">
             </div>
           </div>
 
           <!-- Password Input -->
-          <div>
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Password</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
-              <input type="password" required id="auth-password" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="••••••••">
+          <div class="space-y-1">
+            <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Password</label>
+            <div class="flex items-center bg-white border border-slate-200 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 rounded-2xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2">lock</span>
+              <input type="password" id="auth-password" required placeholder="••••••••" class="w-full bg-transparent text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none">
             </div>
           </div>
 
           <!-- Submit Button -->
-          <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4">
-            Sign In
+          <button type="submit" id="auth-submit-btn" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 active:scale-[0.99] text-white font-semibold text-sm rounded-2xl shadow-lg shadow-brand-600/25 flex items-center justify-center space-x-2 transition-all mt-4 cursor-pointer">
+            <span>Sign In</span>
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
         </form>
 
-        <!-- Status Message -->
-        <div id="auth-error" class="text-xs text-critical font-semibold mt-3 text-center hidden"></div>
+        <!-- Error / Status Message Box -->
+        <div id="auth-error" class="text-xs text-rose-600 font-semibold p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-center hidden"></div>
       </div>
 
-      <!-- Footer Tagline -->
-      <div class="text-center text-xs text-on-surface-variant opacity-60">
-        Secured by Supabase Auth Gateway.
+      <!-- Trust Indicator & Security Callout -->
+      <div class="mt-4 px-2 flex items-center justify-between text-slate-500">
+        <div class="flex items-center space-x-1.5 text-[11px]">
+          <span class="material-symbols-outlined text-amber-500 text-[16px]">military_tech</span>
+          <span>Earn <b>Citizen Trust Score</b> per fix</span>
+        </div>
+        <div class="flex items-center space-x-1 text-[11px] font-semibold text-brand-600">
+          <span class="material-symbols-outlined text-[14px]">shield</span>
+          <span>256-bit PMC Safe</span>
+        </div>
       </div>
     </div>
+
+    <!-- Footer Navigation / Switcher Link -->
+    <div class="p-6 pt-2 z-10 text-center">
+      <div class="p-3 bg-blue-50/70 border border-blue-100 rounded-2xl flex items-center justify-between">
+        <div class="text-left">
+          <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Are you a Pune official?</p>
+          <p class="text-xs font-semibold text-slate-800">PMC Staff & Ward Engineer Portal</p>
+        </div>
+        <a href="/admin/login.html" class="px-3 py-1.5 bg-white text-brand-700 hover:bg-brand-50 border border-brand-200 rounded-xl text-xs font-bold shadow-sm transition-all flex items-center space-x-1">
+          <span>Admin</span>
+          <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+        </a>
+      </div>
+      <p class="text-[10px] text-slate-400 mt-3 font-medium">Pune Smart City Development Corp. Ltd (PSCDCL) &bull; CIVIS v2.4</p>
+    </div>
+
   </div>
 
   <!-- Authentication Script Integration -->
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
   <script>
-    // Tab Switching Logic inside HTML for instant layout updates
+    let isRegisterMode = false;
+
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
     const uContainer = document.getElementById('username-container');
+    const phoneContainer = document.getElementById('phone-container');
     const authTitle = document.getElementById('auth-title');
     const authSubtitle = document.getElementById('auth-subtitle');
     const submitBtn = document.getElementById('auth-submit-btn');
     const errorBox = document.getElementById('auth-error');
-    
-    let isRegisterMode = false;
-
-    const phoneContainer = document.getElementById('phone-container');
 
     function setTabMode(isRegister) {
       isRegisterMode = isRegister;
-      errorBox.classList.add('hidden');
+      if (errorBox) errorBox.classList.add('hidden');
       
       if (isRegister) {
-        tabRegister.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm";
-        tabLogin.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface";
-        uContainer.classList.remove('hidden');
-        phoneContainer.classList.remove('hidden');
-        authTitle.innerText = "Create Account";
-        authSubtitle.innerText = "Register your civic profile to get started.";
-        submitBtn.innerHTML = 'Register <span class="material-symbols-outlined text-[18px]">person_add</span>';
+        if (tabRegister) tabRegister.className = "flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center space-x-1.5";
+        if (tabLogin) tabLogin.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center space-x-1.5";
+        if (uContainer) uContainer.classList.remove('hidden');
+        if (phoneContainer) phoneContainer.classList.remove('hidden');
+        if (authTitle) authTitle.innerText = "Create Citizen Account";
+        if (authSubtitle) authSubtitle.innerText = "Register your profile for rapid PMC dispatch.";
+        if (submitBtn) submitBtn.innerHTML = '<span>Register Profile</span><span class="material-symbols-outlined text-[18px]">person_add</span>';
       } else {
-        tabLogin.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm";
-        tabRegister.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface";
-        uContainer.classList.add('hidden');
-        phoneContainer.classList.add('hidden');
-        authTitle.innerText = "Welcome Back";
-        authSubtitle.innerText = "Sign in to access your civic dashboard.";
-        submitBtn.innerHTML = 'Sign In <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+        if (tabLogin) tabLogin.className = "flex-1 py-2 text-xs font-bold rounded-xl bg-white text-slate-900 shadow-sm transition-all flex items-center justify-center space-x-1.5";
+        if (tabRegister) tabRegister.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-slate-500 hover:text-slate-800 transition-all flex items-center justify-center space-x-1.5";
+        if (uContainer) uContainer.classList.add('hidden');
+        if (phoneContainer) phoneContainer.classList.add('hidden');
+        if (authTitle) authTitle.innerText = "Welcome Back";
+        if (authSubtitle) authSubtitle.innerText = "Sign in to access your citizen dashboard.";
+        if (submitBtn) submitBtn.innerHTML = '<span>Sign In</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
       }
     }
 
-    tabLogin.addEventListener('click', () => setTabMode(false));
-    tabRegister.addEventListener('click', () => setTabMode(true));
+    if (tabLogin) tabLogin.addEventListener('click', () => setTabMode(false));
+    if (tabRegister) tabRegister.addEventListener('click', () => setTabMode(true));
   </script>
 </body>
 </html>

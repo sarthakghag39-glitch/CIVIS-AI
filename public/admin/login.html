@@ -3,226 +3,276 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - CIVIS AI</title>
-  <!-- Tailwind CSS -->
-<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
+  <title>CIVIS AI - Municipality Admin Command Login</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link rel="stylesheet" href="/dark-mode.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          colors: {
-            primary: '#004ac6',
-            'on-primary': '#ffffff',
-            secondary: '#006b5f',
-            critical: '#ba1a1a',
-            success: '#22c55e',
-            'card-bg': '#ffffff',
-            'border-subtle': '#e2e8f0',
-            'surface-container-low': '#f5f7fa',
-            'on-surface-variant': '#737686',
-            outline: '#737686',
-            'on-surface': '#191c1e'
-          },
           fontFamily: {
-            sans: ['Poppins', 'sans-serif'],
-            display: ['Poppins', 'sans-serif']
+            sans: ['Inter', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              900: '#1e3a8a'
+            }
           }
         }
       }
     }
   </script>
-  <!-- Google Fonts & Icons -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Styles -->
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f5f7fa;
-      color: #191c1e;
+    .grid-bg {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
     }
-    /* Language-specific Devanagari Tweaks */
-    :lang(mr), :lang(hi), .lang-mr, .lang-hi {
-      font-family: 'Poppins', sans-serif !important;
-      line-height: 1.6 !important;
-    }
-    .lang-mr body, .lang-hi body, .lang-mr input, .lang-hi input, .lang-mr select, .lang-hi select, .lang-mr textarea, .lang-hi textarea {
-      font-weight: 500;
-    }
-    .material-symbols-outlined {
-      font-family: 'Material Symbols Outlined' !important;
-    }
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.7);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-    }
-    .font-display {
-      font-family: 'Poppins', sans-serif;
-      font-weight: 800;
+    .soft-shadow {
+      box-shadow: 0 20px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8);
     }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+<body class="bg-[#F7F9FB] text-slate-900 font-sans min-h-screen flex items-center justify-center p-4 lg:p-8 antialiased relative overflow-hidden">
+  <!-- Light background cyber grids & subtle decorative glow spheres -->
+  <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+  <div class="absolute -top-40 left-1/4 w-[500px] h-[500px] bg-blue-400/10 rounded-full blur-[120px] pointer-events-none"></div>
+  <div class="absolute -bottom-40 right-1/4 w-[500px] h-[500px] bg-teal-400/10 rounded-full blur-[120px] pointer-events-none"></div>
 
-  <!-- Container Box -->
-  <div class="w-full max-w-[1000px] h-[650px] bg-white rounded-[32px] overflow-hidden shadow-2xl flex border border-border-subtle">
+  <!-- Master Desktop Container -->
+  <div class="w-full max-w-5xl bg-white border border-slate-200/80 rounded-3xl soft-shadow overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 my-auto">
     
-    <!-- Left Column: Branding Decorative Panel (Hidden on Mobile) -->
-    <div class="hidden md:flex flex-[1.1] bg-gradient-to-br from-primary via-primary to-secondary p-12 flex-col justify-between text-white relative">
-      <!-- Glow Gradients -->
-      <div class="absolute top-1/4 left-1/4 w-72 h-72 bg-teal-400/20 rounded-full blur-[80px] pointer-events-none"></div>
-      
+    <!-- LEFT SIDE: Security Overview & City Metrics Radar (Gov-tech Enterprise) -->
+    <div class="lg:col-span-7 p-8 lg:p-12 border-b lg:border-b-0 lg:border-r border-slate-200/80 flex flex-col justify-between relative bg-gradient-to-b from-slate-50/70 via-slate-50/40 to-white">
+      <!-- Top Branding -->
       <div>
-        <div class="flex items-center gap-2 mb-8">
-          <span class="material-symbols-outlined text-[36px] text-white">apartment</span>
-          <span class="font-display font-bold text-2xl tracking-tight">CIVIS AI</span>
-        </div>
-        <h1 class="font-display font-extrabold text-4xl leading-tight mb-4">Empowering Smart Cities through AI</h1>
-        <p class="opacity-80 text-sm leading-relaxed max-w-sm">Scan anomalies, log complaints, check live resource trackers, and connect directly with municipal authorities.</p>
-      </div>
-
-      <!-- Feature Badges -->
-      <div class="space-y-4">
-        <div class="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/15">
-          <span class="material-symbols-outlined text-white">psychology</span>
+        <div class="flex items-center space-x-3 mb-6">
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-600 to-blue-700 flex items-center justify-center shadow-md shadow-brand-500/20">
+            <span class="material-symbols-outlined text-white text-[24px]">admin_panel_settings</span>
+          </div>
           <div>
-            <p class="text-xs font-bold">TensorFlow.js Driven</p>
-            <p class="text-[10px] opacity-70">Real-time browser-based computer vision</p>
+            <div class="flex items-center space-x-2">
+              <span class="font-display font-extrabold text-2xl text-slate-900 tracking-tight">CIVIS<span class="text-brand-600 font-medium">Command</span></span>
+              <span class="px-2.5 py-0.5 text-[10px] font-mono font-semibold uppercase tracking-wider bg-blue-50 text-brand-700 border border-blue-200/80 rounded-full">v2.4 SECURE</span>
+            </div>
+            <p class="text-xs text-slate-500 font-medium">Pune Municipal Corporation • PSCDCL AI Operations</p>
           </div>
         </div>
-        <div class="flex items-center gap-3 bg-white/10 p-3 rounded-2xl border border-white/15">
-          <span class="material-symbols-outlined text-white">map</span>
-          <div>
-            <p class="text-xs font-bold">Interactive Geolocation</p>
-            <p class="text-[10px] opacity-70">Leaflet-powered real-time tracking heatmaps</p>
+
+        <div class="mt-6 space-y-3">
+          <span class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono font-semibold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>ALL 15 WARDS OPERATIONAL • LATENCY 42ms</span>
+          </span>
+          <h2 class="font-display text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight pt-1">
+            Autonomous Civic Intelligence &amp; Rapid Dispatch
+          </h2>
+          <p class="text-sm text-slate-600 max-w-lg leading-relaxed pt-1">
+            Access real-time machine vision triage, road surface damage telemetry, and automated contractor escalation for Pune City.
+          </p>
+        </div>
+      </div>
+
+      <!-- Real-time Live Security & Data telemetry preview -->
+      <div class="my-6 grid grid-cols-3 gap-3">
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-mono mb-1.5 font-medium">
+            <span>Critical Triage</span>
+            <span class="material-symbols-outlined text-rose-500 text-[18px]">warning</span>
+          </div>
+          <div class="text-2xl font-bold font-display text-slate-900">42</div>
+          <div class="text-[11px] text-rose-600 font-semibold flex items-center space-x-1 mt-1">
+            <span>+4 high priority</span>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-mono mb-1.5 font-medium">
+            <span>AI Verified</span>
+            <span class="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
+          </div>
+          <div class="text-2xl font-bold font-display text-slate-900">98.4%</div>
+          <div class="text-[11px] text-emerald-600 font-semibold flex items-center space-x-1 mt-1">
+            <span>Hash verified</span>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-slate-300 transition-colors">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-mono mb-1.5 font-medium">
+            <span>Active Crews</span>
+            <span class="material-symbols-outlined text-brand-600 text-[18px]">engineering</span>
+          </div>
+          <div class="text-2xl font-bold font-display text-slate-900">28</div>
+          <div class="text-[11px] text-slate-500 font-medium flex items-center space-x-1 mt-1">
+            <span>District B-12 / Kothrud</span>
           </div>
         </div>
       </div>
 
-      <div class="text-xs opacity-60">© 2026 CIVIS AI Inc. All rights reserved.</div>
+      <!-- Security Protocol Banner -->
+      <div class="pt-4 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 font-medium">
+        <div class="flex items-center space-x-2">
+          <span class="material-symbols-outlined text-brand-600 text-[18px]">lock</span>
+          <span>Zero-Trust GovNet Session</span>
+        </div>
+        <div class="font-mono text-slate-500 text-[11px]">
+          SSL: TLS 1.3 / ISO 27001
+        </div>
+      </div>
     </div>
 
-    <!-- Right Column: Interactive Login/Register Form -->
-    <div class="flex-1 p-8 md:p-12 flex flex-col justify-between bg-surface-container-low/30 relative">
-      <!-- Tab Controls -->
-      <div class="flex bg-surface-container-low p-1.5 rounded-2xl border border-border-subtle mb-6">
-        <button id="tab-login" class="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm">Sign In</button>
-        <button id="tab-register" class="flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface">Create Account</button>
-      </div>
-
-      <!-- Form Panels -->
-      <div class="flex-1 flex flex-col justify-center">
-        <!-- HEADER -->
-        <div class="mb-6">
-          <h2 id="auth-title" class="font-display font-bold text-2xl mb-1 text-on-surface">Welcome Back</h2>
-          <p id="auth-subtitle" class="text-sm text-on-surface-variant">Sign in to access your civic dashboard.</p>
+    <!-- RIGHT SIDE: Authenticated Official Portal Form -->
+    <div class="lg:col-span-5 p-8 lg:p-10 bg-white flex flex-col justify-between relative">
+      <div>
+        <!-- Card Header -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 id="auth-title" class="text-xl font-display font-bold text-slate-900 tracking-tight">Official Sign-In</h3>
+            <p id="auth-subtitle" class="text-xs text-slate-500 mt-0.5">Municipal Staff, Ward Officers &amp; PMC Engineers</p>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600 border border-slate-200">
+            <span class="material-symbols-outlined text-[20px]">shield_person</span>
+          </div>
         </div>
 
-        <!-- FORM -->
-        <form id="auth-form" class="space-y-4">
-          <!-- Username Input (Hidden on Sign In) -->
-          <div id="username-container" class="hidden">
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Full Name</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">person</span>
-              <input type="text" id="auth-name" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="e.g. Sarthak">
+        <!-- Mode Selector -->
+        <div class="flex bg-slate-100 p-1 rounded-xl mb-5 border border-slate-200/80">
+          <button id="tab-login" type="button" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-sm border border-slate-200/60 flex items-center justify-center space-x-1.5 transition-all">
+            <span class="material-symbols-outlined text-brand-600 text-[15px]">badge</span>
+            <span>Sign In</span>
+          </button>
+          <button id="tab-register" type="button" class="flex-1 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 transition-colors">
+            <span class="material-symbols-outlined text-slate-500 text-[15px]">person_add</span>
+            <span>Create Account</span>
+          </button>
+        </div>
+
+        <!-- AUTH FORM -->
+        <form id="auth-form" class="space-y-3.5">
+          <!-- Full Name Container (Hidden on Sign In) -->
+          <div id="username-container" class="hidden space-y-1">
+            <label class="block text-xs font-semibold text-slate-700">Full Name</label>
+            <div class="flex items-center bg-slate-50/70 border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white rounded-xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2.5">person</span>
+              <input class="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none" type="text" id="auth-name" placeholder="Official Name"/>
             </div>
           </div>
 
-          <!-- Phone Number Input (Hidden on Sign In) -->
-          <div id="phone-container" class="hidden">
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Phone Number</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">phone</span>
-              <input type="tel" id="auth-phone" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="e.g. +91 98765 43210">
+          <!-- Phone Number Container (Hidden on Sign In) -->
+          <div id="phone-container" class="hidden space-y-1">
+            <label class="block text-xs font-semibold text-slate-700">Phone Number</label>
+            <div class="flex items-center bg-slate-50/70 border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white rounded-xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2.5">smartphone</span>
+              <input class="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none" type="tel" id="auth-phone" placeholder="+91 98765 43210"/>
             </div>
           </div>
 
           <!-- Email Input -->
-          <div>
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Email Address</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">mail</span>
-              <input type="email" required id="auth-email" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="you@domain.com">
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-slate-700">PMC Email or Employee ID</label>
+            <div class="flex items-center bg-slate-50/70 border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white rounded-xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2.5">alternate_email</span>
+              <input class="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none font-mono" type="email" id="auth-email" required placeholder="official@pmc.gov.in"/>
             </div>
           </div>
 
           <!-- Password Input -->
-          <div>
-            <label class="block text-xs font-bold text-outline mb-1 uppercase tracking-wider">Password</label>
-            <div class="relative">
-              <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-[20px]">lock</span>
-              <input type="password" required id="auth-password" class="w-full pl-11 pr-4 py-3 bg-white border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/30 transition-all text-sm" placeholder="••••••••">
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <label class="block text-xs font-semibold text-slate-700">Security Passcode</label>
+            </div>
+            <div class="flex items-center bg-slate-50/70 border border-slate-300 focus-within:border-brand-600 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:bg-white rounded-xl px-3.5 py-2.5 transition-all">
+              <span class="material-symbols-outlined text-slate-400 text-[18px] mr-2.5">key</span>
+              <input class="w-full bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none font-mono" type="password" id="auth-password" required placeholder="••••••••••••••••"/>
             </div>
           </div>
 
-          <!-- Submit Button -->
-          <button type="submit" id="auth-submit-btn" class="w-full py-3.5 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4">
-            Sign In
-            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+          <!-- 2FA Note -->
+          <div class="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80 flex items-start space-x-2.5">
+            <span class="material-symbols-outlined text-brand-600 text-[18px] mt-0.5">verified_user</span>
+            <div class="text-[11px] text-blue-900 leading-snug font-medium">
+              Requires Supabase Auth session &amp; verified admin profile.
+            </div>
+          </div>
+
+          <!-- Login CTA -->
+          <button type="submit" id="auth-submit-btn" class="w-full py-3 px-4 bg-brand-600 hover:bg-brand-700 active:bg-brand-800 text-white font-semibold text-sm rounded-xl shadow-md shadow-brand-600/25 flex items-center justify-center space-x-2 transition-all cursor-pointer mt-2">
+            <span>Authorize Admin Session</span>
+            <span class="material-symbols-outlined text-[18px]">vpn_key</span>
           </button>
         </form>
 
-        <!-- Status Message -->
-        <div id="auth-error" class="text-xs text-critical font-semibold mt-3 text-center hidden"></div>
+        <!-- Status / Error Message Box -->
+        <div id="auth-error" class="text-xs text-rose-600 font-semibold p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-center mt-3 hidden"></div>
       </div>
 
-      <!-- Footer Tagline -->
-      <div class="text-center text-xs text-on-surface-variant opacity-60">
-        Secured by Supabase Auth Gateway.
+      <!-- Footer Help / Switch back to Citizen App -->
+      <div class="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-500">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span class="font-medium text-slate-600">Pune Central DC</span>
+        </div>
+        <a class="text-brand-600 hover:text-brand-700 font-semibold flex items-center space-x-1 transition-colors" href="/user/login.html">
+          <span>Switch to Citizen App</span>
+          <span class="material-symbols-outlined text-[13px]">arrow_forward</span>
+        </a>
       </div>
     </div>
   </div>
 
   <!-- Authentication Script Integration -->
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
   <script>
-    // Tab Switching Logic inside HTML for instant layout updates
+    let isRegisterMode = false;
+
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
     const uContainer = document.getElementById('username-container');
+    const phoneContainer = document.getElementById('phone-container');
     const authTitle = document.getElementById('auth-title');
     const authSubtitle = document.getElementById('auth-subtitle');
     const submitBtn = document.getElementById('auth-submit-btn');
     const errorBox = document.getElementById('auth-error');
-    
-    let isRegisterMode = false;
-
-    const phoneContainer = document.getElementById('phone-container');
 
     function setTabMode(isRegister) {
       isRegisterMode = isRegister;
-      errorBox.classList.add('hidden');
+      if (errorBox) errorBox.classList.add('hidden');
       
       if (isRegister) {
-        tabRegister.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm";
-        tabLogin.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface";
-        uContainer.classList.remove('hidden');
-        phoneContainer.classList.remove('hidden');
-        authTitle.innerText = "Create Account";
-        authSubtitle.innerText = "Register your civic profile to get started.";
-        submitBtn.innerHTML = 'Register <span class="material-symbols-outlined text-[18px]">person_add</span>';
+        if (tabRegister) tabRegister.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-sm border border-slate-200/60 flex items-center justify-center space-x-1.5 transition-all";
+        if (tabLogin) tabLogin.className = "flex-1 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 transition-colors";
+        if (uContainer) uContainer.classList.remove('hidden');
+        if (phoneContainer) phoneContainer.classList.remove('hidden');
+        if (authTitle) authTitle.innerText = "Register Official";
+        if (authSubtitle) authSubtitle.innerText = "Create new municipal admin credential.";
+        if (submitBtn) submitBtn.innerHTML = '<span>Register Admin Profile</span><span class="material-symbols-outlined text-[18px]">person_add</span>';
       } else {
-        tabLogin.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all bg-white text-primary shadow-sm";
-        tabRegister.className = "flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all text-on-surface-variant hover:text-on-surface";
-        uContainer.classList.add('hidden');
-        phoneContainer.classList.add('hidden');
-        authTitle.innerText = "Welcome Back";
-        authSubtitle.innerText = "Sign in to access your civic dashboard.";
-        submitBtn.innerHTML = 'Sign In <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+        if (tabLogin) tabLogin.className = "flex-1 py-1.5 text-xs font-semibold rounded-lg bg-white text-slate-900 shadow-sm border border-slate-200/60 flex items-center justify-center space-x-1.5 transition-all";
+        if (tabRegister) tabRegister.className = "flex-1 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 flex items-center justify-center space-x-1.5 transition-colors";
+        if (uContainer) uContainer.classList.add('hidden');
+        if (phoneContainer) phoneContainer.classList.add('hidden');
+        if (authTitle) authTitle.innerText = "Official Sign-In";
+        if (authSubtitle) authSubtitle.innerText = "Municipal Staff, Ward Officers & PMC Engineers";
+        if (submitBtn) submitBtn.innerHTML = '<span>Authorize Admin Session</span><span class="material-symbols-outlined text-[18px]">vpn_key</span>';
       }
     }
 
-    tabLogin.addEventListener('click', () => setTabMode(false));
-    tabRegister.addEventListener('click', () => setTabMode(true));
+    if (tabLogin) tabLogin.addEventListener('click', () => setTabMode(false));
+    if (tabRegister) tabRegister.addEventListener('click', () => setTabMode(true));
   </script>
 </body>
 </html>
