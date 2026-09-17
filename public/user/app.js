@@ -1059,30 +1059,30 @@ async function initWeatherSystem() {
 }
 
 function renderWeatherUI(weather) {
-  const headerRight = document.querySelector('header div.flex.items-center.gap-4') || document.querySelector('header div.flex.items-center');
-  if (headerRight && !document.getElementById('civis-weather-pill')) {
-    const weatherPill = document.createElement('button');
+  const header = document.querySelector('header');
+  if (!header) return;
+
+  // Accurately target the rightmost header container div
+  const headerDivs = Array.from(header.querySelectorAll('div')).filter(d => d.parentElement === header || d.classList.contains('flex'));
+  let headerRight = headerDivs.length > 0 ? headerDivs[headerDivs.length - 1] : header;
+
+  let weatherPill = document.getElementById('civis-weather-pill');
+  if (!weatherPill) {
+    weatherPill = document.createElement('button');
     weatherPill.id = 'civis-weather-pill';
     weatherPill.type = 'button';
-    weatherPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100 border border-blue-200 text-blue-900 transition-all cursor-pointer shadow-sm text-xs font-semibold shrink-0';
+    weatherPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100 border border-blue-200 text-blue-900 transition-all cursor-pointer shadow-sm text-xs font-semibold shrink-0 mr-1 sm:mr-2';
     weatherPill.title = 'Click for detailed real-time weather forecast';
-    weatherPill.innerHTML = `
-      <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
-      <span>${weather.temp}°C</span>
-      <span class="hidden sm:inline text-blue-700/80 font-medium">${weather.city}</span>
-      ${weather.isGps ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="GPS Real-time Location"></span>' : ''}
-    `;
     weatherPill.addEventListener('click', () => openWeatherModal(weather));
     headerRight.insertBefore(weatherPill, headerRight.firstChild);
-  } else if (document.getElementById('civis-weather-pill')) {
-    const weatherPill = document.getElementById('civis-weather-pill');
-    weatherPill.innerHTML = `
-      <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
-      <span>${weather.temp}°C</span>
-      <span class="hidden sm:inline text-blue-700/80 font-medium">${weather.city}</span>
-      ${weather.isGps ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="GPS Real-time Location"></span>' : ''}
-    `;
   }
+
+  weatherPill.innerHTML = `
+    <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
+    <span>${weather.temp}°C</span>
+    <span class="hidden sm:inline text-blue-700/80 font-medium">${weather.city}</span>
+    ${weather.isGps ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="GPS Real-time Location"></span>' : ''}
+  `;
 }
 
 function openWeatherModal(weather) {
