@@ -1119,7 +1119,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     const userInitials = getInitials(localUser.name);
-    document.querySelectorAll('.rounded-full').forEach(el => {
+    document.querySelectorAll('header .rounded-full, button .rounded-full, .user-avatar, #profile-btn .rounded-full').forEach(el => {
+      if (el.closest('aside, nav, #nav-social-pulse')) return;
       const txt = el.textContent ? el.textContent.trim() : '';
       if ((txt === 'IS' || txt === 'A' || (txt.length >= 1 && txt.length <= 3 && /^[A-Za-z]{1,3}$/.test(txt))) && !el.children.length) {
         el.textContent = userInitials;
