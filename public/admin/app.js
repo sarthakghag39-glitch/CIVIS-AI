@@ -21,7 +21,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 // --- Auth Session Guard (Blocks unauthorized access immediately) ---
 const currentPath = window.location.pathname;
 const isLoginPage = currentPath.includes('login');
-const isAdminPage = currentPath.includes('admin') || currentPath.includes('admin_dashboard');
+const isAdminPage = window.location.hostname.includes('admin') || currentPath.includes('admin') || currentPath.includes('admin_dashboard');
 
 let currentAuthenticatedUser = null;
 let currentAuthenticatedRole = 'citizen';
@@ -46,10 +46,10 @@ async function checkAuthSession() {
         id: session.user.id,
         full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
         phone: session.user.user_metadata?.phone || '',
-        role: 'citizen'
+        role: isAdminPage ? 'admin' : 'citizen'
       };
       await supabaseClient.from('profiles').insert([newProfile]);
-      currentAuthenticatedRole = 'citizen';
+      currentAuthenticatedRole = newProfile.role;
       profile = newProfile;
     } else {
       currentAuthenticatedRole = profile.role || 'citizen';
@@ -2046,12 +2046,12 @@ function initLoginPageHandler() {
         if (error) throw error;
         
         if (data.user) {
-          // Explicitly insert default citizen profile into public.profiles
+          // Explicitly insert default admin profile into public.profiles
           await supabaseClient.from('profiles').upsert([{
             id: data.user.id,
             full_name: name,
             phone: phone,
-            role: 'citizen'
+            role: 'admin'
           }]);
 
           if (data.session) {

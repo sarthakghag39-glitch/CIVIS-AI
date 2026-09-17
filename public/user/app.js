@@ -21,7 +21,7 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 // --- Auth Session Guard (Blocks unauthorized access immediately) ---
 const currentPath = window.location.pathname;
 const isLoginPage = currentPath.includes('login');
-const isAdminPage = currentPath.includes('admin') || currentPath.includes('admin_dashboard');
+const isAdminPage = window.location.hostname.includes('admin') || currentPath.includes('admin') || currentPath.includes('admin_dashboard');
 
 let currentAuthenticatedUser = null;
 let currentAuthenticatedRole = 'citizen';
