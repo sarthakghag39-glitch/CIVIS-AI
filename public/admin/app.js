@@ -21,34 +21,87 @@ const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_
 // --- Auth Session Guard (Blocks unauthorized access immediately) ---
 const currentPath = window.location.pathname;
 const isLoginPage = currentPath.includes('login');
+const isAdminPage = currentPath.includes('admin') || currentPath.includes('admin_dashboard');
+
+let currentAuthenticatedUser = null;
+let currentAuthenticatedRole = 'citizen';
 
 async function checkAuthSession() {
-  const localUser = sessionStorage.getItem('civis_user');
-  if (localUser) {
-    return JSON.parse(localUser);
-  }
   try {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    if (session && session.user) {
-      const userObj = { 
-        email: session.user.email, 
-        name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
-        phone: session.user.user_metadata?.phone || '+91 98765 43210'
-      };
-      sessionStorage.setItem('civis_user', JSON.stringify(userObj));
-      return userObj;
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session || !session.user) {
+      currentAuthenticatedUser = null;
+      currentAuthenticatedRole = 'citizen';
+      sessionStorage.removeItem('civis_user');
+      return null;
     }
+
+    currentAuthenticatedUser = session.user;
+
+    // Fetch trusted user profile & role from public.profiles table
+    let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+
+    if (!profile) {
+      const newProfile = {
+        id: session.user.id,
+        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+        phone: session.user.user_metadata?.phone || '',
+        role: 'citizen'
+      };
+      await supabaseClient.from('profiles').insert([newProfile]);
+      currentAuthenticatedRole = 'citizen';
+      profile = newProfile;
+    } else {
+      currentAuthenticatedRole = profile.role || 'citizen';
+    }
+
+    const userObj = {
+      id: session.user.id,
+      email: session.user.email,
+      name: profile.full_name || session.user.email.split('@')[0],
+      phone: profile.phone || '',
+      role: currentAuthenticatedRole
+    };
+    sessionStorage.setItem('civis_user', JSON.stringify(userObj));
+    return userObj;
   } catch (e) {
     console.warn("Supabase getSession failed:", e);
+    currentAuthenticatedUser = null;
+    currentAuthenticatedRole = 'citizen';
+    sessionStorage.removeItem('civis_user');
+    return null;
   }
-  return null;
 }
+
+function isAdminUser() {
+  return currentAuthenticatedRole === 'admin';
+}
+
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT') {
+    currentAuthenticatedUser = null;
+    currentAuthenticatedRole = 'citizen';
+    sessionStorage.removeItem('civis_user');
+    if (!window.location.pathname.includes('login')) {
+      window.location.href = '/login.html';
+    }
+  }
+});
 
 checkAuthSession().then(user => {
   if (!user && !isLoginPage) {
     window.location.href = '/login.html';
-  } else if (user && isLoginPage) {
-    window.location.href = '/admin_dashboard.html';
+  } else if (user) {
+    if (user.role !== 'admin' && !isLoginPage) {
+      alert("Access Denied: Admin authorization required.");
+      window.location.href = '/index.html';
+    } else if (isLoginPage) {
+      if (user.role === 'admin') {
+        window.location.href = '/admin_dashboard.html';
+      } else {
+        window.location.href = '/index.html';
+      }
+    }
   }
 });
 
@@ -1972,27 +2025,14 @@ function initLoginPageHandler() {
   
   authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    errorBox.classList.add('hidden');
+    if (errorBox) errorBox.classList.add('hidden');
     
     const email = emailInput.value.trim();
     const password = passwordInput.value;
     const name = nameInput.value.trim() || email.split('@')[0];
-    const phone = phoneInput ? phoneInput.value.trim() : '+91 98765 43210';
+    const phone = phoneInput ? phoneInput.value.trim() : '';
     
     const isRegMode = typeof isRegisterMode !== 'undefined' ? isRegisterMode : false;
-
-    // Hardcoded Admin Credentials Fallback for easy testing
-    if (!isRegMode && email.toLowerCase() === 'admin@civis.ai' && password === 'admin123') {
-      const adminUser = {
-        email: 'admin@civis.ai',
-        name: 'Sarthak (Admin)',
-        phone: '+91 98765 43210'
-      };
-      sessionStorage.setItem('civis_user', JSON.stringify(adminUser));
-      alert("Welcome, Admin Sarthak! Logging in to Admin Portal...");
-      window.location.href = '/admin_dashboard.html';
-      return;
-    }
     
     if (isRegMode) {
       try {
@@ -2005,18 +2045,30 @@ function initLoginPageHandler() {
         });
         if (error) throw error;
         
-        if (data.session) {
-          sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = '/admin_dashboard.html';
-        } else {
-          alert("Registration request submitted! Setting up local demo session.");
-          sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = '/admin_dashboard.html';
+        if (data.user) {
+          // Explicitly insert default citizen profile into public.profiles
+          await supabaseClient.from('profiles').upsert([{
+            id: data.user.id,
+            full_name: name,
+            phone: phone,
+            role: 'citizen'
+          }]);
+
+          if (data.session) {
+            alert("Registration successful! Logging you in...");
+            window.location.href = '/index.html';
+          } else {
+            alert("Registration submitted! Please check your email to confirm your account if required.");
+            window.location.href = '/login.html';
+          }
         }
       } catch (err) {
-        console.warn("Supabase registration fallback:", err.message);
-        sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-        window.location.href = '/admin_dashboard.html';
+        if (errorBox) {
+          errorBox.textContent = `Registration Error: ${err.message}`;
+          errorBox.classList.remove('hidden');
+        } else {
+          alert(`Registration Error: ${err.message}`);
+        }
       }
     } else {
       try {
@@ -2024,17 +2076,29 @@ function initLoginPageHandler() {
         if (error) throw error;
         
         if (data.session && data.user) {
-          sessionStorage.setItem('civis_user', JSON.stringify({ 
-            email, 
-            name: data.user.user_metadata?.full_name || email.split('@')[0],
-            phone: data.user.user_metadata?.phone || '+91 98765 43210'
-          }));
-          window.location.href = '/admin_dashboard.html';
+          let { data: profile } = await supabaseClient.from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+          const userRole = profile?.role || 'citizen';
+          
+          if (userRole === 'admin') {
+            window.location.href = '/admin_dashboard.html';
+          } else {
+            window.location.href = '/index.html';
+          }
+        } else {
+          if (errorBox) {
+            errorBox.textContent = "Sign in failed: Invalid session returned.";
+            errorBox.classList.remove('hidden');
+          } else {
+            alert("Sign in failed: Invalid session returned.");
+          }
         }
       } catch (err) {
-        console.warn("Supabase signin fallback:", err.message);
-        sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone: '+91 98765 43210' }));
-        window.location.href = '/admin_dashboard.html';
+        if (errorBox) {
+          errorBox.textContent = err.message || "Invalid email or password.";
+          errorBox.classList.remove('hidden');
+        } else {
+          alert(`Login Error: ${err.message || 'Invalid email or password.'}`);
+        }
       }
     }
   });
