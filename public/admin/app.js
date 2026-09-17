@@ -1822,7 +1822,14 @@ function initEmergencyPage() {
   }
 }
 
-// --- 7. Admin Dashboard Handler ---
+// --- 7. Admin Dashboard Handler & Pagination State ---
+let currentAdminPage = 1;
+const ADMIN_PAGE_SIZE = 5;
+let adminSearchQuery = '';
+let activeFilterPriority = 'all'; // 'all', 'Critical', 'Medium', 'Low'
+let activeFilterStatus = 'all';   // 'all', 'Pending', 'Assigned', 'Resolved'
+let activeFilterCategory = 'all'; // 'all', 'Road Damage', 'Garbage', 'Streetlights', 'Water Leakage'
+
 function initAdminDashboard() {
   const issuesList = document.querySelector('table tbody, main .divide-y');
   if (issuesList) {
@@ -1833,68 +1840,150 @@ function initAdminDashboard() {
   const searchInput = document.getElementById('admin-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      filterAdminIssuesTable(query);
+      adminSearchQuery = e.target.value.toLowerCase().trim();
+      currentAdminPage = 1;
+      renderAdminIssues();
     });
+  }
+
+  // Wire up the Filter Button
+  const filterBtn = document.getElementById('admin-filter-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Filter'));
+  if (filterBtn) {
+    filterBtn.style.cursor = 'pointer';
+    filterBtn.addEventListener('click', () => openAdminFilterModal());
   }
 
   // Wire up the CSV Export Button
-  const exportBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Export'));
+  const exportBtn = document.getElementById('admin-export-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Export'));
   if (exportBtn) {
     exportBtn.style.cursor = 'pointer';
-    exportBtn.addEventListener('click', async () => {
-      const issues = await getIssues();
-      if (!issues.length) {
-        alert("No issues found to export.");
-        return;
-      }
-      
-      const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Location', 'Date', 'Status', 'Progress', 'Criticality', 'Description', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
-      const csvRows = [headers.join(',')];
-      
-      issues.forEach(issue => {
-        const complaintId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
-        const values = [
-          `"${complaintId}"`,
-          issue.id,
-          `"${(issue.title || '').replace(/"/g, '""')}"`,
-          `"${(issue.category || '').replace(/"/g, '""')}"`,
-          `"${(issue.location || '').replace(/"/g, '""')}"`,
-          `"${(issue.date || '').replace(/"/g, '""')}"`,
-          `"${(issue.status || '').replace(/"/g, '""')}"`,
-          issue.progress,
-          `"${(issue.criticality || '').replace(/"/g, '""')}"`,
-          `"${(issue.description || '').replace(/"/g, '""')}"`,
-          `"${(issue.reported_by || '').replace(/"/g, '""')}"`,
-          `"${(issue.reported_by_email || '').replace(/"/g, '""')}"`,
-          `"${(issue.reported_by_phone || '').replace(/"/g, '""')}"`,
-          issue.lat,
-          issue.lng
-        ];
-        csvRows.push(values.join(','));
-      });
-      
-      const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
-      link.setAttribute("download", `CIVIS_AI_Issues_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
+    exportBtn.addEventListener('click', () => handleExportCSV());
   }
 }
 
-function filterAdminIssuesTable(query) {
-  const rows = document.querySelectorAll('table tbody tr');
-  rows.forEach(row => {
-    const text = row.textContent.toLowerCase();
-    if (text.includes(query)) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
+async function handleExportCSV() {
+  const issues = await getIssues();
+  if (!issues || !issues.length) {
+    alert("No issues found to export.");
+    return;
+  }
+  
+  const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Priority', 'Location', 'Date', 'Status', 'Progress', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
+  const csvRows = [headers.join(',')];
+  
+  issues.forEach(issue => {
+    const complaintId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
+    const values = [
+      `"${complaintId}"`,
+      issue.id,
+      `"${(issue.title || '').replace(/"/g, '""')}"`,
+      `"${(issue.category || '').replace(/"/g, '""')}"`,
+      `"${(issue.criticality || '').replace(/"/g, '""')}"`,
+      `"${(issue.location || '').replace(/"/g, '""')}"`,
+      `"${(issue.date || '').replace(/"/g, '""')}"`,
+      `"${(issue.status || '').replace(/"/g, '""')}"`,
+      issue.progress || 0,
+      `"${(issue.reported_by || '').replace(/"/g, '""')}"`,
+      `"${(issue.reported_by_email || '').replace(/"/g, '""')}"`,
+      `"${(issue.reported_by_phone || '').replace(/"/g, '""')}"`,
+      issue.lat || 0,
+      issue.lng || 0
+    ];
+    csvRows.push(values.join(','));
+  });
+  
+  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `CIVIS_AI_Complaints_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function openAdminFilterModal() {
+  const existingModal = document.getElementById('admin-filter-modal');
+  if (existingModal) existingModal.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'admin-filter-modal';
+  modal.className = 'fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 selection:bg-brand-500 selection:text-white';
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
+      <button id="close-filter-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm transition-colors cursor-pointer">✕</button>
+
+      <div class="flex items-center space-x-2.5 mb-5">
+        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+          <span class="material-symbols-outlined text-[22px]">filter_list</span>
+        </div>
+        <div>
+          <h3 class="font-bold text-lg text-slate-900">Filter Complaints</h3>
+          <p class="text-xs text-slate-500">Refine table records by priority, status, or category</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 mb-6">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Priority Level</label>
+          <select id="filter-priority-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="all" ${activeFilterPriority === 'all' ? 'selected' : ''}>All Priorities</option>
+            <option value="Critical" ${activeFilterPriority === 'Critical' ? 'selected' : ''}>Critical</option>
+            <option value="Medium" ${activeFilterPriority === 'Medium' ? 'selected' : ''}>Medium</option>
+            <option value="Low" ${activeFilterPriority === 'Low' ? 'selected' : ''}>Low</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Resolution Status</label>
+          <select id="filter-status-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="all" ${activeFilterStatus === 'all' ? 'selected' : ''}>All Statuses</option>
+            <option value="Pending" ${activeFilterStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+            <option value="Assigned" ${activeFilterStatus === 'Assigned' ? 'selected' : ''}>Assigned / In Progress</option>
+            <option value="Resolved" ${activeFilterStatus === 'Resolved' ? 'selected' : ''}>Resolved</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category</label>
+          <select id="filter-category-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="all" ${activeFilterCategory === 'all' ? 'selected' : ''}>All Categories</option>
+            <option value="Road Damage" ${activeFilterCategory === 'Road Damage' ? 'selected' : ''}>Roads & Potholes</option>
+            <option value="Garbage" ${activeFilterCategory === 'Garbage' ? 'selected' : ''}>Sanitation & Trash</option>
+            <option value="Streetlights" ${activeFilterCategory === 'Streetlights' ? 'selected' : ''}>Street Lighting</option>
+            <option value="Water Leakage" ${activeFilterCategory === 'Water Leakage' ? 'selected' : ''}>Water Leakage</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="reset-filter-btn" type="button" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer">Reset</button>
+        <button id="apply-filter-btn" type="button" class="flex-1 py-2.5 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl transition-all shadow-md cursor-pointer">Apply Filters</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById('close-filter-modal').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+  document.getElementById('reset-filter-btn').addEventListener('click', () => {
+    activeFilterPriority = 'all';
+    activeFilterStatus = 'all';
+    activeFilterCategory = 'all';
+    currentAdminPage = 1;
+    modal.remove();
+    renderAdminIssues();
+  });
+
+  document.getElementById('apply-filter-btn').addEventListener('click', () => {
+    activeFilterPriority = document.getElementById('filter-priority-select').value;
+    activeFilterStatus = document.getElementById('filter-status-select').value;
+    activeFilterCategory = document.getElementById('filter-category-select').value;
+    currentAdminPage = 1;
+    modal.remove();
+    renderAdminIssues();
   });
 }
 
@@ -1902,22 +1991,20 @@ async function renderAdminIssues() {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
 
-  tbody.innerHTML = '';
   const issues = await getIssues();
 
-  // Calculate live stats
+  // 1. Calculate overall stats for cards
   const totalCount = issues.length;
   const criticalCount = issues.filter(issue => issue.criticality === 'Critical' && issue.status !== 'Resolved').length;
   const resolvedCount = issues.filter(issue => issue.status === 'Resolved').length;
   const pendingCount = issues.filter(issue => issue.status !== 'Resolved').length;
   
-  // Calculate category counts
   const roadsCount = issues.filter(issue => issue.category === 'Road Damage' || issue.category === 'Roads & Potholes').length;
   const garbageCount = issues.filter(issue => issue.category === 'Garbage' || issue.category === 'Sanitation').length;
   const lightingCount = issues.filter(issue => issue.category === 'Streetlights' || issue.category === 'Street Lighting').length;
   const waterCount = issues.filter(issue => issue.category === 'Water Leakage').length;
 
-  // Update DOM stats cards
+  // Update top stats cards
   const elTotal = document.getElementById('stat-total-complaints');
   const elCritical = document.getElementById('stat-critical-issues');
   const elResolved = document.getElementById('stat-resolved-cases');
@@ -1927,42 +2014,8 @@ async function renderAdminIssues() {
   if (elCritical) elCritical.innerText = criticalCount.toLocaleString();
   if (elResolved) elResolved.innerText = resolvedCount.toLocaleString();
   if (elPending) elPending.innerText = pendingCount.toLocaleString();
-  
-  // Update percentage / auxiliary chips
-  const elTotalPercent = document.getElementById('stat-total-percent');
-  if (elTotalPercent) {
-    const newToday = issues.filter(issue => {
-      const issueDate = new Date(issue.date || Date.now());
-      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      return issueDate.getTime() > oneDayAgo;
-    }).length;
-    elTotalPercent.innerText = `+${newToday} New Today`;
-  }
 
-  const elCriticalToday = document.getElementById('stat-critical-today');
-  if (elCriticalToday) {
-    const criticalNewToday = issues.filter(issue => {
-      if (issue.criticality !== 'Critical') return false;
-      const issueDate = new Date(issue.date || Date.now());
-      const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
-      return issueDate.getTime() > oneDayAgo;
-    }).length;
-    elCriticalToday.innerText = `+${criticalNewToday} Today`;
-  }
-
-  const elEfficiency = document.getElementById('stat-efficiency-percent');
-  if (elEfficiency && totalCount > 0) {
-    const efficiency = Math.round((resolvedCount / totalCount) * 100);
-    elEfficiency.innerText = `${efficiency}% Efficiency`;
-  }
-
-  const elAvgDays = document.getElementById('stat-avg-days');
-  if (elAvgDays) {
-    const avgVal = (1.2 + pendingCount * 0.05).toFixed(1);
-    elAvgDays.innerText = `Avg ${avgVal} days`;
-  }
-
-  // Update DOM categories counts & bars
+  // Update categories bars
   const updateCat = (idCount, idBar, count) => {
     const elCount = document.getElementById(idCount);
     const elBar = document.getElementById(idBar);
@@ -1972,60 +2025,155 @@ async function renderAdminIssues() {
       elBar.style.width = `${pct}%`;
     }
   };
-
   updateCat('cat-roads-count', 'cat-roads-bar', roadsCount);
   updateCat('cat-garbage-count', 'cat-garbage-bar', garbageCount);
   updateCat('cat-lighting-count', 'cat-lighting-bar', lightingCount);
   updateCat('cat-water-count', 'cat-water-bar', waterCount);
 
-  issues.forEach(issue => {
-    let markerColor = '#2563EB';
-    if (issue.criticality === 'Critical') markerColor = '#EF4444';
-    else if (issue.criticality === 'Moderate') markerColor = '#F59E0B';
-    else if (issue.status === 'Resolved') markerColor = '#22C55E';
-
-    const row = document.createElement('tr');
-    row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
-    row.innerHTML = `
-      <td class="px-6 py-4">
-        <div class="flex items-center gap-4">
-          <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
-            <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
-          </div>
-          <div>
-            <p class="font-label-md text-label-md font-bold text-on-surface">${issue.title}</p>
-            <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
-          </div>
-        </div>
-      </td>
-      <td class="px-6 py-4">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality}</span>
-      </td>
-      <td class="px-6 py-4">
-        <div class="font-semibold text-sm text-on-surface">${issue.reported_by || 'Anonymous'}</div>
-        <div class="text-[10px] text-outline font-normal mt-0.5">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</div>
-      </td>
-      <td class="px-6 py-4 text-outline font-medium text-sm">
-        ${issue.location}
-      </td>
-      <td class="px-6 py-4 text-label-sm text-outline">
-        ${issue.date}
-      </td>
-      <td class="px-6 py-4">
-        <span class="inline-flex items-center gap-1.5 text-label-sm font-bold" style="color: ${markerColor}">
-          <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${markerColor}"></span>
-          ${issue.status}
-        </span>
-      </td>
-      <td class="px-6 py-4">
-        <div class="flex gap-2">
-          <button onclick="updateIssueStatus(${issue.id}, 'In Progress', 50)" class="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95">Assign</button>
-          <button onclick="updateIssueStatus(${issue.id}, 'Resolved', 100)" class="px-3 py-1 bg-success text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95">Resolve</button>
-        </div>
-      </td>
-    `;
-    tbody.appendChild(row);
+  // 2. Filter issues
+  let filtered = issues.filter(issue => {
+    if (adminSearchQuery) {
+      const searchable = `${issue.title} ${issue.location} ${issue.category} ${issue.status} ${issue.criticality} ${issue.reported_by}`.toLowerCase();
+      if (!searchable.includes(adminSearchQuery)) return false;
+    }
+    if (activeFilterPriority !== 'all' && issue.criticality !== activeFilterPriority) return false;
+    if (activeFilterStatus !== 'all') {
+      if (activeFilterStatus === 'Pending' && issue.status !== 'Pending') return false;
+      if (activeFilterStatus === 'Assigned' && issue.status !== 'Assigned' && issue.status !== 'In Progress') return false;
+      if (activeFilterStatus === 'Resolved' && issue.status !== 'Resolved') return false;
+    }
+    if (activeFilterCategory !== 'all') {
+      if (activeFilterCategory === 'Road Damage' && issue.category !== 'Road Damage' && issue.category !== 'Roads & Potholes') return false;
+      if (activeFilterCategory === 'Garbage' && issue.category !== 'Garbage' && issue.category !== 'Sanitation') return false;
+      if (activeFilterCategory === 'Streetlights' && issue.category !== 'Streetlights' && issue.category !== 'Street Lighting') return false;
+      if (activeFilterCategory === 'Water Leakage' && issue.category !== 'Water Leakage') return false;
+    }
+    return true;
   });
+
+  // 3. Paginate issues
+  const totalFiltered = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_PAGE_SIZE));
+  if (currentAdminPage > totalPages) currentAdminPage = totalPages;
+  if (currentAdminPage < 1) currentAdminPage = 1;
+
+  const startIdx = (currentAdminPage - 1) * ADMIN_PAGE_SIZE;
+  const pageIssues = filtered.slice(startIdx, startIdx + ADMIN_PAGE_SIZE);
+
+  // 4. Render Table Rows
+  tbody.innerHTML = '';
+  if (pageIssues.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="px-6 py-8 text-center text-slate-500 font-medium text-sm">
+          No complaints found matching current search/filter criteria.
+        </td>
+      </tr>
+    `;
+  } else {
+    pageIssues.forEach(issue => {
+      let markerColor = '#2563EB';
+      if (issue.criticality === 'Critical') markerColor = '#EF4444';
+      else if (issue.criticality === 'Moderate') markerColor = '#F59E0B';
+      else if (issue.status === 'Resolved') markerColor = '#22C55E';
+
+      const row = document.createElement('tr');
+      row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
+      row.innerHTML = `
+        <td class="px-6 py-4">
+          <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
+              <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
+            </div>
+            <div>
+              <p class="font-label-md text-label-md font-bold text-on-surface">${issue.title}</p>
+              <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
+            </div>
+          </div>
+        </td>
+        <td class="px-6 py-4">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality || 'Normal'}</span>
+        </td>
+        <td class="px-6 py-4">
+          <div class="font-semibold text-sm text-on-surface">${issue.reported_by || 'Anonymous'}</div>
+          <div class="text-[10px] text-outline font-normal mt-0.5">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</div>
+        </td>
+        <td class="px-6 py-4 text-outline font-medium text-sm">
+          ${issue.location}
+        </td>
+        <td class="px-6 py-4 text-label-sm text-outline">
+          ${issue.date}
+        </td>
+        <td class="px-6 py-4">
+          <span class="inline-flex items-center gap-1.5 text-label-sm font-bold" style="color: ${markerColor}">
+            <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${markerColor}"></span>
+            ${issue.status}
+          </span>
+        </td>
+        <td class="px-6 py-4">
+          <div class="flex gap-2">
+            <button onclick="updateIssueStatus(${issue.id}, 'In Progress', 50)" class="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Assign</button>
+            <button onclick="updateIssueStatus(${issue.id}, 'Resolved', 100)" class="px-3 py-1 bg-success text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Resolve</button>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  // 5. Update Pagination Footer UI
+  const elCount = document.getElementById('admin-pagination-count');
+  if (elCount) {
+    const endCount = Math.min(startIdx + pageIssues.length, totalFiltered);
+    const startCount = totalFiltered === 0 ? 0 : startIdx + 1;
+    elCount.innerText = `Showing ${startCount}-${endCount} of ${totalFiltered.toLocaleString()} complaints`;
+  }
+
+  const elBtnContainer = document.getElementById('admin-pagination-buttons');
+  if (elBtnContainer) {
+    elBtnContainer.innerHTML = '';
+
+    // Prev Button
+    const prevBtn = document.createElement('button');
+    prevBtn.type = 'button';
+    prevBtn.className = `w-8 h-8 rounded border flex items-center justify-center transition-colors ${currentAdminPage === 1 ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-border-subtle hover:bg-surface-container-high text-outline cursor-pointer'}`;
+    prevBtn.disabled = currentAdminPage === 1;
+    prevBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">chevron_left</span>';
+    prevBtn.addEventListener('click', () => {
+      if (currentAdminPage > 1) {
+        currentAdminPage--;
+        renderAdminIssues();
+      }
+    });
+    elBtnContainer.appendChild(prevBtn);
+
+    // Page Numbers
+    for (let p = 1; p <= totalPages; p++) {
+      const pageBtn = document.createElement('button');
+      pageBtn.type = 'button';
+      pageBtn.className = `w-8 h-8 rounded border text-[12px] font-bold transition-colors cursor-pointer ${p === currentAdminPage ? 'border-primary bg-primary text-white shadow-sm' : 'border-border-subtle hover:bg-surface-container-high text-outline'}`;
+      pageBtn.innerText = p;
+      pageBtn.addEventListener('click', () => {
+        currentAdminPage = p;
+        renderAdminIssues();
+      });
+      elBtnContainer.appendChild(pageBtn);
+    }
+
+    // Next Button
+    const nextBtn = document.createElement('button');
+    nextBtn.type = 'button';
+    nextBtn.className = `w-8 h-8 rounded border flex items-center justify-center transition-colors ${currentAdminPage === totalPages ? 'border-slate-200 text-slate-300 cursor-not-allowed' : 'border-border-subtle hover:bg-surface-container-high text-outline cursor-pointer'}`;
+    nextBtn.disabled = currentAdminPage === totalPages;
+    nextBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">chevron_right</span>';
+    nextBtn.addEventListener('click', () => {
+      if (currentAdminPage < totalPages) {
+        currentAdminPage++;
+        renderAdminIssues();
+      }
+    });
+    elBtnContainer.appendChild(nextBtn);
+  }
 }
 
 window.updateIssueStatus = async function(id, status, progress) {

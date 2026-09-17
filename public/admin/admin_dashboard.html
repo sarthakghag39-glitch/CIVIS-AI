@@ -388,14 +388,14 @@
 <div class="px-6 py-5 border-b border-border-subtle flex items-center justify-between bg-surface-container-lowest/50">
 <h5 class="font-headline-md text-headline-md text-on-surface">Recent Complaints</h5>
 <div class="flex gap-3">
-<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors">
+<button id="admin-filter-btn" type="button" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors cursor-pointer">
 <span class="material-symbols-outlined text-[20px]">filter_list</span>
-                            Filter
-                        </button>
-<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors">
+Filter
+</button>
+<button id="admin-export-btn" type="button" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors cursor-pointer">
 <span class="material-symbols-outlined text-[20px]">download</span>
-                            Export
-                        </button>
+Export
+</button>
 </div>
 </div>
 <div class="overflow-x-auto">
@@ -505,17 +505,10 @@
 </tbody>
 </table>
 </div>
-<div class="px-6 py-4 bg-surface-container-lowest flex items-center justify-between border-t border-border-subtle">
-<p class="text-label-sm text-outline">Showing 3 of 1,248 complaints</p>
-<div class="flex gap-2">
-<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline">
-<span class="material-symbols-outlined text-[18px]">chevron_left</span>
-</button>
+<div class="px-6 py-4 bg-surface-container-lowest flex items-center justify-between border-t border-border-subtle" id="admin-pagination-container">
+<p class="text-label-sm text-outline" id="admin-pagination-count">Showing 0 of 0 complaints</p>
+<div class="flex gap-2" id="admin-pagination-buttons">
 <button class="w-8 h-8 rounded border border-primary bg-primary/10 text-primary font-bold text-[12px]">1</button>
-<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline font-bold text-[12px]">2</button>
-<button class="w-8 h-8 rounded border border-border-subtle flex items-center justify-center hover:bg-surface-container-high text-outline">
-<span class="material-symbols-outlined text-[18px]">chevron_right</span>
-</button>
 </div>
 </div>
 </div>
