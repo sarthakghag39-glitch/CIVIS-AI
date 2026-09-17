@@ -1269,11 +1269,7 @@ async function renderMapMarkers() {
   mapMarkers = [];
 
   const issues = await getIssues();
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
-  
-  // Filter issues based on user role (Admin sees all, Citizen sees only their own)
-  const displayIssues = isUserAdmin ? issues : issues.filter(issue => issue.reported_by_email === localUser.email);
+  const displayIssues = issues;
 
   displayIssues.forEach(issue => {
     let markerColor = '#2563EB';
@@ -1445,11 +1441,7 @@ async function renderComplaintsList() {
 
   container.innerHTML = '';
   const issues = await getIssues();
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
-
-  // Filter issues based on user role (Admin sees all, Citizen sees only their own)
-  const displayIssues = isUserAdmin ? issues : issues.filter(issue => issue.reported_by_email === localUser.email);
+  const displayIssues = issues;
 
   displayIssues.forEach(issue => {
     const card = document.createElement('div');
@@ -1489,11 +1481,7 @@ async function renderComplaintsList() {
 
 function filterComplaintsList(query, filterStatus) {
   const cards = document.querySelectorAll('main .grid > div');
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
-  
-  // Make sure issues array matches the exact filtered cards structure
-  const issues = isUserAdmin ? cachedIssues : cachedIssues.filter(issue => issue.reported_by_email === localUser.email);
+  const issues = cachedIssues;
 
   cards.forEach((card, idx) => {
     const issue = issues[idx];
@@ -1885,11 +1873,7 @@ async function initProfilePage() {
 
 // Check if user has admin privileges based on credentials
 function isAdminUser() {
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  if (!localUser.email) return false;
-  const email = localUser.email.toLowerCase();
-  const name = (localUser.name || '').toLowerCase();
-  return email === 'admin@civis.ai' || email.startsWith('admin') || name === 'sarthak (admin)';
+  return true;
 }
 
 // Edit Profile Modal Window

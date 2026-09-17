@@ -1219,11 +1219,7 @@ async function renderMapMarkers() {
   mapMarkers = [];
 
   const issues = await getIssues();
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  const isUserAdmin = isAdminUser();
-  
-  // Filter issues based on user role (Admin sees all, Citizen sees only their own)
-  const displayIssues = isUserAdmin ? issues : issues.filter(issue => issue.reported_by_email === localUser.email);
+  const displayIssues = issues;
 
   displayIssues.forEach(issue => {
     let markerColor = '#2563EB';
