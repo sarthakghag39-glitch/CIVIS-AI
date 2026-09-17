@@ -1166,6 +1166,7 @@ async function initMapPage() {
   if (!mapDiv) return;
 
   if (!leafletMap && typeof L !== 'undefined') {
+    leafletMap = L.map('map', { zoomControl: false }).setView([18.5204, 73.8567], 13);
     const CARTO_MAP_API_KEY = 'cb1_3o5x_1_eb216b4e16b30330e13e4fc8';
     L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_MAP_API_KEY}`, {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
