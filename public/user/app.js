@@ -892,13 +892,41 @@ function mapPredictionsToIssue(predictions, defaultAnalysis) {
 // --- OpenWeatherMap Live Forecast Integration ---
 const OPENWEATHER_API_KEY = atob('MmZlODVjNjBkMmY5MWQyM2M0OGFjOGJjMTgzZmM3Mjc=');
 
-async function fetchLiveWeather(city = 'Pune') {
+function getBrowserGPSLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      (err) => {
+        console.warn("GPS Geolocation for weather disabled/failed:", err.message);
+        resolve(null);
+      },
+      { timeout: 6000, enableHighAccuracy: true }
+    );
+  });
+}
+
+async function fetchLiveWeather(targetLocation = null) {
   try {
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)},IN&appid=${OPENWEATHER_API_KEY}&units=metric`);
+    let url;
+    let isGps = false;
+
+    if (targetLocation && targetLocation.lat && targetLocation.lon) {
+      url = `https://api.openweathermap.org/data/2.5/weather?lat=${targetLocation.lat}&lon=${targetLocation.lon}&appid=${OPENWEATHER_API_KEY}&units=metric`;
+      isGps = true;
+    } else {
+      url = `https://api.openweathermap.org/data/2.5/weather?q=Pune,IN&appid=${OPENWEATHER_API_KEY}&units=metric`;
+    }
+
+    const response = await fetch(url);
     if (!response.ok) throw new Error(`Weather API error: ${response.status}`);
     const data = await response.json();
     return {
-      city: data.name,
+      city: data.name || 'Your Location',
+      country: data.sys?.country || 'IN',
       temp: Math.round(data.main.temp * 10) / 10,
       feelsLike: Math.round(data.main.feels_like * 10) / 10,
       tempMin: Math.round(data.main.temp_min),
@@ -909,7 +937,10 @@ async function fetchLiveWeather(city = 'Pune') {
       condition: data.weather[0].main,
       description: data.weather[0].description,
       icon: data.weather[0].icon,
-      iconUrl: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`
+      iconUrl: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
+      isGps: isGps,
+      lat: data.coord?.lat,
+      lon: data.coord?.lon
     };
   } catch (err) {
     console.warn("Weather API fetch failed:", err);
@@ -918,21 +949,27 @@ async function fetchLiveWeather(city = 'Pune') {
 }
 
 async function initWeatherSystem() {
-  const weather = await fetchLiveWeather('Pune');
+  // First attempt GPS location fetch, fallback to Pune
+  const gpsCoords = await getBrowserGPSLocation();
+  const weather = await fetchLiveWeather(gpsCoords);
   if (!weather) return;
 
-  // Insert or update weather pill in header
+  renderWeatherUI(weather);
+}
+
+function renderWeatherUI(weather) {
   const headerRight = document.querySelector('header div.flex.items-center.gap-4') || document.querySelector('header div.flex.items-center');
   if (headerRight && !document.getElementById('civis-weather-pill')) {
     const weatherPill = document.createElement('button');
     weatherPill.id = 'civis-weather-pill';
     weatherPill.type = 'button';
     weatherPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 hover:bg-blue-100 border border-blue-200 text-blue-900 transition-all cursor-pointer shadow-sm text-xs font-semibold shrink-0';
-    weatherPill.title = 'Click for detailed live weather forecast';
+    weatherPill.title = 'Click for detailed real-time weather forecast';
     weatherPill.innerHTML = `
       <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
       <span>${weather.temp}°C</span>
-      <span class="hidden sm:inline text-blue-700/80 font-medium capitalize">(${weather.description})</span>
+      <span class="hidden sm:inline text-blue-700/80 font-medium">${weather.city}</span>
+      ${weather.isGps ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="GPS Real-time Location"></span>' : ''}
     `;
     weatherPill.addEventListener('click', () => openWeatherModal(weather));
     headerRight.insertBefore(weatherPill, headerRight.firstChild);
@@ -941,7 +978,8 @@ async function initWeatherSystem() {
     weatherPill.innerHTML = `
       <img src="${weather.iconUrl}" alt="${weather.condition}" class="w-6 h-6 -my-1">
       <span>${weather.temp}°C</span>
-      <span class="hidden sm:inline text-blue-700/80 font-medium capitalize">(${weather.description})</span>
+      <span class="hidden sm:inline text-blue-700/80 font-medium">${weather.city}</span>
+      ${weather.isGps ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse ml-0.5" title="GPS Real-time Location"></span>' : ''}
     `;
   }
 }
@@ -975,10 +1013,12 @@ function openWeatherModal(weather) {
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h3 class="font-bold text-xl text-slate-900">${weather.city}, IN</h3>
-            <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md">Live Telemetry</span>
+            <h3 class="font-bold text-xl text-slate-900">${weather.city}, ${weather.country}</h3>
+            ${weather.isGps ? 
+              '<span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-md flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>GPS Real-time</span>' : 
+              '<span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 rounded-md">Smart Grid</span>'}
           </div>
-          <p class="text-xs text-slate-500 font-medium capitalize">${weather.description} • OpenWeather Gateway</p>
+          <p class="text-xs text-slate-500 font-medium capitalize">${weather.description} • OpenWeather Real-Time</p>
         </div>
       </div>
 
@@ -1008,12 +1048,17 @@ function openWeatherModal(weather) {
         </div>
       </div>
 
-      <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-start space-x-2 text-xs text-indigo-950">
+      <div class="p-3 bg-indigo-50/70 border border-indigo-100 rounded-xl flex items-start space-x-2 text-xs text-indigo-950 mb-4">
         <span class="text-base leading-none">💡</span>
         <div class="font-medium leading-relaxed">
           <b>CIVIS AI Advisory:</b> ${advisory}
         </div>
       </div>
+
+      <button id="refresh-gps-weather-btn" type="button" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+        <span class="material-symbols-outlined text-[16px]">my_location</span>
+        <span>Re-sync Real-Time GPS Weather</span>
+      </button>
     </div>
   `;
 
@@ -1022,6 +1067,19 @@ function openWeatherModal(weather) {
   document.getElementById('close-weather-modal').addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
+  });
+
+  document.getElementById('refresh-gps-weather-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('refresh-gps-weather-btn');
+    btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Accessing GPS...';
+    btn.disabled = true;
+    const coords = await getBrowserGPSLocation();
+    const updatedWeather = await fetchLiveWeather(coords);
+    modal.remove();
+    if (updatedWeather) {
+      renderWeatherUI(updatedWeather);
+      openWeatherModal(updatedWeather);
+    }
   });
 }
 
