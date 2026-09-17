@@ -48,11 +48,7 @@ checkAuthSession().then(user => {
   if (!user && !isLoginPage) {
     window.location.href = '/login.html';
   } else if (user && isLoginPage) {
-    if (isAdminUser()) {
-      window.location.href = '/admin_dashboard.html';
-    } else {
-      window.location.href = '/index.html';
-    }
+    window.location.href = '/admin_dashboard.html';
   }
 });
 
@@ -871,8 +867,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const currentPath = window.location.pathname;
   document.querySelectorAll('aside nav a').forEach(link => {
     const href = link.getAttribute('href');
-    const isDashboard = href === '/admin_dashboard.html' && (currentPath === '/' || currentPath === '' || currentPath.includes('admin_dashboard'));
-    const isOtherPage = href !== '#' && href !== '/admin_dashboard.html' && currentPath.includes(href);
+    const isDashboard = (href === '/admin_dashboard.html' || href === '/index.html' || href === '/') && (currentPath === '/' || currentPath === '' || currentPath.includes('admin_dashboard') || currentPath.endsWith('index.html'));
+    const isOtherPage = href !== '#' && href !== '/admin_dashboard.html' && href !== '/index.html' && href !== '/' && currentPath.includes(href);
     
     if (isDashboard || isOtherPage) {
       link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-semibold');
@@ -907,7 +903,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (document.referrer && document.referrer.includes(window.location.hostname)) {
         window.history.back();
       } else {
-        window.location.href = '/index.html';
+        window.location.href = '/admin_dashboard.html';
       }
     });
   }
@@ -2024,16 +2020,16 @@ function initLoginPageHandler() {
         
         if (data.session) {
           sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = '/index.html';
+          window.location.href = '/admin_dashboard.html';
         } else {
           alert("Registration request submitted! Setting up local demo session.");
           sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-          window.location.href = '/index.html';
+          window.location.href = '/admin_dashboard.html';
         }
       } catch (err) {
         console.warn("Supabase registration fallback:", err.message);
         sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone }));
-        window.location.href = '/index.html';
+        window.location.href = '/admin_dashboard.html';
       }
     } else {
       try {
@@ -2046,12 +2042,12 @@ function initLoginPageHandler() {
             name: data.user.user_metadata?.full_name || email.split('@')[0],
             phone: data.user.user_metadata?.phone || '+91 98765 43210'
           }));
-          window.location.href = '/index.html';
+          window.location.href = '/admin_dashboard.html';
         }
       } catch (err) {
         console.warn("Supabase signin fallback:", err.message);
         sessionStorage.setItem('civis_user', JSON.stringify({ email, name, phone: '+91 98765 43210' }));
-        window.location.href = '/index.html';
+        window.location.href = '/admin_dashboard.html';
       }
     }
   });

@@ -2,6 +2,16 @@
   "outputDirectory": "public",
   "cleanUrls": true,
   "rewrites": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "(?<subdomain>.*admin.*)"
+        }
+      ],
+      "destination": "/admin/index.html"
+    },
     { "source": "/", "destination": "/user/index.html" }
   ]
 }
