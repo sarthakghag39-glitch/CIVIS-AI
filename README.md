@@ -27,7 +27,7 @@ CIVIS AI is a web-based smart city civic grievance platform connecting citizens 
 * **Backend & Database:** Supabase PostgreSQL, Supabase Auth, Row Level Security (RLS)
 * **Storage:** Supabase Private Storage (`civis-complaint-images`) with temporary signed URLs
 * **Serverless Functions:** Vercel API endpoints for Multimodal Gemini AI Analysis (`api/analyze_issue.js`), Meta (Instagram/Facebook) & X (Twitter) webhooks
-* **AI Engine:** Google Gemini 1.5 Flash Multimodal Vision & Text Analysis via secure Vercel Serverless Function
+* **AI Engine:** Google Gemini Flash Multimodal Vision & Text Analysis (`gemini-3.8-flash`) via secure Vercel Serverless Function
 * **Hosting:** Vercel Deployment with sub-domain routing (`cleanUrls`)
 
 ---
@@ -111,8 +111,8 @@ To enable real multimodal Gemini AI issue analysis on Vercel or locally, configu
 # Google Gemini API Key (Required for /api/analyze_issue)
 GEMINI_API_KEY=your_gemini_api_key_here
 
-# Gemini Model Identifier (Optional, defaults to gemini-1.5-flash)
-GEMINI_MODEL=gemini-1.5-flash
+# Gemini Model Identifier (Optional, defaults to gemini-3.8-flash)
+GEMINI_MODEL=gemini-3.8-flash
 ```
 
 ---

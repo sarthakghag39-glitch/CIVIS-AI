@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
 
   // 2. Verify Gemini API Key Availability
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
+  const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
   if (!GEMINI_API_KEY) {
     return res.status(503).json({
