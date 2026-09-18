@@ -20,7 +20,20 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const body = req.body || {};
+    let body = req.body || {};
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    } else if (Buffer.isBuffer(body)) {
+      try {
+        body = JSON.parse(body.toString('utf-8'));
+      } catch (e) {
+        body = {};
+      }
+    }
     const { image, description, category } = body;
 
     // 3. Input Validation & Boundary Checks
