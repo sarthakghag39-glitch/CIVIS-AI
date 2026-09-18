@@ -874,23 +874,19 @@ async function getImageUrlForIssue(imageRef) {
     return imageRef;
   }
   try {
-    const { data } = await supabaseClient.storage
+    const { data, error } = await supabaseClient.storage
       .from('civis-complaint-images')
       .createSignedUrl(imageRef, 3600);
     if (data && data.signedUrl) {
       return data.signedUrl;
     }
+    if (error) {
+      console.warn("createSignedUrl failed for complaint image:", error.message);
+    }
   } catch (e) {
-    console.warn("createSignedUrl failed, using public URL fallback:", e);
+    console.warn("createSignedUrl exception for complaint image:", e);
   }
-  try {
-    const { data: pubData } = supabaseClient.storage
-      .from('civis-complaint-images')
-      .getPublicUrl(imageRef);
-    return pubData?.publicUrl || null;
-  } catch (e) {
-    return null;
-  }
+  return null;
 }
 
 function openImageLightbox(imgSrc) {

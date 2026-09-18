@@ -814,23 +814,19 @@ async function getImageUrlForIssue(imageRef) {
     return imageRef;
   }
   try {
-    const { data } = await supabaseClient.storage
+    const { data, error } = await supabaseClient.storage
       .from('civis-complaint-images')
       .createSignedUrl(imageRef, 3600);
     if (data && data.signedUrl) {
       return data.signedUrl;
     }
+    if (error) {
+      console.warn("createSignedUrl failed for admin image view:", error.message);
+    }
   } catch (e) {
-    console.warn("createSignedUrl failed, using public URL fallback:", e);
+    console.warn("createSignedUrl exception for admin image view:", e);
   }
-  try {
-    const { data: pubData } = supabaseClient.storage
-      .from('civis-complaint-images')
-      .getPublicUrl(imageRef);
-    return pubData?.publicUrl || null;
-  } catch (e) {
-    return null;
-  }
+  return null;
 }
 
 function openImageLightbox(imgSrc) {
@@ -2127,11 +2123,15 @@ async function renderAdminIssues() {
         <div class="w-10 h-10 rounded-lg overflow-hidden bg-black/10 border border-border-subtle flex items-center justify-center shrink-0 cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageLightbox('${resolvedUrl}')" title="Click to view full complaint photo">
           <img src="${resolvedUrl}" class="w-full h-full object-cover" alt="Photo" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-xl text-primary\\'>broken_image</span>'">
         </div>
+      ` : (issue.image_url ? `
+        <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-outline" title="Image unavailable / private storage restricted">
+          <span class="material-symbols-outlined text-xl">no_photography</span>
+        </div>
       ` : `
         <div class="w-10 h-10 rounded-lg bg-surface-container-high border border-border-subtle flex items-center justify-center shrink-0 text-primary">
           <span class="material-symbols-outlined text-2xl">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
         </div>
-      `;
+      `);
 
       const row = document.createElement('tr');
       row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
@@ -2142,7 +2142,7 @@ async function renderAdminIssues() {
             <div>
               <p class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
                 ${issue.title}
-                ${resolvedUrl ? `<span class="material-symbols-outlined text-sm text-primary cursor-pointer" onclick="openImageLightbox('${resolvedUrl}')" title="Photo attached">photo</span>` : ''}
+                ${resolvedUrl ? `<span class="material-symbols-outlined text-sm text-primary cursor-pointer" onclick="openImageLightbox('${resolvedUrl}')" title="Photo attached">photo</span>` : (issue.image_url ? `<span class="text-[10px] text-outline font-normal italic">(Photo restricted)</span>` : '')}
               </p>
               <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
             </div>
