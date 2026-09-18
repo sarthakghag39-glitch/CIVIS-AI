@@ -810,21 +810,31 @@ function openLanguageModal() {
 
 async function getImageUrlForIssue(imageRef) {
   if (!imageRef) return null;
-  if (imageRef.startsWith('http://') || imageRef.startsWith('https://') || imageRef.startsWith('data:')) {
-    return imageRef;
+  const cleanRef = typeof imageRef === 'string' ? imageRef.replace(/^\/+/, '').trim() : '';
+  if (!cleanRef) return null;
+
+  if (cleanRef.startsWith('http://') || cleanRef.startsWith('https://') || cleanRef.startsWith('data:')) {
+    console.log('[CIVIS ADMIN IMAGE] Using direct HTTP/Data URL:', cleanRef);
+    return cleanRef;
   }
+
+  console.log('[CIVIS ADMIN IMAGE] image_url:', cleanRef);
   try {
     const { data, error } = await supabaseClient.storage
       .from('civis-complaint-images')
-      .createSignedUrl(imageRef, 3600);
+      .createSignedUrl(cleanRef, 3600);
+
+    if (error) {
+      console.error('[CIVIS ADMIN IMAGE] signed URL error:', error.message || error);
+      return null;
+    }
+
+    console.log('[CIVIS ADMIN IMAGE] signed URL result:', data);
     if (data && data.signedUrl) {
       return data.signedUrl;
     }
-    if (error) {
-      console.warn("createSignedUrl failed for admin image view:", error.message);
-    }
   } catch (e) {
-    console.warn("createSignedUrl exception for admin image view:", e);
+    console.error('[CIVIS ADMIN IMAGE] signed URL exception:', e);
   }
   return null;
 }
@@ -836,7 +846,7 @@ function openImageLightbox(imgSrc) {
   modal.innerHTML = `
     <div class="relative max-w-3xl max-h-[90vh] flex flex-col items-center">
       <button class="absolute -top-10 right-0 text-white font-bold text-sm bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg transition-colors cursor-pointer" onclick="this.closest('.fixed').remove()">✕ Close</button>
-      <img src="${imgSrc}" class="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10" alt="Complaint Photo Attachment">
+      <img src="${imgSrc}" class="max-w-full max-h-[80vh] rounded-2xl object-contain shadow-2xl border border-white/10" alt="Complaint Photo Attachment" onerror="this.onerror=null; this.alt='Image unavailable';">
     </div>
   `;
   modal.addEventListener('click', (e) => {
