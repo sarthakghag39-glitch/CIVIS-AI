@@ -1264,13 +1264,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (notificationBell) {
     notificationBell.parentElement.style.cursor = 'pointer';
     notificationBell.parentElement.addEventListener('click', () => {
-      window.location.href = '/my_complaints.html';
+      window.location.href = '/admin_dashboard.html';
     });
   } else {
     const notifBtn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('notifications'));
     if (notifBtn) {
       notifBtn.addEventListener('click', () => {
-        window.location.href = 'my_complaints.html';
+        window.location.href = '/admin_dashboard.html';
       });
     }
   }
@@ -2813,7 +2813,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       } else if (window.location.pathname.includes('smart_map')) {
         await renderMapMarkers();
       } else {
-        window.location.href = '/my_complaints.html';
+        window.location.href = '/admin_dashboard.html';
       }
     }
   });
