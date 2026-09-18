@@ -1223,7 +1223,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Admin Quick Redirect Shortcut Pill in Headers
-  if (isAdminUser() && !window.location.pathname.includes('admin_dashboard')) {
+  if (isAdminUser() && !window.location.pathname.includes('admin_dashboard') && !window.location.pathname.includes('citizen_issues')) {
     const headerRight = document.querySelector('header .flex.items-center.gap-4, header .flex.items-center.gap-2, header div.flex.items-center.gap-4');
     if (headerRight && !document.getElementById('header-admin-btn')) {
       const adminLink = document.createElement('a');
@@ -1305,7 +1305,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     initComplaintsPage();
   } else if (path.includes('emergency')) {
     initEmergencyPage();
-  } else if (path.includes('admin_dashboard')) {
+  } else if (path.includes('admin_dashboard') || path.includes('citizen_issues')) {
     initAdminDashboard();
   } else if (path.includes('ai_analysis')) {
     initAiAnalysisPage();
@@ -2140,13 +2140,14 @@ async function renderAdminIssues() {
   });
 
   // 3. Paginate issues
+  const pageSize = window.location.pathname.includes('citizen_issues') ? 10 : ADMIN_PAGE_SIZE;
   const totalFiltered = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalFiltered / ADMIN_PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
   if (currentAdminPage > totalPages) currentAdminPage = totalPages;
   if (currentAdminPage < 1) currentAdminPage = 1;
 
-  const startIdx = (currentAdminPage - 1) * ADMIN_PAGE_SIZE;
-  const pageIssues = filtered.slice(startIdx, startIdx + ADMIN_PAGE_SIZE);
+  const startIdx = (currentAdminPage - 1) * pageSize;
+  const pageIssues = filtered.slice(startIdx, startIdx + pageSize);
 
   // 4. Render Table Rows
   tbody.innerHTML = '';

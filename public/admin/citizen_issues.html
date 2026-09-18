@@ -1,0 +1,322 @@
+<!DOCTYPE html><html class="" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Citizen Issues - CIVIS AI</title>
+<script>!function(){var e=localStorage.getItem('civis_dark_mode');e==='true'?document.documentElement.classList.add('dark'):document.documentElement.classList.remove('dark')}();</script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="stylesheet" href="/dark-mode.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "success": "#22C55E",
+                        "outline": "#737686",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#006f64",
+                        "on-secondary-fixed": "#00201c",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#ffdbcd",
+                        "tertiary": "#943700",
+                        "on-surface-variant": "#434655",
+                        "surface": "#f7f9fb",
+                        "secondary-fixed-dim": "#4fdbc8",
+                        "inverse-on-surface": "#eff1f3",
+                        "primary-container": "#2563eb",
+                        "inverse-primary": "#b4c5ff",
+                        "background": "#f7f9fb",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed-variant": "#7d2d00",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#71f8e4",
+                        "on-tertiary-container": "#ffede6",
+                        "on-tertiary-fixed": "#360f00",
+                        "accent-gradient-start": "#2563EB",
+                        "surface-tint": "#0053db",
+                        "on-surface": "#191c1e",
+                        "secondary": "#006b5f",
+                        "surface-container": "#eceef0",
+                        "border-subtle": "#E2E8F0",
+                        "surface-container-high": "#e6e8ea",
+                        "tertiary-fixed-dim": "#ffb596",
+                        "on-background": "#191c1e",
+                        "surface-container-low": "#f2f4f6",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#eeefff",
+                        "critical": "#EF4444",
+                        "tertiary-container": "#bc4800",
+                        "primary-fixed": "#dbe1ff",
+                        "outline-variant": "#c3c6d7",
+                        "surface-dim": "#d8dadc",
+                        "warning": "#F59E0B",
+                        "card-bg": "#FFFFFF",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-secondary-fixed-variant": "#005048",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "surface-variant": "#e0e3e5",
+                        "surface-bright": "#f7f9fb",
+                        "accent-gradient-end": "#60A5FA",
+                        "primary": "#004ac6",
+                        "secondary-container": "#6df5e1",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary-fixed": "#00174b",
+                        "on-error": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "gutter": "24px",
+                        "container-max": "1440px",
+                        "margin": "32px"
+                    },
+                    "fontFamily": {
+                        "sans": ["Poppins", "sans-serif"],
+                        "headline-md": ["Poppins", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"],
+                        "label-md": ["Poppins", "sans-serif"],
+                        "headline-lg": ["Poppins", "sans-serif"],
+                        "body-lg": ["Poppins", "sans-serif"],
+                        "headline-lg-mobile": ["Poppins", "sans-serif"],
+                        "display-lg": ["Poppins", "sans-serif"],
+                        "label-sm": ["Poppins", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Poppins', sans-serif; }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined' !important;
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect { backdrop-filter: blur(12px); background-color: rgba(255, 255, 255, 0.9); }
+        .ambient-shadow { box-shadow: 0 4px 20px -2px hsla(220, 20%, 20%, 0.05); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        html.dark body { background-color: #0f1117 !important; color: #e2e4e9 !important; }
+        html.dark .bg-surface-container-lowest { background-color: #1a1e2e !important; }
+        html.dark .bg-surface-container-low    { background-color: #141720 !important; }
+        html.dark .bg-surface-container        { background-color: #1c2030 !important; }
+        html.dark .bg-surface-container-high   { background-color: #222638 !important; }
+        html.dark .bg-white                    { background-color: #1a1e2e !important; }
+        html.dark .text-on-surface             { color: #e2e4e9 !important; }
+        html.dark .text-on-surface-variant     { color: #a8adc4 !important; }
+        html.dark .text-outline                { color: #6b7099 !important; }
+        html.dark .text-primary                { color: #60a5fa !important; }
+        html.dark .border-border-subtle        { border-color: rgba(52, 58, 80, 0.8) !important; }
+        html.dark header                       { background: rgba(25, 28, 36, 0.97) !important; }
+        html.dark aside                        { background-color: #141720 !important; border-color: rgba(52,58,80,0.8) !important; }
+        html.dark input, html.dark select, html.dark textarea { background-color: #1c2030 !important; color: #e2e4e9 !important; border-color: rgba(52,58,80,0.8) !important; }
+    </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-background text-on-surface">
+
+<!-- Navigation Drawer -->
+<aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/smart_map.html" id="nav-map">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Live Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/social_pulse.html" id="nav-social-pulse">
+<span class="material-symbols-outlined">radar</span>
+<span class="font-label-md text-label-md">Social Pulse</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-semibold rounded-lg mx-2 transition-all duration-200" href="/citizen_issues.html" id="nav-issues">
+<span class="material-symbols-outlined">assignment</span>
+<span class="font-label-md text-label-md">Citizen Issues</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/ai_analysis.html" id="nav-analytics">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-label-md text-label-md">AI Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/system_health.html" id="nav-health">
+<span class="material-symbols-outlined">settings_heart</span>
+<span class="font-label-md text-label-md">System Health</span>
+</a>
+</nav>
+<div class="mt-auto px-2 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/profile.html" id="nav-settings">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
+<img class="w-full h-full object-cover" data-alt="City Admin Portrait" src="/profile_photo.jpg">
+</div>
+<div>
+<p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
+<p class="text-[10px] font-semibold text-primary uppercase tracking-wider">PUNE CITY</p>
+</div>
+</div>
+<div class="mt-3 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-success"></span>
+<span class="text-[11px] text-on-surface-variant font-medium">System Online</span>
+</div>
+</div>
+</div>
+</aside>
+
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 w-full bg-surface/90 glass-effect border-b border-border-subtle px-margin py-4 flex items-center justify-between">
+<div class="flex items-center gap-8 flex-1">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Citizen Issues Management</h2>
+<p class="text-xs text-outline font-medium">Viewing &amp; resolving all citizen-reported civic complaints across Pune City</p>
+</div>
+<div class="relative w-full max-w-md group ml-auto">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-border-subtle rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-label-md" placeholder="Search citizen issues, ID, location, category..." type="text" id="admin-search-input">
+</div>
+</div>
+<div class="flex items-center gap-4 ml-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-critical rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-border-subtle mx-2"></div>
+<div class="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full">
+<span class="font-label-md text-label-md font-semibold hidden md:block">Hi, Admin</span>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-xs">A</div>
+</div>
+</div>
+</header>
+
+<section class="p-margin max-w-container-max mx-auto space-y-gutter">
+
+<!-- Summary Metric Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-primary-container text-on-primary-container">
+<span class="material-symbols-outlined">forum</span>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-primary/10 text-primary rounded-full">All Wards</span>
+</div>
+<h4 class="text-label-sm text-outline font-semibold uppercase tracking-wider">Total Complaints</h4>
+<h2 class="text-display-lg font-bold text-on-surface mt-1" id="stat-total-complaints">0</h2>
+</div>
+
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-error-container text-error">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-error-container text-error rounded-full">Urgent</span>
+</div>
+<h4 class="text-label-sm text-outline font-semibold uppercase tracking-wider">Critical Issues</h4>
+<h2 class="text-display-lg font-bold text-error mt-1" id="stat-critical-issues">0</h2>
+</div>
+
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-success/10 text-success">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-success/10 text-success rounded-full">Completed</span>
+</div>
+<h4 class="text-label-sm text-outline font-semibold uppercase tracking-wider">Resolved Cases</h4>
+<h2 class="text-display-lg font-bold text-success mt-1" id="stat-resolved-cases">0</h2>
+</div>
+
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-3 rounded-xl bg-warning/10 text-warning">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<span class="text-xs font-bold px-2 py-1 bg-warning/10 text-warning rounded-full">Action Needed</span>
+</div>
+<h4 class="text-label-sm text-outline font-semibold uppercase tracking-wider">Pending Cases</h4>
+<h2 class="text-display-lg font-bold text-warning mt-1" id="stat-pending-cases">0</h2>
+</div>
+</div>
+
+<!-- Main Complaints Table Container -->
+<div class="bg-card-bg rounded-2xl border border-border-subtle ambient-shadow overflow-hidden">
+<div class="px-6 py-5 border-b border-border-subtle flex items-center justify-between bg-surface-container-lowest/50">
+<div>
+<h5 class="font-headline-md text-headline-md text-on-surface font-bold">All Citizen Complaints</h5>
+<p class="text-label-sm text-outline">Search, filter, assign, and resolve citizen issues across Pune Municipality</p>
+</div>
+<div class="flex gap-3">
+<button id="admin-filter-btn" type="button" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+Filter
+</button>
+<button id="admin-export-btn" type="button" class="flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-xl text-label-md font-semibold hover:bg-surface-variant transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[20px]">download</span>
+Export CSV
+</button>
+</div>
+</div>
+
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low/50 border-b border-border-subtle">
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Issue &amp; Details</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Priority</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Reported By</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Location</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Status</th>
+<th class="px-6 py-4 font-label-sm text-label-sm text-outline uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle">
+<!-- Dynamically rendered by renderAdminIssues() in app.js -->
+</tbody>
+</table>
+</div>
+
+<div class="px-6 py-4 bg-surface-container-lowest flex items-center justify-between border-t border-border-subtle" id="admin-pagination-container">
+<p class="text-label-sm text-outline" id="admin-pagination-count">Showing 0 of 0 complaints</p>
+<div class="flex gap-2" id="admin-pagination-buttons">
+<button class="w-8 h-8 rounded border border-primary bg-primary/10 text-primary font-bold text-[12px]">1</button>
+</div>
+</div>
+</div>
+
+</section>
+
+<!-- Footer Spacer -->
+<div class="h-12"></div>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
