@@ -235,8 +235,7 @@ Do not include markdown code fences or preambles. Output plain JSON only.
     console.error("Unhandled error in analyze_issue serverless function:", err);
     return res.status(500).json({
       ai_available: false,
-      error: 'An unexpected internal error occurred during AI analysis.',
-      details: err.message || String(err)
+      error: 'An unexpected internal error occurred during AI analysis.'
     });
   }
 };
