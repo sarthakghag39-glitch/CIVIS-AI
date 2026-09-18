@@ -129,6 +129,44 @@ checkAuthSession().then(user => {
 
 let cachedIssues = [];
 
+// Helper to compress/resize base64 image data URL specifically for AI multimodal payload
+function getCompressedImageForAi(dataUrl, maxDim = 1280, quality = 0.75) {
+  return new Promise((resolve) => {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:image/')) {
+      return resolve(dataUrl);
+    }
+    const img = new Image();
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      if (width <= maxDim && height <= maxDim && dataUrl.length < 400000) {
+        return resolve(dataUrl);
+      }
+
+      if (width > maxDim || height > maxDim) {
+        if (width > height) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else {
+          width = Math.round((width * maxDim) / height);
+          height = Math.round(maxDim);
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+      resolve(compressedDataUrl);
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
 // --- 1b. Localization (English, Hindi, Marathi) ---
 const translations = {
   en: {
@@ -1385,11 +1423,12 @@ async function initAiAnalysisPage() {
   // Attempt Real Backend Multimodal AI Analysis (api/analyze_issue.js)
   if (capturedImg) {
     try {
+      const compressedImgForAi = await getCompressedImageForAi(capturedImg);
       const response = await fetch('/api/analyze_issue', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          image: capturedImg,
+          image: compressedImgForAi,
           description: sessionStorage.getItem('civis_captured_desc') || '',
           category: simCategory
         })

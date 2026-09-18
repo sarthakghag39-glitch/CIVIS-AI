@@ -4,7 +4,7 @@
   "description": "CIVIS AI - AI-Powered Citizen Grievance & Smart City Governance Platform",
   "main": "public/user/index.html",
   "scripts": {
-    "build": "echo 'Building CIVIS AI Platform...'",
+    "build": "node scripts/sync_api.js",
     "start": "serve public/user -l 3000"
   },
   "dependencies": {

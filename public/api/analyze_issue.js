@@ -140,7 +140,7 @@ Do not include markdown code fences or preambles. Output plain JSON only.
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
 
     const geminiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -226,7 +226,7 @@ Do not include markdown code fences or preambles. Output plain JSON only.
 
   } catch (err) {
     if (err.name === 'AbortError') {
-      console.error("Gemini API call timed out after 15 seconds.");
+      console.error("Gemini API call timed out after 25 seconds.");
       return res.status(540 || 504).json({
         ai_available: false,
         error: 'AI analysis request timed out. Please try again.'
