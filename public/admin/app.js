@@ -1784,42 +1784,58 @@ async function renderComplaintsList() {
 
   container.innerHTML = '';
   const issues = await getIssues();
+  cachedIssues = issues;
   const displayIssues = issues;
 
-  displayIssues.forEach(issue => {
+  for (const issue of displayIssues) {
     const card = document.createElement('div');
     card.className = 'bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-4 ambient-shadow hover:scale-[1.01] transition-transform duration-200';
+
+    let resolvedUrl = null;
+    if (issue.image_url) {
+      resolvedUrl = await getImageUrlForIssue(issue.image_url);
+    }
+
+    const imageBoxHtml = resolvedUrl ? `
+      <div class="w-20 h-20 rounded-xl overflow-hidden bg-black/10 shrink-0 border border-border-subtle cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageLightbox('${resolvedUrl}')" title="Click to view full photo">
+        <img src="${resolvedUrl}" class="w-full h-full object-cover" alt="Photo" onerror="this.parentElement.innerHTML='<span class=\\'material-symbols-outlined text-xl text-primary\\'>broken_image</span>'">
+      </div>
+    ` : `
+      <div class="w-20 h-20 bg-primary-container/10 text-primary rounded-xl flex items-center justify-center shrink-0 border border-border-subtle">
+        <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
+      </div>
+    `;
+
     card.innerHTML = `
       <div class="flex gap-4">
-        <div class="w-20 h-20 bg-primary-container/10 text-primary rounded-xl flex items-center justify-center shrink-0 border border-border-subtle">
-          <span class="material-symbols-outlined text-[36px]">${issue.category === 'Water Leakage' ? 'water_drop' : issue.category === 'Garbage' ? 'delete' : issue.category === 'Streetlights' ? 'lightbulb' : 'warning'}</span>
-        </div>
+        ${imageBoxHtml}
         <div class="flex-1 flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
               <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${issue.title}</h3>
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality}</span>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality || 'Normal'}</span>
             </div>
             <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</span> • ${issue.date} • ${issue.location} • By ${issue.reported_by || 'Anonymous'}</p>
           </div>
           <div class="flex items-center gap-2">
             <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${issue.status}</span>
+            ${resolvedUrl ? `<button onclick="openImageLightbox('${resolvedUrl}')" class="px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-semibold rounded-md hover:bg-primary/20 flex items-center gap-1 cursor-pointer" title="View attached photo"><span class="material-symbols-outlined text-xs">photo</span> Photo</button>` : ''}
           </div>
         </div>
       </div>
       <div class="space-y-2">
         <div class="flex justify-between font-label-sm text-label-sm">
           <span class="text-outline">Resolution Progress</span>
-          <span class="text-primary font-bold">${issue.progress}%</span>
+          <span class="text-primary font-bold">${issue.progress || 0}%</span>
         </div>
         <div class="w-full h-2 bg-surface-container rounded-full overflow-hidden">
-          <div class="h-full bg-primary" style="width: ${issue.progress}%"></div>
+          <div class="h-full bg-primary" style="width: ${issue.progress || 0}%"></div>
         </div>
       </div>
-      <p class="text-body-md text-on-surface-variant text-sm">${issue.description}</p>
+      <p class="text-body-md text-on-surface-variant text-sm">${issue.description || ''}</p>
     `;
     container.appendChild(card);
-  });
+  }
 }
 
 function filterComplaintsList(query, filterStatus) {
