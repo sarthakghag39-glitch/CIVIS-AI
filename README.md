@@ -1,137 +1,135 @@
-# CIVIS AI — AI-Powered Public Safety & Smart City Intelligence Platform
+# CIVIS AI — AI-Powered Smart City Governance Platform
 
-CIVIS AI is a comprehensive, production-ready smart city coordination platform that bridges the gap between crowdsourced public signals, citizen reports, and municipal authorities. By leveraging AI-style intelligence, duplicate incident clustering, live geolocation tracking, and database-backed sync flows, CIVIS AI empowers city administrations to respond to infrastructure and safety hazards faster and more efficiently.
-
-Deployed Production URL: [https://civis-ai-ruddy.vercel.app/](https://civis-ai-ruddy.vercel.app/)
+CIVIS AI is a web-based smart city civic grievance platform connecting citizens with municipal administration. It provides real-time complaint reporting with AI vision analysis, GPS location tagging, secure private image storage, social signal aggregation, and role-based municipal administrative governance.
 
 ---
 
 ## 🚀 Key Features
 
-### 1. Citizen Portal (`public/user/`)
-*   **Smart Landing Hub**: User-friendly portal to check neighborhood status, report local issues, and track active resolution metrics.
-*   **Dynamic Emergency Services**: Provides one-touch access to ambulance, police, and fire dispatch. Automatically retrieves the citizen's live physical address using the **HTML5 Geolocation API** and OpenStreetMap's **Nominatim Reverse-Geocoding API**.
-*   **Complaints Dashboard**: Allows citizens to submit tickets (with camera uploads) and track their resolution progress (0-100%) in real-time.
+### 🏛️ Municipality Admin Portal
+* **Dashboard & Executive Overview:** Real-time analytics, critical issue counters, resolution trends, and AI-driven municipal intelligence insights.
+* **Dedicated Citizen Issues Management:** Comprehensive table for searching, filtering by status/priority/category, assigning field crews, and resolving complaints across Pune City wards.
+* **Private Storage Image Inspection:** Secure signed URL generation (`civis-complaint-images`) allowing verified city admins to view citizen-uploaded complaint photos.
+* **Social Pulse:** Real-time ingestion and clustering of social media signals (X/Twitter, Instagram, Facebook).
+* **Live Smart Map & AI Analytics:** Geographical visualization of active infrastructure reports and predictive maintenance trends.
 
-### 2. Admin Portal (`public/admin/`)
-*   **Live Metrics Dashboard**: Real-time stats cards (Total, Critical, Resolved, Pending) and issue category progress bars queried dynamically from Supabase.
-*   **Interactive Live Map**: Leaflet map plotting active complaints and social incidents, supporting direct category filters and coordinates-based query parameter focusing.
-*   **Multi-Column Search**: Text search matching typed inputs against titles, locations, statuses, and reporter names/emails.
-*   **AI Analytics Portal**: Displays ward-based issue vulnerability densities, weather vulnerability forecasts, and ML auto-routing performance indexes.
-*   **System Health Dashboard**: Displays CPU load (event loop lag), RAM footprint (via browser performance memory API), live Supabase network query latencies, active system logs terminal, and a live database-backed directory of logged-in members.
-
-### 3. CIVIS Social Pulse ("Hear what the city is saying.")
-A central intelligence module designed to parse noisy social signals (X, Instagram, Facebook, News) and convert them into structured complaints:
-*   **Duplicate Clustering ("One Incident. Many Signals.")**: Clusters multiple duplicate posts referring to the same location/incident into a single verified report, preventing municipal resource duplication.
-*   **AI Analysis Drawer**: Sliding panel showing text classification category, GPS coordinates, sentiment polarity, and recommended routing department.
-*   **Real-time Simulator**: Allows mock signal ingestion, updating KPIs, and updating map popups on the fly.
-*   **Supabase Direct Convert**: Clicking "Create Complaint" executes a real insert into Supabase `issues` and writes a unique, database-synced `complaint_id` (`CIV-2026-XXXXX`).
+### 👤 Citizen Portal
+* **AI Scan Complaint Reporting:** Live camera scan or file upload with instant AI category classification and severity detection.
+* **GPS Location Tagging:** Automatic browser geolocation and OpenStreetMap reverse geocoding.
+* **Personal Complaint Tracking:** Real-time resolution progress tracking and status updates.
+* **Multilingual Interface:** Supported in English, Hindi, and Marathi.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🛠️ Tech Stack
 
-*   **Frontend**: Vanilla HTML5, CSS3, Tailwind CSS (Design Tokens, fluid responsiveness, class-based dark mode).
-*   **Mapping**: LeafletJS (custom popups, coordinate fly-to, colored legends).
-*   **Backend / Database**: Supabase (PostgreSQL, Realtime APIs, Row Level Security policies).
-*   **Third-party APIs**: OpenStreetMap Nominatim reverse-geocoder (SSL-compliant).
-*   **Integrations**: Google Sheets Sync via custom Google Apps Script.
+* **Frontend:** HTML5, Tailwind CSS, Material Symbols, DiceBear Avatars
+* **Backend & Database:** Supabase PostgreSQL, Supabase Auth, Row Level Security (RLS)
+* **Storage:** Supabase Private Storage (`civis-complaint-images`) with temporary signed URLs
+* **Serverless Functions:** Vercel API Webhooks for Meta (Instagram/Facebook) & X (Twitter)
+* **Hosting:** Vercel Deployment with sub-domain routing (`cleanUrls`)
 
 ---
 
-## 💾 Database Schema Setup
+## 📁 Repository Structure
 
-To initialize the required tables in your Supabase project, execute the following SQL scripts in your **Supabase SQL Editor**:
-
-### Table 1: `issues` (Civic Tickets)
-```sql
-CREATE TABLE IF NOT EXISTS public.issues (
-    id SERIAL PRIMARY KEY,
-    complaint_id TEXT,
-    title TEXT NOT NULL,
-    category TEXT NOT NULL,
-    location TEXT NOT NULL,
-    date TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'Assigned',
-    progress INTEGER DEFAULT 10,
-    criticality TEXT NOT NULL DEFAULT 'Moderate',
-    description TEXT,
-    lat DOUBLE PRECISION,
-    lng DOUBLE PRECISION,
-    reported_by TEXT DEFAULT 'Anonymous',
-    reported_by_email TEXT DEFAULT 'N/A',
-    reported_by_phone TEXT DEFAULT 'N/A',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Enable RLS & Policies
-ALTER TABLE public.issues ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read" ON public.issues FOR SELECT TO public USING (true);
-CREATE POLICY "Allow public insert" ON public.issues FOR INSERT TO public WITH CHECK (true);
-CREATE POLICY "Allow public update" ON public.issues FOR UPDATE TO public USING (true);
-```
-
-### Table 2: `social_signals` (Social Pulse)
-```sql
-CREATE TABLE IF NOT EXISTS public.social_signals (
-    id TEXT PRIMARY KEY,
-    platform TEXT NOT NULL,
-    username TEXT NOT NULL,
-    avatar TEXT,
-    timestamp TEXT NOT NULL,
-    content TEXT NOT NULL,
-    issue_type TEXT NOT NULL,
-    category TEXT NOT NULL,
-    location TEXT NOT NULL,
-    latitude DOUBLE PRECISION,
-    longitude DOUBLE PRECISION,
-    severity TEXT NOT NULL,
-    ai_confidence INTEGER NOT NULL,
-    sentiment TEXT NOT NULL,
-    supporting_signals INTEGER DEFAULT 0,
-    cluster_id TEXT,
-    status TEXT NOT NULL,
-    department TEXT,
-    recommended_action TEXT,
-    engagement INTEGER DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
-);
-
--- Enable RLS & Policies
-ALTER TABLE public.social_signals ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public read" ON public.social_signals FOR SELECT TO public USING (true);
-CREATE POLICY "Allow public insert" ON public.social_signals FOR INSERT TO public WITH CHECK (true);
-CREATE POLICY "Allow public update" ON public.social_signals FOR UPDATE TO public USING (true);
+```text
+CIVIS-AI/
+├── api/
+│   └── webhooks/
+│       ├── meta.js                      # Instagram & Facebook Graph API Webhook handler
+│       └── x.js                         # X (Twitter) Account Activity API Webhook handler
+│
+├── public/
+│   ├── admin/                           # Municipality Admin Portal
+│   │   ├── admin_dashboard.html         # Executive Admin Dashboard
+│   │   ├── citizen_issues.html          # Dedicated Citizen Issues Management page
+│   │   ├── ai_analysis.html             # AI Analytics & Predictive Trends
+│   │   ├── smart_map.html               # Live Geographic Incident Map
+│   │   ├── social_pulse.html            # Social Media Signal Aggregation
+│   │   ├── system_health.html           # Infrastructure System Metrics
+│   │   ├── profile.html                 # Admin Settings
+│   │   ├── my_complaints.html           # Admin Complaints List
+│   │   └── app.js                       # Admin Interactivity & Supabase Client
+│   │
+│   └── user/                            # Citizen Portal
+│       ├── index.html                   # Citizen Home Page
+│       ├── my_complaints.html           # Personal Complaints View
+│       ├── ai_analysis.html             # AI Scan & Incident Report Generator
+│       ├── smart_map.html               # Citizen Map View
+│       ├── emergency.html               # Emergency Services Dialer
+│       ├── profile.html                 # User Profile & Metadata
+│       └── app.js                       # Citizen Interactivity & Supabase Client
+│
+├── scripts/
+│   ├── generate_doc.js                  # Documentation generation utility
+│   ├── generate_pptx.py                 # Presentation deck generator
+│   ├── take_screenshot_admin.js         # Admin UI screenshot tool
+│   └── take_screenshots.js              # Full-platform UI verification tool
+│
+├── supabase/
+│   └── migrations/                      # Project Database & RLS Migration SQL
+│       ├── supabase_phase1_migration.sql
+│       ├── supabase_phase3a_admin_storage_access.sql
+│       ├── supabase_phase3a_issues_image_url.sql
+│       └── supabase_phase3a_storage_bucket.sql
+│
+├── .gitignore                           # Git ignore rules
+├── package.json                         # Node dependencies & npm scripts
+├── package-lock.json                    # Lockfile
+├── vercel.json                          # Vercel deployment routing configuration
+└── README.md                            # Project documentation
 ```
 
 ---
 
-## 📊 Google Sheets Sync Setup
+## ⚙️ Setup & Local Development
 
-To sync your database tables with Google Sheets (with columns like `complaint_id` automatically mapped):
+### Prerequisites
+* Node.js (v18+)
+* npm (v9+)
 
-1. Open your **Google Sheet**, and navigate to **Extensions > Apps Script**.
-2. Paste the script located in [`google_sheets_sync_guide.md`](./google_sheets_sync_guide.md) (or Apps Script editor file).
-3. Save the project and click **Run** on the `importExistingSupabaseData` function dropdown.
-4. Add a time-driven trigger to run the sync automatically every 15-60 minutes.
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/sarthakghag39-glitch/CIVIS-AI.git
+cd CIVIS-AI
+
+# Install development dependencies
+npm install
+
+# Start local static server
+npm start
+```
 
 ---
 
-## 💻 Local Setup & Development
+## 🗄️ Database & Supabase Configuration
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/sarthakghag39-glitch/CIVIS-AI.git
-   cd CIVIS-AI
-   ```
-2. Install local development dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the local server:
-   ```bash
-   npm start
-   ```
-4. Access the web portals:
-   *   **Citizen Portal**: `http://localhost:3000/index.html`
-   *   **Admin Portal**: `http://localhost:3000/admin_dashboard.html`
+1. **Authentication & Profiles:**
+   * Supabase Auth manages user sign-ups and sign-ins.
+   * PostgreSQL trigger `handle_new_user()` auto-creates entries in `public.profiles`.
+   * Admin privileges require `profiles.role = 'admin'`.
+
+2. **Database Migrations:**
+   Run the SQL scripts located in `supabase/migrations/` in your Supabase SQL Editor:
+   * `supabase_phase1_migration.sql`: Auth triggers & profiles RLS policies.
+   * `supabase_phase3a_issues_image_url.sql`: Adds `image_url` column to `issues` table.
+   * `supabase_phase3a_storage_bucket.sql`: Creates private `civis-complaint-images` bucket.
+   * `supabase_phase3a_admin_storage_access.sql`: Configures admin storage signed URL access policy (`public.is_admin()`).
+
+---
+
+## 🚀 Deployment
+
+The project is configured for deployment on **Vercel**:
+* `vercel.json` configures the static `public/` output directory, `cleanUrls: true`, and subdomain rewrites for admin (`/admin/index.html`) vs citizen (`/user/index.html`).
+* Serverless Webhooks in `api/webhooks/` automatically deploy as Vercel API endpoints.
+
+---
+
+## 🔒 Security Practices
+
+* **No Hardcoded Service Keys:** Private bucket signed URLs are created dynamically client-side using `createSignedUrl` with strict RLS authorization (`public.is_admin() = true`).
+* **Private Bucket Enforcement:** `civis-complaint-images` remains private (`public = false`).
+* **Role Verification:** Admin authorization strictly checks `profiles.role === 'admin'`.

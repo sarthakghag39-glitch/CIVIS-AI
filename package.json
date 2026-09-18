@@ -1,6 +1,8 @@
 {
   "name": "civis-ai-platform",
   "version": "1.0.0",
+  "description": "CIVIS AI - AI-Powered Citizen Grievance & Smart City Governance Platform",
+  "main": "public/user/index.html",
   "scripts": {
     "build": "echo 'Building CIVIS AI Platform...'",
     "start": "serve public/user -l 3000"
@@ -10,9 +12,12 @@
     "puppeteer-core": "^25.3.0",
     "serve": "^14.2.4"
   },
-  "description": "",
-  "main": "check_nav.js",
-  "keywords": [],
+  "keywords": [
+    "civis-ai",
+    "smart-city",
+    "civic-tech",
+    "supabase"
+  ],
   "author": "",
   "license": "ISC"
 }
