@@ -1369,35 +1369,73 @@ async function initAiAnalysisPage() {
   const loader = document.createElement('div');
   loader.className = 'absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-20';
   loader.innerHTML = `
-    <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4">sync</span>
-    <p class="font-headline-md text-[18px] font-bold">TensorFlow.js Running</p>
-    <p class="text-xs opacity-60 mt-1">Classifying image pixels with MobileNet ML Model...</p>
+    <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4">psychology</span>
+    <p class="font-headline-md text-[18px] font-bold">Gemini Multimodal AI Running</p>
+    <p class="text-xs opacity-60 mt-1">Analyzing image pixels & civic context with Gemini Model...</p>
   `;
   if (canvasImg) canvasImg.appendChild(loader);
 
   const baselineAnalysis = classifyImage(capturedName, simCategory);
-  let analysis = baselineAnalysis;
+  let analysis = {
+    ...baselineAnalysis,
+    confidence: 95,
+    is_valid_civic_issue: true
+  };
 
-  if (capturedImg && typeof mobilenet !== 'undefined') {
+  // Attempt Real Backend Multimodal AI Analysis (api/analyze_issue.js)
+  if (capturedImg) {
     try {
-      const imgEl = new Image();
-      imgEl.src = capturedImg;
-      await new Promise((resolve) => {
-        imgEl.onload = resolve;
+      const response = await fetch('/api/analyze_issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: capturedImg,
+          description: sessionStorage.getItem('civis_captured_desc') || '',
+          category: simCategory
+        })
       });
 
-      const model = await mobilenet.load();
-      const predictions = await model.classify(imgEl);
-      console.log("TensorFlow.js MobileNet Predictions:", predictions);
-      analysis = mapPredictionsToIssue(predictions, baselineAnalysis);
+      if (response.ok) {
+        const aiResult = await response.json();
+        if (aiResult && aiResult.ai_available) {
+          const confPercentage = Math.round((aiResult.confidence || 0.9) * 100);
+          analysis = {
+            category: aiResult.category || baselineAnalysis.category,
+            title: `${aiResult.category || baselineAnalysis.category} (${aiResult.severity || 'Moderate'} Severity)`,
+            severity: aiResult.severity_score || baselineAnalysis.severity,
+            severity_label: aiResult.severity || 'Moderate',
+            confidence: confPercentage,
+            tag: `${(aiResult.detected_tags && aiResult.detected_tags[0] ? aiResult.detected_tags[0] : (aiResult.category || 'ISSUE')).toUpperCase()} ${confPercentage}%`,
+            description: `${aiResult.reasoning_summary || ''} Recommended Action: ${aiResult.recommended_action || ''}`.trim(),
+            is_valid_civic_issue: typeof aiResult.is_valid_civic_issue === 'boolean' ? aiResult.is_valid_civic_issue : true,
+            detected_tags: aiResult.detected_tags || []
+          };
+          console.log("Real Gemini AI Multimodal Result:", aiResult);
+        } else {
+          console.warn("AI service notice:", aiResult?.error || "AI service unavailable, using fallback.");
+        }
+      } else {
+        console.warn(`AI Analysis HTTP Error ${response.status}, running rule-based fallback.`);
+      }
     } catch (e) {
-      console.error("Machine learning classification failed, running rule-based fallback:", e);
+      console.warn("Backend AI request failed, running rule-based fallback:", e);
     }
   }
 
   loader.remove();
 
-  const randomConfidence = Math.floor(Math.random() * 4) + 95;
+  // If AI detected non-civic image, display a non-blocking alert banner
+  if (analysis.is_valid_civic_issue === false) {
+    const warningBanner = document.createElement('div');
+    warningBanner.className = 'w-full mb-4 p-4 rounded-xl bg-error-container text-on-error-container text-xs font-semibold flex items-center gap-2 border border-error/20';
+    warningBanner.innerHTML = `
+      <span class="material-symbols-outlined text-error text-lg">warning</span>
+      <span>AI Warning: The uploaded photo does not appear to show a public civic infrastructure issue (e.g. selfie, pet, or personal object). You may still submit or retake photo.</span>
+    `;
+    const container = document.querySelector('main div.max-w-4xl') || document.querySelector('main');
+    if (container) container.insertBefore(warningBanner, container.firstChild);
+  }
+
   const curTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const categorySelect = document.getElementById('ai-category-select');
 
@@ -1405,11 +1443,10 @@ async function initAiAnalysisPage() {
     if (categorySelect) categorySelect.value = targetAnalysis.category;
     
     if (confidenceSpan) {
-      confidenceSpan.innerText = targetAnalysis.tag.includes('%') ? targetAnalysis.tag.split(' ').pop() : `${randomConfidence}%`;
+      confidenceSpan.innerText = `${targetAnalysis.confidence}%`;
     }
     if (confidenceBar) {
-      const rawVal = parseInt(confidenceSpan.innerText);
-      confidenceBar.style.width = isNaN(rawVal) ? '95%' : `${rawVal}%`;
+      confidenceBar.style.width = `${targetAnalysis.confidence}%`;
     }
     
     if (severitySpan) severitySpan.innerText = `${targetAnalysis.severity}/100`;
