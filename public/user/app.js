@@ -1460,16 +1460,30 @@ async function initAiAnalysisPage() {
     if (categorySelect) categorySelect.value = targetAnalysis.category;
     
     if (confidenceSpan) {
-      confidenceSpan.innerText = `${targetAnalysis.confidence}%`;
+      confidenceSpan.innerText = targetAnalysis.ai_unavailable ? 'Unavailable' : `${targetAnalysis.confidence}%`;
+      const confidenceLabelEl = confidenceSpan.parentElement?.querySelector('span:first-child');
+      if (confidenceLabelEl && !confidenceLabelEl.querySelector('.conf-sub')) {
+        confidenceLabelEl.innerHTML += `<span class="conf-sub block text-[9px] text-outline font-normal">Estimated AI confidence signal</span>`;
+      }
     }
     if (confidenceBar) {
-      confidenceBar.style.width = `${targetAnalysis.confidence}%`;
+      confidenceBar.style.width = targetAnalysis.ai_unavailable ? '0%' : `${targetAnalysis.confidence}%`;
     }
     
-    if (severitySpan) severitySpan.innerText = `${targetAnalysis.severity}/100`;
-    if (severityBar) severityBar.style.width = `${targetAnalysis.severity}%`;
+    if (severitySpan) {
+      severitySpan.innerText = targetAnalysis.ai_unavailable 
+        ? 'Manual Review' 
+        : `${targetAnalysis.severity}/100 (${targetAnalysis.severity_label || 'Moderate'})`;
+    }
+    if (severityBar) {
+      severityBar.style.width = targetAnalysis.ai_unavailable ? '50%' : `${targetAnalysis.severity}%`;
+    }
 
-    if (insightsDesc) insightsDesc.innerText = targetAnalysis.description;
+    if (insightsDesc) {
+      insightsDesc.innerText = targetAnalysis.ai_unavailable 
+        ? 'AI analysis is currently unavailable. You may proceed with manual category selection and report submission.' 
+        : targetAnalysis.description;
+    }
 
     if (boundingBoxText) {
       boundingBoxText.innerText = targetAnalysis.tag.toUpperCase();
@@ -2471,6 +2485,17 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
           </div>
         </div>
 
+        <!-- AI Analysis Trigger & Results -->
+        <div id="ai-modal-analysis-section" class="flex flex-col gap-2 pt-1 border-t border-border-subtle">
+          <button type="button" id="trigger-ai-modal-btn" class="w-full py-2.5 bg-gradient-to-r from-primary to-accent-gradient-end text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm hover:opacity-95 transition-all">
+            <span class="material-symbols-outlined text-sm">psychology</span>
+            <span>Analyze Issue with Gemini AI</span>
+          </button>
+          <div id="ai-modal-result" class="hidden p-3.5 rounded-xl bg-surface-container-low border border-primary/20 flex flex-col gap-2 text-xs">
+            <!-- Dynamic Gemini Response Rendered Here -->
+          </div>
+        </div>
+
         <button type="submit" id="submit-report-btn" class="w-full py-3 bg-primary text-white font-semibold rounded-xl mt-2 flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all">
           <span>${dict.submit_report}</span>
         </button>
@@ -2483,6 +2508,136 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   const fileInput = modal.querySelector('#form-image-file');
   const attachedBadge = modal.querySelector('#image-attached-badge');
   const submitBtn = modal.querySelector('#submit-report-btn');
+  const triggerAiBtn = modal.querySelector('#trigger-ai-modal-btn');
+  const aiResultBox = modal.querySelector('#ai-modal-result');
+
+  if (triggerAiBtn && aiResultBox) {
+    triggerAiBtn.addEventListener('click', async () => {
+      const capturedImg = sessionStorage.getItem('civis_captured_img');
+      const descText = form.querySelector('#form-desc').value.trim();
+      const currentCategory = form.querySelector('#form-category').value;
+
+      if (!capturedImg && !descText) {
+        alert("Please attach a complaint photo or write a description first to run Gemini AI analysis.");
+        return;
+      }
+
+      triggerAiBtn.disabled = true;
+      triggerAiBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Analyzing image & description...`;
+
+      try {
+        const response = await fetch('/api/analyze_issue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: capturedImg || null,
+            description: descText,
+            category: currentCategory || null
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data && data.ai_available) {
+          const confPercent = Math.round((data.confidence || 0.85) * 100);
+          const tags = data.detected_tags || [];
+          
+          let severityBadgeColor = 'bg-primary/10 text-primary font-semibold';
+          if (data.severity === 'Critical' || data.severity === 'High') {
+            severityBadgeColor = 'bg-error-container text-error font-bold';
+          } else if (data.severity === 'Moderate') {
+            severityBadgeColor = 'bg-warning/15 text-warning font-bold';
+          }
+
+          let warningHtml = '';
+          if (data.is_valid_civic_issue === false) {
+            warningHtml = `
+              <div class="p-2 rounded-lg bg-error-container text-error text-[11px] font-semibold flex items-center gap-1.5 mb-1">
+                <span class="material-symbols-outlined text-sm">warning</span>
+                <span>AI Warning: Uploaded photo does not appear to show a valid public civic issue.</span>
+              </div>
+            `;
+          }
+
+          aiResultBox.innerHTML = `
+            ${warningHtml}
+            <div class="flex items-center justify-between font-semibold">
+              <span class="text-on-surface-variant">Suggested Category:</span>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-primary">${data.category}</span>
+                <button type="button" id="apply-ai-category-btn" class="px-2 py-0.5 bg-primary text-white rounded text-[10px] hover:bg-primary/90 font-semibold">Use</button>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-on-surface-variant">Severity Level:</span>
+              <span class="px-2 py-0.5 rounded ${severityBadgeColor}">${data.severity} (${data.severity_score}/100)</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-on-surface-variant font-semibold">AI Confidence:</span>
+                <p class="text-[9px] text-outline">Estimated AI confidence signal</p>
+              </div>
+              <span class="font-bold text-success text-sm">${confPercent}%</span>
+            </div>
+            ${tags.length ? `
+              <div>
+                <span class="text-on-surface-variant font-semibold block mb-1">Detected Tags:</span>
+                <div class="flex flex-wrap gap-1">
+                  ${tags.map(t => `<span class="px-2 py-0.5 bg-surface-container-high text-on-surface rounded-full text-[10px] font-medium">${t}</span>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            <div>
+              <span class="text-on-surface-variant font-semibold block">Reasoning:</span>
+              <p class="text-[11px] text-on-surface opacity-90">${data.reasoning_summary}</p>
+            </div>
+            <div>
+              <span class="text-on-surface-variant font-semibold block">Recommended Action:</span>
+              <p class="text-[11px] text-primary font-medium">${data.recommended_action}</p>
+            </div>
+          `;
+          aiResultBox.classList.remove('hidden');
+
+          // Add click listener for Apply Category button
+          const applyBtn = aiResultBox.querySelector('#apply-ai-category-btn');
+          if (applyBtn) {
+            applyBtn.addEventListener('click', () => {
+              const catSelect = form.querySelector('#form-category');
+              if (catSelect) catSelect.value = data.category;
+              applyBtn.innerText = 'Applied!';
+              applyBtn.disabled = true;
+              applyBtn.classList.remove('bg-primary');
+              applyBtn.classList.add('bg-success');
+            });
+          }
+        } else {
+          aiResultBox.innerHTML = `
+            <div class="text-outline text-center py-2">
+              <span class="material-symbols-outlined text-base">cloud_off</span>
+              <p class="font-semibold mt-1 text-xs">AI analysis is currently unavailable.</p>
+              <p class="text-[10px] opacity-75">${data?.error || 'Please proceed with manual category selection.'}</p>
+            </div>
+          `;
+          aiResultBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.warn("AI modal request error:", err);
+        aiResultBox.innerHTML = `
+          <div class="text-outline text-center py-2">
+            <span class="material-symbols-outlined text-base">cloud_off</span>
+            <p class="font-semibold mt-1 text-xs">AI analysis is currently unavailable.</p>
+          </div>
+        `;
+        aiResultBox.classList.remove('hidden');
+      } finally {
+        triggerAiBtn.disabled = false;
+        triggerAiBtn.innerHTML = `
+          <span class="material-symbols-outlined text-sm">psychology</span>
+          <span>Re-analyze with Gemini AI</span>
+        `;
+      }
+    });
+  }
 
   if (fileInput) {
     fileInput.addEventListener('change', (e) => {
