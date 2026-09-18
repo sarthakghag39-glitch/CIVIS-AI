@@ -25,13 +25,15 @@ const isAdminPage = window.location.hostname.includes('admin') || currentPath.in
 
 let currentAuthenticatedUser = null;
 let currentAuthenticatedRole = 'citizen';
+let currentUserProfile = null;
 
 async function checkAuthSession() {
   try {
-    const { data: { session }, error } = await supabaseClient.auth.getSession();
-    if (error || !session || !session.user) {
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !session || !session.user) {
       currentAuthenticatedUser = null;
       currentAuthenticatedRole = 'citizen';
+      currentUserProfile = null;
       sessionStorage.removeItem('civis_user');
       return null;
     }
@@ -39,35 +41,55 @@ async function checkAuthSession() {
     currentAuthenticatedUser = session.user;
 
     // Fetch trusted user profile & role from public.profiles table
-    let { data: profile } = await supabaseClient.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+    const { data: profile, error: profileError } = await supabaseClient
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .maybeSingle();
 
-    if (!profile) {
+    if (profileError) {
+      // Do NOT treat a failed SELECT request as "profile does not exist".
+      console.warn("Supabase profiles lookup error:", profileError);
+      currentUserProfile = null;
+      currentAuthenticatedRole = session.user.user_metadata?.role || 'citizen';
+    } else if (!profile) {
+      // SELECT explicitly indicated that no profile exists (0 rows returned with no DB error).
       const newProfile = {
         id: session.user.id,
-        full_name: session.user.user_metadata?.full_name || session.user.email.split('@')[0],
+        full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
         phone: session.user.user_metadata?.phone || '',
-        role: 'citizen'
+        role: session.user.user_metadata?.role || 'citizen'
       };
-      await supabaseClient.from('profiles').insert([newProfile]);
-      currentAuthenticatedRole = 'citizen';
-      profile = newProfile;
+
+      const { error: upsertErr } = await supabaseClient
+        .from('profiles')
+        .upsert([newProfile], { onConflict: 'id', ignoreDuplicates: true });
+
+      if (upsertErr) {
+        console.error("Failed to create fallback profile:", upsertErr);
+      }
+
+      currentUserProfile = newProfile;
+      currentAuthenticatedRole = newProfile.role;
     } else {
+      currentUserProfile = profile;
       currentAuthenticatedRole = profile.role || 'citizen';
     }
 
     const userObj = {
       id: session.user.id,
       email: session.user.email,
-      name: profile.full_name || session.user.email.split('@')[0],
-      phone: profile.phone || '',
+      name: (currentUserProfile && currentUserProfile.full_name) || session.user.email?.split('@')[0] || 'User',
+      phone: (currentUserProfile && currentUserProfile.phone) || '',
       role: currentAuthenticatedRole
     };
     sessionStorage.setItem('civis_user', JSON.stringify(userObj));
     return userObj;
   } catch (e) {
-    console.warn("Supabase getSession failed:", e);
+    console.warn("Supabase checkAuthSession failed:", e);
     currentAuthenticatedUser = null;
     currentAuthenticatedRole = 'citizen';
+    currentUserProfile = null;
     sessionStorage.removeItem('civis_user');
     return null;
   }
@@ -2028,14 +2050,7 @@ async function initProfilePage() {
   }
 }
 
-// Check if user has admin privileges based on credentials
-function isAdminUser() {
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  if (!localUser.email) return false;
-  const email = localUser.email.toLowerCase();
-  const name = (localUser.name || '').toLowerCase();
-  return email === 'admin@civis.ai' || email.startsWith('admin') || name === 'sarthak (admin)';
-}
+// Note: isAdminUser() is defined globally at top of file based on currentAuthenticatedRole === 'admin'
 
 // Edit Profile Modal Window
 function openEditProfileModal() {
