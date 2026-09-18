@@ -1354,10 +1354,18 @@ function initHomePage() {
       window.location.href = '/smart_map.html?focus=101';
     });
   }
+
+  if (window.location.search.includes('report=true')) {
+    openReportModal();
+  }
 }
 
 // --- 3b. AI Analysis Page Handler ---
 async function initAiAnalysisPage() {
+  if (!window.location.pathname.includes('/admin/')) {
+    window.location.replace('/index.html?report=true');
+    return;
+  }
   const capturedImg = sessionStorage.getItem('civis_captured_img');
   const capturedName = sessionStorage.getItem('civis_captured_name');
   const simCategory = sessionStorage.getItem('civis_sim_category');
@@ -2383,7 +2391,7 @@ function openScanModal() {
     sessionStorage.removeItem('civis_captured_name');
     stopCamera();
     modal.remove();
-    window.location.href = '/ai_analysis.html';
+    openReportModalWithDetails('', targetSelect.value);
   }
 
   captureBtn.addEventListener('click', captureFrame);
@@ -2403,7 +2411,7 @@ function openScanModal() {
         sessionStorage.setItem('civis_sim_category', targetSelect.value);
         stopCamera();
         modal.remove();
-        window.location.href = '/ai_analysis.html';
+        openReportModalWithDetails('', targetSelect.value);
       };
       reader.readAsDataURL(file);
     }
