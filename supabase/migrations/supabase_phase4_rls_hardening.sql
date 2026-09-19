@@ -101,10 +101,3 @@ CREATE TRIGGER trg_protect_issue_incident_id
   BEFORE INSERT OR UPDATE ON public.issues
   FOR EACH ROW
   EXECUTE FUNCTION public.protect_issue_incident_id();
-
--- 5. UPDATE Policy for public.issues to ensure citizens can update legitimate complaint fields
-DROP POLICY IF EXISTS "Users update own issues" ON public.issues;
-CREATE POLICY "Users update own issues" ON public.issues
-  FOR UPDATE USING (
-    auth.uid() IS NOT NULL OR public.is_admin() = true
-  );
