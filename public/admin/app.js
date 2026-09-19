@@ -1909,6 +1909,61 @@ async function renderComplaintsList() {
         </div>
       </div>
       <p class="text-body-md text-on-surface-variant text-sm">${issue.description || ''}</p>
+      ${(() => {
+        if (issue.ai_analyzed === true) {
+          const confPercent = issue.ai_confidence ? Math.round(issue.ai_confidence * 100) : null;
+          const tags = Array.isArray(issue.ai_detected_tags) ? issue.ai_detected_tags : [];
+          const analyzedTime = issue.ai_analyzed_at ? new Date(issue.ai_analyzed_at).toLocaleString() : 'N/A';
+
+          return `
+            <div class="mt-3 p-3.5 bg-primary-container/10 border border-primary/20 rounded-xl flex flex-col gap-2 text-xs">
+              <div class="flex items-center justify-between font-bold border-b border-primary/10 pb-1.5 text-primary">
+                <span class="flex items-center gap-1.5 text-xs">
+                  <span class="material-symbols-outlined text-sm">psychology</span>
+                  AI Analysis
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 bg-primary/10 text-primary rounded-md font-semibold">${issue.ai_model_version || 'gemini-3.8-flash'}</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] pt-1">
+                <div><span class="text-outline font-medium">AI Category:</span> <span class="font-bold text-on-surface">${issue.ai_category || 'N/A'}</span></div>
+                <div><span class="text-outline font-medium">AI Severity:</span> <span class="font-bold text-on-surface">${issue.ai_severity || 'N/A'}${issue.ai_severity_score ? ` (${issue.ai_severity_score}/100)` : ''}</span></div>
+                <div><span class="text-outline font-medium">AI Confidence:</span> <span class="font-bold text-success">${confPercent !== null ? confPercent + '%' : 'N/A'}</span></div>
+                <div><span class="text-outline font-medium">Analysis Time:</span> <span class="text-on-surface-variant font-mono text-[10px]">${analyzedTime}</span></div>
+              </div>
+
+              ${tags.length ? `
+                <div class="pt-1">
+                  <span class="text-[10px] text-outline font-semibold block mb-1">Detected Tags:</span>
+                  <div class="flex flex-wrap gap-1">
+                    ${tags.map(t => `<span class="px-2 py-0.5 bg-white border border-border-subtle text-on-surface rounded-full text-[10px] font-medium">• ${t}</span>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${issue.ai_recommended_action ? `
+                <div class="pt-1">
+                  <span class="text-[10px] text-outline font-semibold block">Recommended Action:</span>
+                  <p class="text-[11px] text-on-surface font-semibold">${issue.ai_recommended_action}</p>
+                </div>
+              ` : ''}
+
+              ${issue.ai_reasoning_summary ? `
+                <div class="pt-0.5">
+                  <span class="text-[10px] text-outline font-semibold block">AI Reasoning:</span>
+                  <p class="text-[11px] text-on-surface-variant leading-relaxed">${issue.ai_reasoning_summary}</p>
+                </div>
+              ` : ''}
+            </div>
+          `;
+        } else {
+          return `
+            <div class="mt-3 p-2.5 bg-surface-container-low border border-border-subtle rounded-xl text-[11px] text-outline italic">
+              AI analysis was not available for this complaint.
+            </div>
+          `;
+        }
+      })()}
     `;
     container.appendChild(card);
   }

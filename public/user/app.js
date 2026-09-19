@@ -167,6 +167,54 @@ function getCompressedImageForAi(dataUrl, maxDim = 1280, quality = 0.75) {
   });
 }
 
+// Defensive validation helper for Phase 2 AI metadata persistence
+function validateAiAnalysisData(analysis) {
+  if (!analysis || typeof analysis !== 'object') return null;
+
+  let confidence = parseFloat(analysis.confidence);
+  if (isNaN(confidence) || confidence < 0.0 || confidence > 1.0) {
+    confidence = null;
+  }
+
+  let severityScore = parseInt(analysis.severity_score, 10);
+  if (isNaN(severityScore) || severityScore < 1 || severityScore > 100) {
+    severityScore = null;
+  }
+
+  const validSeverities = ['Low', 'Moderate', 'High', 'Critical'];
+  let severity = (analysis.severity || '').trim();
+  if (!validSeverities.includes(severity)) {
+    severity = null;
+  }
+
+  let detectedTags = null;
+  if (Array.isArray(analysis.detected_tags)) {
+    detectedTags = analysis.detected_tags
+      .filter(t => typeof t === 'string' && t.trim().length > 0)
+      .map(t => t.trim().slice(0, 50));
+    if (detectedTags.length === 0) detectedTags = null;
+  }
+
+  let category = typeof analysis.category === 'string' && analysis.category.trim() ? analysis.category.trim() : null;
+  let recommendedAction = typeof analysis.recommended_action === 'string' && analysis.recommended_action.trim() ? analysis.recommended_action.trim() : null;
+  let reasoningSummary = typeof analysis.reasoning_summary === 'string' && analysis.reasoning_summary.trim() ? analysis.reasoning_summary.trim() : null;
+  let isValidCivicIssue = typeof analysis.is_valid_civic_issue === 'boolean' ? analysis.is_valid_civic_issue : null;
+
+  return {
+    ai_analyzed: true,
+    ai_category: category,
+    ai_severity: severity,
+    ai_severity_score: severityScore,
+    ai_confidence: confidence,
+    ai_detected_tags: detectedTags,
+    ai_recommended_action: recommendedAction,
+    ai_reasoning_summary: reasoningSummary,
+    ai_is_valid_civic_issue: isValidCivicIssue,
+    ai_model_version: 'gemini-3.8-flash',
+    ai_analyzed_at: new Date().toISOString()
+  };
+}
+
 // --- 1b. Localization (English, Hindi, Marathi) ---
 const translations = {
   en: {
@@ -1472,7 +1520,8 @@ async function initAiAnalysisPage() {
             tag: `${(aiResult.detected_tags && aiResult.detected_tags[0] ? aiResult.detected_tags[0] : (aiResult.category || 'ISSUE')).toUpperCase()} ${confPercentage}%`,
             description: `${aiResult.reasoning_summary || ''} Recommended Action: ${aiResult.recommended_action || ''}`.trim(),
             is_valid_civic_issue: typeof aiResult.is_valid_civic_issue === 'boolean' ? aiResult.is_valid_civic_issue : true,
-            detected_tags: aiResult.detected_tags || []
+            detected_tags: aiResult.detected_tags || [],
+            rawAiResult: aiResult
           };
           console.log("Real Gemini AI Multimodal Result:", aiResult);
         } else {
@@ -1586,14 +1635,14 @@ async function initAiAnalysisPage() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, analysis.title, dbCategory, customLocation, analysis.description);
+            openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, analysis.title, dbCategory, customLocation, analysis.description, analysis.rawAiResult || null);
           },
           () => {
-            openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description);
+            openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description, analysis.rawAiResult || null);
           }
         );
       } else {
-        openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description);
+        openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description, analysis.rawAiResult || null);
       }
     });
   });
@@ -2479,11 +2528,13 @@ function openReportModalWithDetails(title, category) {
   }
 }
 
-function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '') {
+function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '', initialAiAnalysis = null) {
   defaultTitle = defaultTitle || '';
   defaultCategory = defaultCategory || '';
   defaultLocation = defaultLocation || '';
   defaultDesc = defaultDesc || '';
+
+  let activeAiAnalysis = initialAiAnalysis || null;
 
   // Prevent duplicate modals from spawning
   if (document.getElementById('report-issue-modal')) return;
@@ -2587,6 +2638,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         const data = await response.json();
 
         if (response.ok && data && data.ai_available) {
+          activeAiAnalysis = data;
           const confPercent = Math.round((data.confidence || 0.85) * 100);
           const tags = data.detected_tags || [];
           
@@ -2788,6 +2840,27 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       }
     }
 
+    let aiFields = {
+      ai_analyzed: false,
+      ai_category: null,
+      ai_severity: null,
+      ai_severity_score: null,
+      ai_confidence: null,
+      ai_detected_tags: null,
+      ai_recommended_action: null,
+      ai_reasoning_summary: null,
+      ai_is_valid_civic_issue: null,
+      ai_model_version: null,
+      ai_analyzed_at: null
+    };
+
+    if (activeAiAnalysis && activeAiAnalysis.ai_available) {
+      const validated = validateAiAnalysisData(activeAiAnalysis);
+      if (validated) {
+        aiFields = validated;
+      }
+    }
+
     const isDefaultCoords = (lat === 18.5204 && lng === 73.8567);
     const newIssue = {
       title,
@@ -2803,7 +2876,8 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       lng: isDefaultCoords ? lng + (Math.random() - 0.5) * 0.01 : lng,
       reported_by: reported_by,
       reported_by_email: reported_by_email,
-      reported_by_phone: reported_by_phone
+      reported_by_phone: reported_by_phone,
+      ...aiFields
     };
 
     const { data, error } = await supabaseClient.from('issues').insert([newIssue]).select();
