@@ -15,6 +15,17 @@
 const SUPABASE_URL = 'https://dppdyknjrryoljzzdulj.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_DoV52AE_kw3GIMhY50tXTA_vUAgbAmm';
 
+const GEOLOCATION_OPTIONS = {
+  enableHighAccuracy: true,
+  timeout: 10000,
+  maximumAge: 30000
+};
+
+function isValidCoordinate(lat, lng) {
+  return typeof lat === 'number' && Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
+         typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
+}
+
 // Use window.supabase (provided by CDN) to create the client, named supabaseClient to avoid naming conflicts
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -1547,14 +1558,16 @@ async function initAiAnalysisPage() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (pos) => {
-            openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, analysis.title, dbCategory, customLocation, analysis.description);
+            openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, analysis.title, dbCategory, customLocation, analysis.description, 'gps', pos.coords.accuracy || null);
           },
-          () => {
-            openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description);
-          }
+          (err) => {
+            console.warn("GPS Geolocation failed/denied:", err?.message);
+            openReportModalAtCoords(null, null, analysis.title, dbCategory, customLocation, analysis.description, null, null);
+          },
+          GEOLOCATION_OPTIONS
         );
       } else {
-        openReportModalAtCoords(18.5204, 73.8567, analysis.title, dbCategory, customLocation, analysis.description);
+        openReportModalAtCoords(null, null, analysis.title, dbCategory, customLocation, analysis.description, null, null);
       }
     });
   });
@@ -3428,30 +3441,43 @@ function openScanModal() {
 function openReportModal() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude),
-      () => openReportModalAtCoords(18.5204, 73.8567)
+      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, '', '', '', '', 'gps', pos.coords.accuracy || null),
+      (err) => {
+        console.warn("GPS Geolocation failed/denied:", err?.message);
+        openReportModalAtCoords(null, null, '', '', '', '', null, null);
+      },
+      GEOLOCATION_OPTIONS
     );
   } else {
-    openReportModalAtCoords(18.5204, 73.8567);
+    openReportModalAtCoords(null, null, '', '', '', '', null, null);
   }
 }
 
 function openReportModalWithDetails(title, category) {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, title, category),
-      () => openReportModalAtCoords(18.5204, 73.8567, title, category)
+      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, title, category, '', '', 'gps', pos.coords.accuracy || null),
+      (err) => {
+        console.warn("GPS Geolocation failed/denied:", err?.message);
+        openReportModalAtCoords(null, null, title, category, '', '', null, null);
+      },
+      GEOLOCATION_OPTIONS
     );
   } else {
-    openReportModalAtCoords(18.5204, 73.8567, title, category);
+    openReportModalAtCoords(null, null, title, category, '', '', null, null);
   }
 }
 
-function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '') {
+function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '', locationSource = null, locationAccuracy = null) {
   defaultTitle = defaultTitle || '';
   defaultCategory = defaultCategory || '';
   defaultLocation = defaultLocation || '';
   defaultDesc = defaultDesc || '';
+
+  let currentLat = isValidCoordinate(lat, lng) ? lat : null;
+  let currentLng = isValidCoordinate(lat, lng) ? lng : null;
+  let currentLocationSource = currentLat !== null ? (locationSource || 'manual_pin') : null;
+  let currentLocationAccuracy = currentLocationSource === 'gps' ? (locationAccuracy || null) : null;
 
   // Prevent duplicate modals from spawning
   if (document.getElementById('report-issue-modal')) return;
@@ -3463,7 +3489,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   modal.id = 'report-issue-modal';
   modal.className = 'fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4';
   modal.innerHTML = `
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
       <button class="absolute top-4 right-4 text-outline" onclick="this.closest('.fixed').remove()">✕</button>
       <h3 class="text-xl font-bold text-primary mb-4">${dict.report_urban_issue}</h3>
       <form id="new-complaint-form" class="flex flex-col gap-4">
@@ -3481,6 +3507,24 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
             <option value="Road Damage" ${defaultCategory === 'Road Damage' ? 'selected' : ''}>${dict.road_damage}</option>
           </select>
         </div>
+
+        <!-- Location Status & Manual Pin Selector -->
+        <div class="flex flex-col gap-2">
+          <label class="block text-label-sm font-semibold text-on-surface-variant">Complaint Location Pin</label>
+          <div id="location-badge-box"></div>
+          <button type="button" id="toggle-modal-map-btn" class="w-full py-2 px-3 bg-surface-container-high hover:bg-surface-container-highest text-on-surface font-semibold text-xs rounded-xl flex items-center justify-center gap-2 border border-border-subtle transition-all">
+            <span class="material-symbols-outlined text-sm">map</span>
+            <span id="modal-map-btn-text">Select / Adjust Pin on Map</span>
+          </button>
+          <div id="modal-map-picker-wrapper" class="hidden w-full h-48 rounded-xl border border-border-subtle overflow-hidden relative">
+            <div id="modal-map-picker" class="w-full h-full"></div>
+            <div class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-lg z-[1000] flex items-center justify-between pointer-events-none">
+              <span>Click/Tap map to set pin</span>
+              <span class="font-bold">Manual Pin</span>
+            </div>
+          </div>
+        </div>
+
         <div>
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">${dict.location}</label>
           <input required id="form-location" value="${defaultLocation}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Street name, Landmark, Area">
@@ -3496,12 +3540,108 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   document.body.appendChild(modal);
 
   const form = modal.querySelector('form');
+  const badgeBox = modal.querySelector('#location-badge-box');
+  const toggleMapBtn = modal.querySelector('#toggle-modal-map-btn');
+  const mapWrapper = modal.querySelector('#modal-map-picker-wrapper');
+
+  const updateBadge = () => {
+    if (!badgeBox) return;
+    const valid = isValidCoordinate(currentLat, currentLng);
+    if (valid && currentLocationSource === 'gps') {
+      const accStr = currentLocationAccuracy ? ` (±${Math.round(currentLocationAccuracy)}m)` : '';
+      badgeBox.innerHTML = `
+        <div class="p-3 rounded-xl bg-success/10 border border-success/30 text-success text-xs font-semibold flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">my_location</span>
+            <span>GPS location obtained${accStr}</span>
+          </div>
+          <span class="text-[10px] opacity-80">${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}</span>
+        </div>
+      `;
+    } else if (valid && currentLocationSource === 'manual_pin') {
+      badgeBox.innerHTML = `
+        <div class="p-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-semibold flex items-center justify-between">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-sm">push_pin</span>
+            <span>Manual location selected</span>
+          </div>
+          <span class="text-[10px] opacity-80">${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}</span>
+        </div>
+      `;
+    } else {
+      badgeBox.innerHTML = `
+        <div class="p-3 rounded-xl bg-warning/15 border border-warning/40 text-warning text-xs font-semibold flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm">location_off</span>
+          <span>Location required — select a point on the map.</span>
+        </div>
+      `;
+    }
+  };
+
+  updateBadge();
+
+  let miniMap = null;
+  let miniMarker = null;
+
+  toggleMapBtn.addEventListener('click', () => {
+    const isHidden = mapWrapper.classList.contains('hidden');
+    if (isHidden) {
+      mapWrapper.classList.remove('hidden');
+      if (!miniMap && typeof L !== 'undefined') {
+        const centerLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
+        const centerLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
+        miniMap = L.map('modal-map-picker', { zoomControl: false }).setView([centerLat, centerLng], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          maxZoom: 20
+        }).addTo(miniMap);
+
+        if (isValidCoordinate(currentLat, currentLng)) {
+          miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
+        }
+
+        const handleMapSelection = (latVal, lngVal) => {
+          currentLat = latVal;
+          currentLng = lngVal;
+          currentLocationSource = 'manual_pin';
+          currentLocationAccuracy = null;
+          if (!miniMarker) {
+            miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
+          } else {
+            miniMarker.setLatLng([currentLat, currentLng]);
+          }
+          updateBadge();
+        };
+
+        miniMap.on('click', (e) => {
+          handleMapSelection(e.latlng.lat, e.latlng.lng);
+        });
+
+        if (miniMarker) {
+          miniMarker.on('dragend', (e) => {
+            const pos = e.target.getLatLng();
+            handleMapSelection(pos.lat, pos.lng);
+          });
+        }
+      }
+      setTimeout(() => {
+        if (miniMap) miniMap.invalidateSize();
+      }, 100);
+    } else {
+      mapWrapper.classList.add('hidden');
+    }
+  });
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const title = form.querySelector('#form-title').value.trim();
     const category = form.querySelector('#form-category').value.trim();
     const location = form.querySelector('#form-location').value.trim();
     const description = form.querySelector('#form-desc').value.trim();
+
+    if (!isValidCoordinate(currentLat, currentLng) || !currentLocationSource) {
+      alert("Location is required. Please obtain GPS location or select a location on the map.");
+      return;
+    }
 
     if (!location) {
       alert("Please enter the correct address manually.");
@@ -3513,7 +3653,6 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
     const reported_by_email = localUser.email || 'N/A';
     const reported_by_phone = localUser.phone || 'N/A';
 
-    const isDefaultCoords = (lat === 18.5204 && lng === 73.8567);
     const newIssue = {
       title,
       category,
@@ -3523,8 +3662,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       progress: 10,
       criticality: "Moderate",
       description,
-      lat: isDefaultCoords ? lat + (Math.random() - 0.5) * 0.01 : lat,
-      lng: isDefaultCoords ? lng + (Math.random() - 0.5) * 0.01 : lng,
+      location_source: currentLocationSource,
+      location_accuracy_meters: currentLocationAccuracy ? Math.round(currentLocationAccuracy) : null,
+      lat: currentLat,
+      lng: currentLng,
       reported_by: reported_by,
       reported_by_email: reported_by_email,
       reported_by_phone: reported_by_phone
