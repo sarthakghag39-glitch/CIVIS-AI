@@ -108,9 +108,9 @@
       return emptyResult('same_issue_or_invalid');
     }
 
-    // A. Mandatory Canonical Category Match
-    const catA = (issueA.ai_analyzed && issueA.ai_category) ? issueA.ai_category : issueA.category;
-    const catB = (issueB.ai_analyzed && issueB.ai_category) ? issueB.ai_category : issueB.category;
+    // A. Mandatory Canonical Category Match (User-selected category is authoritative for incident clustering)
+    const catA = issueA.category;
+    const catB = issueB.category;
     const normA = normalizeCategory(catA);
     const normB = normalizeCategory(catB);
 

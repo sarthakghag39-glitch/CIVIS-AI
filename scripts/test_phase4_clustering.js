@@ -181,6 +181,86 @@ const tagsB = ['pothole', 'asphalt_damage', 'standing_water'];
 const tagSim = jaccardSimilarity(tagsA, tagsB);
 assertEqual(tagSim, 0.5, 'Test 7: Jaccard tag similarity correctly calculates 2/4 = 0.5');
 
+// Test 8: User Category Authority (Same user category + AI category = 'Other')
+const issue8A = {
+  id: 801,
+  category: 'Streetlights',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: true,
+  ai_category: 'Other',
+  ai_is_valid_civic_issue: false,
+  created_at: '2026-09-19T10:00:00Z',
+  description: 'Streetlight is flickering'
+};
+const issue8B = {
+  id: 802,
+  category: 'Streetlights',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: false,
+  created_at: '2026-09-19T10:05:00Z',
+  description: 'Light is blinking'
+};
+
+const res8 = evaluateMatch(issue8A, issue8B);
+assertEqual(res8.matched, true, 'Test 8: User category authority matches when ai_category is Other');
+
+// Test 9: Same user category + different AI categories
+const issue9A = {
+  id: 901,
+  category: 'Garbage',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: true,
+  ai_category: 'Sanitation',
+  created_at: '2026-09-19T10:00:00Z'
+};
+const issue9B = {
+  id: 902,
+  category: 'Garbage',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: true,
+  ai_category: 'Other',
+  created_at: '2026-09-19T10:05:00Z'
+};
+
+const res9 = evaluateMatch(issue9A, issue9B);
+assertEqual(res9.matched, true, 'Test 9: Same user category matches regardless of different AI categories');
+
+// Test 10: Production Case - Issue 26 vs Issue 27 Exact Match
+const prodIssue26 = {
+  id: 26,
+  category: 'Streetlights',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: false,
+  created_at: '2026-09-19T14:48:58.324615+00:00',
+  description: 'Light is flickering'
+};
+const prodIssue27 = {
+  id: 27,
+  category: 'Streetlights',
+  lat: 18.5442,
+  lng: 73.8798,
+  location_source: 'gps',
+  ai_analyzed: true,
+  ai_category: 'Other',
+  ai_is_valid_civic_issue: false,
+  created_at: '2026-09-19T14:53:08.357303+00:00',
+  description: 'light is blinking'
+};
+
+const res10 = evaluateMatch(prodIssue27, prodIssue26);
+assertEqual(res10.matched, true, 'Test 10: Production Issue 27 vs Issue 26 matches successfully');
+assertTruthy(res10.matchScore >= 80, 'Test 10: Match score >= 80 for production Issue 26 & 27 pair');
+
 console.log(`\nTEST RESULTS: ${passed}/${total} assertions passed.`);
 if (passed !== total) {
   process.exit(1);
