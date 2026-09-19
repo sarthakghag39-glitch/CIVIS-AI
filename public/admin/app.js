@@ -2320,9 +2320,9 @@ async function renderAdminIssues() {
           <div class="flex items-center gap-4">
             ${iconOrThumbnail}
             <div>
-              <p class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5">
+              <p class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5 flex-wrap">
                 ${issue.title}
-                ${resolvedUrl ? `<span class="material-symbols-outlined text-sm text-primary cursor-pointer" onclick="openImageLightbox('${resolvedUrl}')" title="Photo attached">photo</span>` : (issue.image_url ? `<span class="text-[10px] text-outline font-normal italic">(Photo restricted)</span>` : '')}
+                ${issue.ai_analyzed ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded-md" title="AI Analyzed"><span class="material-symbols-outlined text-[12px]">psychology</span> AI Analyzed</span>` : ''}
               </p>
               <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
             </div>
@@ -2349,7 +2349,9 @@ async function renderAdminIssues() {
         </td>
         <td class="px-6 py-4">
           <div class="flex items-center gap-2">
-            ${resolvedUrl ? `<button onclick="openImageLightbox('${resolvedUrl}')" class="px-2.5 py-1 bg-surface-container-high text-on-surface text-xs font-semibold rounded-lg hover:bg-surface-variant transition-all cursor-pointer flex items-center gap-1" title="View attached photo"><span class="material-symbols-outlined text-sm text-primary">photo</span> View</button>` : ''}
+            <button onclick="openAdminComplaintDetailModal(${issue.id})" class="px-2.5 py-1 bg-primary/10 text-primary text-xs font-semibold rounded-lg hover:bg-primary/20 transition-all cursor-pointer flex items-center gap-1" title="View details & AI analysis">
+              <span class="material-symbols-outlined text-sm">visibility</span> View
+            </button>
             <button onclick="updateIssueStatus(${issue.id}, 'In Progress', 50)" class="px-3 py-1 bg-primary text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Assign</button>
             <button onclick="updateIssueStatus(${issue.id}, 'Resolved', 100)" class="px-3 py-1 bg-success text-white text-xs font-semibold rounded-lg hover:brightness-110 shadow-sm transition-all active:scale-95 cursor-pointer">Resolve</button>
           </div>
@@ -2423,6 +2425,218 @@ window.updateIssueStatus = async function(id, status, progress) {
     await renderAdminIssues();
   }
 }
+
+// --- Admin Complaint Details Modal Implementation ---
+async function openAdminComplaintDetailModal(issueId) {
+  const existingModal = document.getElementById('admin-issue-detail-modal');
+  if (existingModal) existingModal.remove();
+
+  let issue = (cachedIssues || []).find(i => String(i.id) === String(issueId) || i.complaint_id === String(issueId));
+  if (!issue) {
+    const all = await getIssues();
+    issue = (all || []).find(i => String(i.id) === String(issueId) || i.complaint_id === String(issueId));
+  }
+
+  if (!issue) {
+    alert("Complaint details could not be found.");
+    return;
+  }
+
+  const resolvedUrl = issue.image_url ? await getImageUrlForIssue(issue.image_url) : null;
+  const tags = Array.isArray(issue.ai_detected_tags) ? issue.ai_detected_tags : [];
+  const analyzedAt = issue.ai_analyzed_at ? new Date(issue.ai_analyzed_at).toLocaleString() : 'N/A';
+  const confPercent = typeof issue.ai_confidence === 'number' ? Math.round(issue.ai_confidence * 100) : null;
+  const complaintDisplayId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
+
+  let markerColor = '#2563EB';
+  if (issue.criticality === 'Critical') markerColor = '#EF4444';
+  else if (issue.criticality === 'Moderate') markerColor = '#F59E0B';
+  else if (issue.status === 'Resolved') markerColor = '#22C55E';
+
+  const modal = document.createElement('div');
+  modal.id = 'admin-issue-detail-modal';
+  modal.className = 'fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto';
+  
+  modal.innerHTML = `
+    <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-2xl max-w-2xl w-full p-6 text-on-surface my-8 relative flex flex-col gap-5 max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between border-b border-border-subtle pb-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-mono font-bold px-2.5 py-1 bg-surface-container-high text-on-surface rounded-lg">${complaintDisplayId}</span>
+            <span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">
+              ${issue.criticality || 'Normal Priority'}
+            </span>
+          </div>
+          <h3 class="font-headline-md text-xl font-bold text-on-surface mt-2">${issue.title}</h3>
+        </div>
+        <button id="close-admin-detail-modal" type="button" class="w-8 h-8 rounded-full bg-surface-container-high hover:bg-surface-variant flex items-center justify-center text-on-surface-variant transition-colors">
+          <span class="material-symbols-outlined text-lg">close</span>
+        </button>
+      </div>
+
+      <!-- Complaint Details Section -->
+      <div class="space-y-4">
+        <!-- Photo Container -->
+        ${resolvedUrl ? `
+          <div class="w-full h-56 rounded-xl overflow-hidden bg-black/10 border border-border-subtle relative cursor-pointer group" onclick="openImageLightbox('${resolvedUrl}')" title="Click to view full photo">
+            <img src="${resolvedUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Complaint Photo" onerror="this.parentElement.innerHTML='<div class=\\'p-4 text-center text-outline text-xs\\'>Failed to load photo</div>'">
+            <div class="absolute bottom-3 right-3 bg-black/75 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 backdrop-blur-sm">
+              <span class="material-symbols-outlined text-sm">fullscreen</span> View Full Resolution
+            </div>
+          </div>
+        ` : (issue.image_url ? `
+          <div class="w-full py-4 px-4 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-outline gap-2 text-xs">
+            <span class="material-symbols-outlined text-base">no_photography</span> Photo attached in private storage
+          </div>
+        ` : `
+          <div class="w-full py-4 px-4 rounded-xl bg-surface-container-low border border-border-subtle flex items-center justify-center text-outline gap-2 text-xs">
+            <span class="material-symbols-outlined text-base">no_photography</span> No complaint photo attached
+          </div>
+        `)}
+
+        <!-- Description Box -->
+        <div class="p-4 bg-surface-container-low rounded-xl border border-border-subtle">
+          <span class="text-xs font-bold text-outline uppercase tracking-wider block mb-1.5">Description</span>
+          <p class="text-sm font-medium text-on-surface leading-relaxed whitespace-pre-wrap">${issue.description || 'No description provided.'}</p>
+        </div>
+
+        <!-- Metadata Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
+            <span class="text-outline font-medium block">Category</span>
+            <span class="font-bold text-on-surface text-sm mt-0.5 block">${issue.category}</span>
+          </div>
+          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
+            <span class="text-outline font-medium block">Location</span>
+            <span class="font-semibold text-on-surface text-xs mt-0.5 block">${issue.location}</span>
+          </div>
+          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
+            <span class="text-outline font-medium block">Reported Date</span>
+            <span class="font-semibold text-on-surface text-xs mt-0.5 block">${issue.date || 'N/A'}</span>
+          </div>
+          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
+            <span class="text-outline font-medium block">Status & Progress</span>
+            <span class="font-bold text-xs mt-0.5 flex items-center gap-1.5" style="color: ${markerColor}">
+              <span class="w-2 h-2 rounded-full" style="background-color: ${markerColor}"></span>
+              ${issue.status} (${issue.progress || 0}%)
+            </span>
+          </div>
+          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle sm:col-span-2">
+            <span class="text-outline font-medium block">Reported By</span>
+            <div class="font-bold text-on-surface text-xs mt-0.5">${issue.reported_by || 'Anonymous'}</div>
+            <div class="text-[11px] text-outline mt-0.5">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Analysis Section -->
+      ${issue.ai_analyzed ? `
+        <div class="p-4 bg-primary-container/10 border border-primary/20 rounded-xl flex flex-col gap-3 text-xs">
+          <div class="flex items-center justify-between border-b border-primary/10 pb-2">
+            <span class="flex items-center gap-1.5 font-bold text-sm text-primary">
+              <span class="material-symbols-outlined text-lg">psychology</span>
+              AI Analysis
+            </span>
+            <span class="text-[11px] font-mono px-2.5 py-0.5 bg-primary/10 text-primary rounded-md font-semibold">
+              AI Model: ${issue.ai_model_version || 'qwen/qwen3.6-27b'}
+            </span>
+          </div>
+
+          ${issue.ai_is_valid_civic_issue === false ? `
+            <div class="p-2.5 rounded-lg bg-error-container text-error text-[11px] font-semibold flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">warning</span>
+              <span>AI Warning: Uploaded image/content may not represent a valid public civic issue.</span>
+            </div>
+          ` : ''}
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+            <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
+              <span class="text-outline font-medium block text-[10px]">AI Category</span>
+              <span class="font-bold text-on-surface text-xs mt-0.5 block">${issue.ai_category || issue.category}</span>
+            </div>
+            <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
+              <span class="text-outline font-medium block text-[10px]">AI Severity</span>
+              <span class="font-bold text-on-surface text-xs mt-0.5 block">${issue.ai_severity || 'Moderate'}${issue.ai_severity_score ? ` (${issue.ai_severity_score}/100)` : ''}</span>
+            </div>
+            <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
+              <span class="text-outline font-medium block text-[10px]">AI Confidence</span>
+              <span class="font-bold text-success text-xs mt-0.5 block">${confPercent !== null ? confPercent + '%' : 'N/A'}</span>
+            </div>
+            <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
+              <span class="text-outline font-medium block text-[10px]">Analysis Time</span>
+              <span class="font-mono text-on-surface-variant text-[10px] mt-0.5 block">${analyzedAt}</span>
+            </div>
+          </div>
+
+          ${tags.length ? `
+            <div>
+              <span class="text-outline font-semibold block text-[11px] mb-1">Detected Tags</span>
+              <div class="flex flex-wrap gap-1">
+                ${tags.map(tag => `<span class="px-2.5 py-0.5 bg-surface-container-high text-on-surface rounded-full text-[11px] font-medium">${tag}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <div>
+            <span class="text-outline font-semibold block text-[11px] mb-0.5">Reasoning Summary</span>
+            <p class="text-on-surface text-xs leading-relaxed opacity-90">${issue.ai_reasoning_summary || 'Visual and textual analysis indicates a civic infrastructure concern.'}</p>
+          </div>
+
+          <div>
+            <span class="text-primary font-semibold block text-[11px] mb-0.5">Recommended Action</span>
+            <p class="text-primary font-medium text-xs leading-relaxed">${issue.ai_recommended_action || 'Inspect location and dispatch maintenance team.'}</p>
+          </div>
+        </div>
+      ` : `
+        <div class="p-4 bg-surface-container-low border border-border-subtle rounded-xl flex items-center justify-center text-center py-5 text-outline text-xs gap-2">
+          <span class="material-symbols-outlined text-base">info</span>
+          <span>AI analysis was not available for this complaint.</span>
+        </div>
+      `}
+
+      <!-- Footer Action Buttons -->
+      <div class="flex items-center justify-end gap-3 border-t border-border-subtle pt-4 mt-2">
+        <button id="modal-assign-btn" type="button" class="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:brightness-110 transition-all cursor-pointer">
+          Assign (In Progress)
+        </button>
+        <button id="modal-resolve-btn" type="button" class="px-4 py-2 bg-success text-white text-xs font-semibold rounded-xl hover:brightness-110 transition-all cursor-pointer">
+          Resolve Complaint
+        </button>
+      </div>
+
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const closeBtn = modal.querySelector('#close-admin-detail-modal');
+  if (closeBtn) closeBtn.addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+
+  const assignBtn = modal.querySelector('#modal-assign-btn');
+  if (assignBtn) {
+    assignBtn.addEventListener('click', async () => {
+      await updateIssueStatus(issue.id, 'In Progress', 50);
+      modal.remove();
+      openAdminComplaintDetailModal(issue.id);
+    });
+  }
+
+  const resolveBtn = modal.querySelector('#modal-resolve-btn');
+  if (resolveBtn) {
+    resolveBtn.addEventListener('click', async () => {
+      await updateIssueStatus(issue.id, 'Resolved', 100);
+      modal.remove();
+      openAdminComplaintDetailModal(issue.id);
+    });
+  }
+}
+
+window.openAdminComplaintDetailModal = openAdminComplaintDetailModal;
 
 // --- 8. Profile Page Handler ---
 async function initProfilePage() {
