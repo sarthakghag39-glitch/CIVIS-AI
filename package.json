@@ -8,6 +8,7 @@
     "start": "serve public/user -l 3000"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.48.1",
     "groq-sdk": "^1.6.0",
     "marked": "^18.0.5",
     "puppeteer-core": "^25.3.0",
