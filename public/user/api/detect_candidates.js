@@ -25,14 +25,24 @@ if (!evaluateMatch) {
 }
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dppdyknjrryoljzzdulj.supabase.co';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'sb_publishable_DoV52AE_kw3GIMhY50tXTA_vUAgbAmm';
-const supabaseServer = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
+
+  // 1. Verify SUPABASE_SERVICE_ROLE_KEY configuration (Do NOT fall back to public/anon key)
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing');
+    return res.status(500).json({
+      success: false,
+      error: 'Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing'
+    });
+  }
+
+  const supabaseServer = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
     let body = req.body || {};
@@ -47,7 +57,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid or missing issue_id.' });
     }
 
-    // 1. Fetch inserted issue record securely from database
+    // 2. Fetch inserted issue record securely from database
     const { data: insertedIssue, error: fetchErr } = await supabaseServer
       .from('issues')
       .select('*')
@@ -58,7 +68,7 @@ module.exports = async (req, res) => {
       return res.status(440).json({ error: 'Issue record not found.' });
     }
 
-    // 2. Retrieve recent candidate comparison issues
+    // 3. Retrieve recent candidate comparison issues
     const { data: existingIssues, error: matchErr } = await supabaseServer
       .from('issues')
       .select('*')
@@ -70,7 +80,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({ success: true, candidate_count: 0, candidates: [] });
     }
 
-    // 3. Deterministic candidate evaluation using unchanged clustering_engine.js
+    // 4. Deterministic candidate evaluation using unchanged clustering_engine.js
     const generatedCandidates = [];
 
     for (const existingIssue of existingIssues) {
@@ -99,9 +109,21 @@ module.exports = async (req, res) => {
           })
           .select();
 
-        if (!upsertErr) {
-          generatedCandidates.push(candidateObj);
+        if (upsertErr) {
+          console.error('Supabase incident_candidates upsert error:', {
+            message: upsertErr.message,
+            code: upsertErr.code,
+            details: upsertErr.details,
+            hint: upsertErr.hint
+          });
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to save incident candidate',
+            code: upsertErr.code || 'UNKNOWN_ERROR'
+          });
         }
+
+        generatedCandidates.push(candidateObj);
       }
     }
 
