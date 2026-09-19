@@ -210,7 +210,7 @@ function validateAiAnalysisData(analysis) {
     ai_recommended_action: recommendedAction,
     ai_reasoning_summary: reasoningSummary,
     ai_is_valid_civic_issue: isValidCivicIssue,
-    ai_model_version: 'gemini-3.8-flash',
+    ai_model_version: 'qwen/qwen3.6-27b',
     ai_analyzed_at: new Date().toISOString()
   };
 }
@@ -1481,8 +1481,8 @@ async function initAiAnalysisPage() {
   loader.className = 'absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-20';
   loader.innerHTML = `
     <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4">psychology</span>
-    <p class="font-headline-md text-[18px] font-bold">Gemini Multimodal AI Running</p>
-    <p class="text-xs opacity-60 mt-1">Analyzing image pixels & civic context with Gemini Model...</p>
+    <p class="font-headline-md text-[18px] font-bold">Multimodal AI Analysis Running</p>
+    <p class="text-xs opacity-60 mt-1">Analyzing image pixels & civic context with AI Model...</p>
   `;
   if (canvasImg) canvasImg.appendChild(loader);
 
@@ -1523,7 +1523,7 @@ async function initAiAnalysisPage() {
             detected_tags: aiResult.detected_tags || [],
             rawAiResult: aiResult
           };
-          console.log("Real Gemini AI Multimodal Result:", aiResult);
+          console.log("Real AI Multimodal Result:", aiResult);
         } else {
           console.warn("AI service notice:", aiResult?.error || "AI service unavailable, using fallback.");
         }
@@ -2587,10 +2587,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         <div id="ai-modal-analysis-section" class="flex flex-col gap-2 pt-1 border-t border-border-subtle">
           <button type="button" id="trigger-ai-modal-btn" class="w-full py-2.5 bg-gradient-to-r from-primary to-accent-gradient-end text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm hover:opacity-95 transition-all">
             <span class="material-symbols-outlined text-sm">psychology</span>
-            <span>Analyze Issue with Gemini AI</span>
+            <span>Analyze Issue with AI</span>
           </button>
           <div id="ai-modal-result" class="hidden p-3.5 rounded-xl bg-surface-container-low border border-primary/20 flex flex-col gap-2 text-xs">
-            <!-- Dynamic Gemini Response Rendered Here -->
+            <!-- Dynamic AI Response Rendered Here -->
           </div>
         </div>
 
@@ -2616,7 +2616,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       const currentCategory = form.querySelector('#form-category').value;
 
       if (!capturedImg && !descText) {
-        alert("Please attach a complaint photo or write a description first to run Gemini AI analysis.");
+        alert("Please attach a complaint photo or write a description first to run AI analysis.");
         return;
       }
 
@@ -2733,7 +2733,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         triggerAiBtn.disabled = false;
         triggerAiBtn.innerHTML = `
           <span class="material-symbols-outlined text-sm">psychology</span>
-          <span>Re-analyze with Gemini AI</span>
+          <span>Re-analyze with AI</span>
         `;
       }
     });

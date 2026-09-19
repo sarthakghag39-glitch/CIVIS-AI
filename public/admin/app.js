@@ -1408,8 +1408,8 @@ async function initAiAnalysisPage() {
   loader.className = 'absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white z-20';
   loader.innerHTML = `
     <span class="material-symbols-outlined animate-spin text-[48px] text-primary mb-4">psychology</span>
-    <p class="font-headline-md text-[18px] font-bold">Gemini Multimodal AI Running</p>
-    <p class="text-xs opacity-60 mt-1">Analyzing image pixels & civic context with Gemini Model...</p>
+    <p class="font-headline-md text-[18px] font-bold">Multimodal AI Analysis Running</p>
+    <p class="text-xs opacity-60 mt-1">Analyzing image pixels & civic context with AI Model...</p>
   `;
   if (canvasImg) canvasImg.appendChild(loader);
 
@@ -1449,7 +1449,7 @@ async function initAiAnalysisPage() {
             is_valid_civic_issue: typeof aiResult.is_valid_civic_issue === 'boolean' ? aiResult.is_valid_civic_issue : true,
             detected_tags: aiResult.detected_tags || []
           };
-          console.log("Real Gemini AI Multimodal Result:", aiResult);
+          console.log("Real AI Multimodal Result:", aiResult);
         } else {
           console.warn("AI service notice:", aiResult?.error || "AI service unavailable, using fallback.");
         }
@@ -1922,7 +1922,7 @@ async function renderComplaintsList() {
                   <span class="material-symbols-outlined text-sm">psychology</span>
                   AI Analysis
                 </span>
-                <span class="text-[10px] font-mono px-2 py-0.5 bg-primary/10 text-primary rounded-md font-semibold">${issue.ai_model_version || 'gemini-3.8-flash'}</span>
+                <span class="text-[10px] font-mono px-2 py-0.5 bg-primary/10 text-primary rounded-md font-semibold">${issue.ai_model_version || 'qwen/qwen3.6-27b'}</span>
               </div>
 
               <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] pt-1">
