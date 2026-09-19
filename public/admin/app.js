@@ -2048,6 +2048,7 @@ let adminSearchQuery = '';
 let activeFilterPriority = 'all'; // 'all', 'Critical', 'Medium', 'Low'
 let activeFilterStatus = 'all';   // 'all', 'Pending', 'Assigned', 'Resolved'
 let activeFilterCategory = 'all'; // 'all', 'Road Damage', 'Garbage', 'Streetlights', 'Water Leakage'
+let activeFilterDepartment = 'all'; // 'all', 'Road Maintenance & PWD', 'Solid Waste & Sanitation', etc.
 
 function initAdminDashboard() {
   const issuesList = document.querySelector('table tbody, main .divide-y');
@@ -2087,7 +2088,7 @@ async function handleExportCSV() {
     return;
   }
   
-  const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Priority', 'Location', 'Date', 'Status', 'Progress', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
+  const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Assigned Department', 'Priority', 'Location', 'Date', 'Status', 'Progress', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
   const csvRows = [headers.join(',')];
   
   issues.forEach(issue => {
@@ -2097,6 +2098,7 @@ async function handleExportCSV() {
       issue.id,
       `"${(issue.title || '').replace(/"/g, '""')}"`,
       `"${(issue.category || '').replace(/"/g, '""')}"`,
+      `"${(issue.assigned_department || 'General Municipal Administration').replace(/"/g, '""')}"`,
       `"${(issue.criticality || '').replace(/"/g, '""')}"`,
       `"${(issue.location || '').replace(/"/g, '""')}"`,
       `"${(issue.date || '').replace(/"/g, '""')}"`,
@@ -2138,18 +2140,31 @@ function openAdminFilterModal() {
         </div>
         <div>
           <h3 class="font-bold text-lg text-slate-900">Filter Complaints</h3>
-          <p class="text-xs text-slate-500">Refine table records by priority, status, or category</p>
+          <p class="text-xs text-slate-500">Refine table records by priority, status, department, or category</p>
         </div>
       </div>
 
       <div class="space-y-4 mb-6">
         <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Assigned Department</label>
+          <select id="filter-department-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="all" ${activeFilterDepartment === 'all' ? 'selected' : ''}>All Departments</option>
+            <option value="Road Maintenance & PWD" ${activeFilterDepartment === 'Road Maintenance & PWD' ? 'selected' : ''}>Road Maintenance & PWD</option>
+            <option value="Solid Waste & Sanitation" ${activeFilterDepartment === 'Solid Waste & Sanitation' ? 'selected' : ''}>Solid Waste & Sanitation</option>
+            <option value="Electrical & Street Lighting" ${activeFilterDepartment === 'Electrical & Street Lighting' ? 'selected' : ''}>Electrical & Street Lighting</option>
+            <option value="Water Supply & Drainage" ${activeFilterDepartment === 'Water Supply & Drainage' ? 'selected' : ''}>Water Supply & Drainage</option>
+            <option value="General Municipal Administration" ${activeFilterDepartment === 'General Municipal Administration' ? 'selected' : ''}>General Municipal Administration</option>
+          </select>
+        </div>
+
+        <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Priority Level</label>
           <select id="filter-priority-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all" ${activeFilterPriority === 'all' ? 'selected' : ''}>All Priorities</option>
             <option value="Critical" ${activeFilterPriority === 'Critical' ? 'selected' : ''}>Critical</option>
-            <option value="Medium" ${activeFilterPriority === 'Medium' ? 'selected' : ''}>Medium</option>
-            <option value="Low" ${activeFilterPriority === 'Low' ? 'selected' : ''}>Low</option>
+            <option value="High" ${activeFilterPriority === 'High' ? 'selected' : ''}>High</option>
+            <option value="Moderate" ${activeFilterPriority === 'Moderate' || activeFilterPriority === 'Medium' ? 'selected' : ''}>Moderate / Medium</option>
+            <option value="Normal" ${activeFilterPriority === 'Normal' || activeFilterPriority === 'Low' ? 'selected' : ''}>Normal / Low</option>
           </select>
         </div>
 
@@ -2188,6 +2203,7 @@ function openAdminFilterModal() {
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
 
   document.getElementById('reset-filter-btn').addEventListener('click', () => {
+    activeFilterDepartment = 'all';
     activeFilterPriority = 'all';
     activeFilterStatus = 'all';
     activeFilterCategory = 'all';
@@ -2197,6 +2213,7 @@ function openAdminFilterModal() {
   });
 
   document.getElementById('apply-filter-btn').addEventListener('click', () => {
+    activeFilterDepartment = document.getElementById('filter-department-select').value;
     activeFilterPriority = document.getElementById('filter-priority-select').value;
     activeFilterStatus = document.getElementById('filter-status-select').value;
     activeFilterCategory = document.getElementById('filter-category-select').value;
@@ -2325,6 +2342,10 @@ async function renderAdminIssues() {
                 ${issue.ai_analyzed ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded-md" title="AI Analyzed"><span class="material-symbols-outlined text-[12px]">psychology</span> AI Analyzed</span>` : ''}
               </p>
               <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
+              <p class="text-[11px] font-semibold text-primary/90 mt-0.5 flex items-center gap-1">
+                <span class="material-symbols-outlined text-[13px]">account_balance</span>
+                Department: ${issue.assigned_department || 'General Municipal Administration'}
+              </p>
             </div>
           </div>
         </td>
@@ -2478,6 +2499,45 @@ async function openAdminComplaintDetailModal(issueId) {
 
       <!-- Complaint Details Section -->
       <div class="space-y-4">
+        <!-- Department Routing Card -->
+        <div class="p-4 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-2 text-xs">
+          <div class="flex items-center justify-between border-b border-border-subtle pb-2">
+            <span class="font-bold text-on-surface flex items-center gap-1.5 text-xs">
+              <span class="material-symbols-outlined text-sm text-primary">account_balance</span>
+              Department Routing
+            </span>
+            ${issue.auto_routed === false ? `
+              <span class="text-[10px] font-semibold px-2 py-0.5 bg-warning/15 text-warning rounded-md flex items-center gap-1" title="Department manually changed by Admin">
+                <span class="material-symbols-outlined text-[12px]">edit</span> Manually assigned
+              </span>
+            ` : `
+              <span class="text-[10px] font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded-md flex items-center gap-1" title="Department assigned automatically via routing engine">
+                <span class="material-symbols-outlined text-[12px]">auto_awesome</span> Automatically routed
+              </span>
+            `}
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
+            <div>
+              <span class="text-outline text-[11px] font-medium block">Current Department</span>
+              <span class="font-bold text-primary text-sm">${issue.assigned_department || 'General Municipal Administration'}</span>
+            </div>
+
+            <div class="flex items-center gap-1.5 w-full sm:w-auto">
+              <select id="reassign-dept-select" class="text-xs bg-card-bg border border-border-subtle rounded-lg px-2.5 py-1.5 font-semibold text-on-surface outline-none focus:ring-1 focus:ring-primary">
+                <option value="Road Maintenance & PWD" ${issue.assigned_department === 'Road Maintenance & PWD' ? 'selected' : ''}>Road Maintenance & PWD</option>
+                <option value="Solid Waste & Sanitation" ${issue.assigned_department === 'Solid Waste & Sanitation' ? 'selected' : ''}>Solid Waste & Sanitation</option>
+                <option value="Electrical & Street Lighting" ${issue.assigned_department === 'Electrical & Street Lighting' ? 'selected' : ''}>Electrical & Street Lighting</option>
+                <option value="Water Supply & Drainage" ${issue.assigned_department === 'Water Supply & Drainage' ? 'selected' : ''}>Water Supply & Drainage</option>
+                <option value="General Municipal Administration" ${issue.assigned_department === 'General Municipal Administration' ? 'selected' : ''}>General Municipal Administration</option>
+              </select>
+              <button id="save-reassign-dept-btn" type="button" class="px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-lg hover:brightness-110 transition-all cursor-pointer flex items-center gap-1 shrink-0">
+                <span class="material-symbols-outlined text-sm">save</span> Reassign
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Photo Container -->
         ${resolvedUrl ? `
           <div class="w-full h-56 rounded-xl overflow-hidden bg-black/10 border border-border-subtle relative cursor-pointer group" onclick="openImageLightbox('${resolvedUrl}')" title="Click to view full photo">
@@ -2616,6 +2676,32 @@ async function openAdminComplaintDetailModal(issueId) {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
+
+  const saveDeptBtn = modal.querySelector('#save-reassign-dept-btn');
+  if (saveDeptBtn) {
+    saveDeptBtn.addEventListener('click', async () => {
+      const newDept = modal.querySelector('#reassign-dept-select').value;
+      saveDeptBtn.disabled = true;
+      saveDeptBtn.innerText = 'Saving...';
+
+      const { error } = await supabaseClient
+        .from('issues')
+        .update({ assigned_department: newDept, auto_routed: false, routed_at: new Date().toISOString() })
+        .eq('id', issue.id);
+
+      if (error) {
+        alert(`Failed to reassign department: ${error.message}`);
+        saveDeptBtn.disabled = false;
+        saveDeptBtn.innerText = 'Reassign';
+      } else {
+        issue.assigned_department = newDept;
+        issue.auto_routed = false;
+        modal.remove();
+        await renderAdminIssues();
+        openAdminComplaintDetailModal(issue.id);
+      }
+    });
+  }
 
   const assignBtn = modal.querySelector('#modal-assign-btn');
   if (assignBtn) {

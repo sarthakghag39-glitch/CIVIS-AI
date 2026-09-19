@@ -308,6 +308,25 @@ Do not include markdown code fences or preambles. Output plain JSON only.
 
     const reasoningText = parsedResult.reasoning || parsedResult.reasoning_summary || 'Visual and textual analysis indicates a potential civic infrastructure concern.';
 
+    // Deterministic Phase 3 Routing & Criticality Derivation
+    const deptMap = {
+      'Road Damage': 'Road Maintenance & PWD',
+      'Garbage': 'Solid Waste & Sanitation',
+      'Streetlights': 'Electrical & Street Lighting',
+      'Water Leakage': 'Water Supply & Drainage',
+      'Other': 'General Municipal Administration'
+    };
+    const assignedDept = deptMap[finalCategory] || 'General Municipal Administration';
+
+    let derivedCriticality = 'Normal';
+    if (finalSeverity === 'Critical' || finalSeverityScore >= 75) {
+      derivedCriticality = 'Critical';
+    } else if (finalSeverityScore >= 50) {
+      derivedCriticality = 'High';
+    } else if (finalSeverityScore >= 25) {
+      derivedCriticality = 'Moderate';
+    }
+
     const finalResponse = {
       ai_available: true,
       is_valid_civic_issue: typeof parsedResult.is_valid_civic_issue === 'boolean' ? parsedResult.is_valid_civic_issue : true,
@@ -319,7 +338,11 @@ Do not include markdown code fences or preambles. Output plain JSON only.
       recommended_action: parsedResult.recommended_action || 'Inspect reported location and dispatch maintenance crew.',
       reasoning_summary: reasoningText,
       reasoning: reasoningText,
-      model_version: AI_PROVIDER === 'groq' ? GROQ_MODEL : GEMINI_MODEL
+      model_version: AI_PROVIDER === 'groq' ? GROQ_MODEL : GEMINI_MODEL,
+      assigned_department: assignedDept,
+      criticality: derivedCriticality,
+      auto_routed: true,
+      routed_at: new Date().toISOString()
     };
 
     return res.status(200).json(finalResponse);

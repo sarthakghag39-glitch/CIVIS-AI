@@ -3079,6 +3079,57 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       }
     }
 
+    const tempIssueForRouting = {
+      category: category,
+      criticality: "Moderate",
+      ...aiFields
+    };
+
+    let routingFields = {
+      assigned_department: 'General Municipal Administration',
+      criticality: 'Moderate',
+      auto_routed: true,
+      routed_at: new Date().toISOString()
+    };
+
+    if (typeof window.CivisRoutingEngine !== 'undefined' && typeof window.CivisRoutingEngine.routeIssue === 'function') {
+      routingFields = window.CivisRoutingEngine.routeIssue(tempIssueForRouting);
+    } else {
+      const DEPARTMENT_MAP = {
+        'Road Damage': 'Road Maintenance & PWD',
+        'Garbage': 'Solid Waste & Sanitation',
+        'Streetlights': 'Electrical & Street Lighting',
+        'Water Leakage': 'Water Supply & Drainage',
+        'Other': 'General Municipal Administration'
+      };
+      const catTrimmed = (aiFields.ai_analyzed && aiFields.ai_category) ? aiFields.ai_category.trim() : category.trim();
+      let canonicalCat = 'Other';
+      if (catTrimmed === 'Road Damage' || catTrimmed === 'Roads & Potholes') canonicalCat = 'Road Damage';
+      else if (catTrimmed === 'Garbage' || catTrimmed === 'Sanitation / Waste' || catTrimmed === 'Sanitation') canonicalCat = 'Garbage';
+      else if (catTrimmed === 'Streetlights' || catTrimmed === 'Street Lighting') canonicalCat = 'Streetlights';
+      else if (catTrimmed === 'Water Leakage' || catTrimmed === 'Water Supply / Leaks' || catTrimmed === 'Water Supply') canonicalCat = 'Water Leakage';
+
+      const dept = DEPARTMENT_MAP[canonicalCat] || 'General Municipal Administration';
+
+      let derivedCrit = 'Moderate';
+      if (aiFields.ai_analyzed) {
+        if (aiFields.ai_severity === 'Critical') derivedCrit = 'Critical';
+        else if (typeof aiFields.ai_severity_score === 'number' && !isNaN(aiFields.ai_severity_score)) {
+          if (aiFields.ai_severity_score >= 75) derivedCrit = 'Critical';
+          else if (aiFields.ai_severity_score >= 50) derivedCrit = 'High';
+          else if (aiFields.ai_severity_score >= 25) derivedCrit = 'Moderate';
+          else if (aiFields.ai_severity_score >= 1) derivedCrit = 'Normal';
+        }
+      }
+
+      routingFields = {
+        assigned_department: dept,
+        criticality: derivedCrit,
+        auto_routed: true,
+        routed_at: new Date().toISOString()
+      };
+    }
+
     const isDefaultCoords = (lat === 18.5204 && lng === 73.8567);
     const newIssue = {
       title,
@@ -3087,7 +3138,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       status: "Assigned",
       progress: 10,
-      criticality: "Moderate",
+      criticality: routingFields.criticality,
+      assigned_department: routingFields.assigned_department,
+      auto_routed: routingFields.auto_routed,
+      routed_at: routingFields.routed_at,
       description,
       image_url: uploadedImagePath,
       lat: isDefaultCoords ? lat + (Math.random() - 0.5) * 0.01 : lat,
