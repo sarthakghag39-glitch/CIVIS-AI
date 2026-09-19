@@ -115,7 +115,23 @@ const candidatePayload = { issue_id: 21, matched_issue_id: 22, match_score: 85, 
 const resI = canInsertCandidate(citizenUser, candidatePayload);
 assertEqual(resI, true, 'Test I: Candidate generation with status=pending -> SUCCESS (Expected: true)');
 
+// Test J: Normal citizen attempts to INSERT a fabricated candidate row with status = 'pending'
+const fabricatedCandidate = {
+  issue_id: 10,
+  matched_issue_id: 99,
+  distance_meters: 5.0,
+  category_match: true,
+  tag_similarity: 1.0,
+  description_similarity: 1.0,
+  time_difference_hours: 0.1,
+  match_score: 99.0,
+  status: 'pending'
+};
+const resJ = canInsertCandidate(citizenUser, fabricatedCandidate);
+assertEqual(resJ, true, 'Test J: Authenticated citizen attempts fabricated candidate INSERT with status=pending -> ALLOWED by RLS INSERT policy');
+
 console.log(`\nSECURITY TEST RESULTS: ${passed}/${total} assertions passed.`);
 if (passed !== total) {
   process.exit(1);
 }
+
