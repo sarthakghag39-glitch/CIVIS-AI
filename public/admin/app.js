@@ -2879,6 +2879,14 @@ async function openAdminComplaintDetailModal(issueId) {
       btn.innerText = 'Confirming...';
 
       try {
+        const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
+        if (!currentUser || !currentUser.id) {
+          alert('Admin authentication required. Please log in again.');
+          btn.disabled = false;
+          btn.innerText = 'Confirm Same Incident';
+          return;
+        }
+
         const { data: otherIssueData } = await supabaseClient.from('issues').select('*').eq('id', otherId).single();
         const otherIssue = otherIssueData || { id: otherId };
 
@@ -2908,7 +2916,11 @@ async function openAdminComplaintDetailModal(issueId) {
 
         if (targetIncidentId) {
           await supabaseClient.from('issues').update({ incident_id: targetIncidentId }).in('id', [issue.id, otherIssue.id]);
-          await supabaseClient.from('incident_candidates').update({ status: 'confirmed', reviewed_at: new Date().toISOString() }).eq('id', candId);
+          await supabaseClient.from('incident_candidates').update({
+            status: 'confirmed',
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: currentUser.id
+          }).eq('id', candId);
         }
 
         modal.remove();
@@ -2929,7 +2941,20 @@ async function openAdminComplaintDetailModal(issueId) {
       btn.innerText = 'Rejecting...';
 
       try {
-        await supabaseClient.from('incident_candidates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', candId);
+        const { data: { user: currentUser } } = await supabaseClient.auth.getUser();
+        if (!currentUser || !currentUser.id) {
+          alert('Admin authentication required. Please log in again.');
+          btn.disabled = false;
+          btn.innerText = 'Not Related';
+          return;
+        }
+
+        await supabaseClient.from('incident_candidates').update({
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: currentUser.id
+        }).eq('id', candId);
+
         modal.remove();
         openAdminComplaintDetailModal(issue.id);
       } catch (err) {

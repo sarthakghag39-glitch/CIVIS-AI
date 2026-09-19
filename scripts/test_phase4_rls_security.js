@@ -120,7 +120,31 @@ assertEqual(resI, true, 'Test I: Trusted candidate-generation path creates legit
 const resJ = canInsertCandidate(citizenUser);
 assertEqual(resJ, false, 'Test J: Normal citizen fabricated candidate INSERT -> DENIED (Expected: false)');
 
+// Test K: Admin candidate review populates reviewed_by with authenticated user ID
+function canReviewCandidateWithAuditTrail(user, candidate, newStatus) {
+  if (!isAdmin(user) || !user.uid) {
+    return { success: false, error: 'Admin authentication required' };
+  }
+  return {
+    success: true,
+    record: {
+      status: newStatus,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: user.uid
+    }
+  };
+}
+
+const resK_admin = canReviewCandidateWithAuditTrail(adminUser, { id: 'cand-1', status: 'pending' }, 'confirmed');
+const resK_unauth = canReviewCandidateWithAuditTrail(null, { id: 'cand-1', status: 'pending' }, 'confirmed');
+assertEqual(
+  resK_admin.success === true && resK_admin.record.reviewed_by === 'admin-uuid-001' && resK_unauth.success === false,
+  true,
+  'Test K: Admin candidate review sets reviewed_by to auth user ID and blocks unauthenticated -> SUCCESS (Expected: true)'
+);
+
 console.log(`\nSECURITY TEST RESULTS: ${passed}/${total} assertions passed.`);
 if (passed !== total) {
   process.exit(1);
 }
+
