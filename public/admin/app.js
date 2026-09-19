@@ -26,6 +26,48 @@ function isValidCoordinate(lat, lng) {
          typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
 }
 
+let leafletLoadPromise = null;
+
+function ensureLeafletLoaded() {
+  if (typeof L !== 'undefined') {
+    return Promise.resolve();
+  }
+  if (leafletLoadPromise) {
+    return leafletLoadPromise;
+  }
+
+  leafletLoadPromise = new Promise((resolve, reject) => {
+    if (typeof L !== 'undefined') {
+      resolve();
+      return;
+    }
+
+    if (!document.getElementById('civis-leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'civis-leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    let script = document.getElementById('civis-leaflet-js');
+    if (!script) {
+      script = document.createElement('script');
+      script.id = 'civis-leaflet-js';
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      document.head.appendChild(script);
+    }
+
+    script.addEventListener('load', () => resolve(), { once: true });
+    script.addEventListener('error', (err) => {
+      leafletLoadPromise = null;
+      reject(new Error('Failed to load Leaflet script from CDN.'));
+    }, { once: true });
+  });
+
+  return leafletLoadPromise;
+}
+
 // Use window.supabase (provided by CDN) to create the client, named supabaseClient to avoid naming conflicts
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -3583,49 +3625,63 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   let miniMap = null;
   let miniMarker = null;
 
-  toggleMapBtn.addEventListener('click', () => {
+  toggleMapBtn.addEventListener('click', async () => {
     const isHidden = mapWrapper.classList.contains('hidden');
     if (isHidden) {
       mapWrapper.classList.remove('hidden');
-      if (!miniMap && typeof L !== 'undefined') {
-        const centerLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
-        const centerLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
-        miniMap = L.map('modal-map-picker', { zoomControl: false }).setView([centerLat, centerLng], 14);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-          maxZoom: 20
-        }).addTo(miniMap);
+      await ensureLeafletLoaded();
 
-        if (isValidCoordinate(currentLat, currentLng)) {
-          miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
-        }
+      if (typeof L !== 'undefined') {
+        const pickerDiv = mapWrapper.querySelector('#modal-map-picker');
+        if (pickerDiv) {
+          if (!miniMap) {
+            const centerLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
+            const centerLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
+            miniMap = L.map(pickerDiv, { zoomControl: false }).setView([centerLat, centerLng], 14);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+              maxZoom: 20
+            }).addTo(miniMap);
 
-        const handleMapSelection = (latVal, lngVal) => {
-          currentLat = latVal;
-          currentLng = lngVal;
-          currentLocationSource = 'manual_pin';
-          currentLocationAccuracy = null;
-          if (!miniMarker) {
-            miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
-          } else {
-            miniMarker.setLatLng([currentLat, currentLng]);
+            const handleMapSelection = (latVal, lngVal) => {
+              currentLat = latVal;
+              currentLng = lngVal;
+              currentLocationSource = 'manual_pin';
+              currentLocationAccuracy = null;
+
+              if (!miniMarker) {
+                miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
+                miniMarker.on('dragend', (evt) => {
+                  const pos = evt.target.getLatLng();
+                  handleMapSelection(pos.lat, pos.lng);
+                });
+              } else {
+                miniMarker.setLatLng([currentLat, currentLng]);
+              }
+              updateBadge();
+            };
+
+            miniMap.on('click', (e) => {
+              handleMapSelection(e.latlng.lat, e.latlng.lng);
+            });
+
+            if (isValidCoordinate(currentLat, currentLng)) {
+              miniMarker = L.marker([currentLat, currentLng], { draggable: true }).addTo(miniMap);
+              miniMarker.on('dragend', (evt) => {
+                const pos = evt.target.getLatLng();
+                handleMapSelection(pos.lat, pos.lng);
+              });
+            }
           }
-          updateBadge();
-        };
 
-        miniMap.on('click', (e) => {
-          handleMapSelection(e.latlng.lat, e.latlng.lng);
-        });
-
-        if (miniMarker) {
-          miniMarker.on('dragend', (e) => {
-            const pos = e.target.getLatLng();
-            handleMapSelection(pos.lat, pos.lng);
-          });
+          const targetLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
+          const targetLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
+          miniMap.setView([targetLat, targetLng], 14);
+          miniMap.invalidateSize();
+          setTimeout(() => {
+            if (miniMap) miniMap.invalidateSize();
+          }, 150);
         }
       }
-      setTimeout(() => {
-        if (miniMap) miniMap.invalidateSize();
-      }, 100);
     } else {
       mapWrapper.classList.add('hidden');
     }
