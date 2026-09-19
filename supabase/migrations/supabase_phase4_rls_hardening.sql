@@ -22,6 +22,7 @@ GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
 -- 2. Hardened RLS Policies for public.incidents
 ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
 
+-- Explicitly drop old permissive and draft policy names
 DROP POLICY IF EXISTS "Enable read access for all users on incidents" ON public.incidents;
 DROP POLICY IF EXISTS "Enable insert access for all users on incidents" ON public.incidents;
 DROP POLICY IF EXISTS "Enable update access for all users on incidents" ON public.incidents;
@@ -48,11 +49,13 @@ CREATE POLICY "Admins can update incidents"
 -- 3. Hardened RLS Policies for public.incident_candidates
 ALTER TABLE public.incident_candidates ENABLE ROW LEVEL SECURITY;
 
+-- Explicitly drop old permissive and draft policy names
 DROP POLICY IF EXISTS "Enable read access for all users on incident_candidates" ON public.incident_candidates;
 DROP POLICY IF EXISTS "Enable insert access for all users on incident_candidates" ON public.incident_candidates;
 DROP POLICY IF EXISTS "Enable update access for all users on incident_candidates" ON public.incident_candidates;
 DROP POLICY IF EXISTS "Anyone can view incident_candidates" ON public.incident_candidates;
 DROP POLICY IF EXISTS "Authenticated users can insert pending candidates" ON public.incident_candidates;
+DROP POLICY IF EXISTS "Admins can insert incident_candidates" ON public.incident_candidates;
 DROP POLICY IF EXISTS "Admins can update incident_candidates" ON public.incident_candidates;
 
 -- SELECT: Anyone (citizens & admins) can view candidates
@@ -61,7 +64,6 @@ CREATE POLICY "Anyone can view incident_candidates"
   USING (true);
 
 -- INSERT: Admin-only (Trusted server backend uses service_role key to insert candidate rows; direct citizen INSERTs are DENIED)
-DROP POLICY IF EXISTS "Admins can insert incident_candidates" ON public.incident_candidates;
 CREATE POLICY "Admins can insert incident_candidates"
   ON public.incident_candidates FOR INSERT
   WITH CHECK (public.is_admin() = true);

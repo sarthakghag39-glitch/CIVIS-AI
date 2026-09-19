@@ -46,30 +46,6 @@ CREATE INDEX IF NOT EXISTS idx_incident_candidates_issue_id ON public.incident_c
 CREATE INDEX IF NOT EXISTS idx_incident_candidates_matched_issue_id ON public.incident_candidates(matched_issue_id);
 CREATE INDEX IF NOT EXISTS idx_incident_candidates_status ON public.incident_candidates(status);
 
--- 4. Enable RLS and create public policies
+-- 4. Enable Row Level Security (Authorization policies established in supabase_phase4_rls_hardening.sql)
 ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.incident_candidates ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Enable read access for all users on incidents" ON public.incidents;
-CREATE POLICY "Enable read access for all users on incidents"
-  ON public.incidents FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Enable read access for all users on incident_candidates" ON public.incident_candidates;
-CREATE POLICY "Enable read access for all users on incident_candidates"
-  ON public.incident_candidates FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Enable insert access for all users on incidents" ON public.incidents;
-CREATE POLICY "Enable insert access for all users on incidents"
-  ON public.incidents FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Enable update access for all users on incidents" ON public.incidents;
-CREATE POLICY "Enable update access for all users on incidents"
-  ON public.incidents FOR UPDATE USING (true);
-
-DROP POLICY IF EXISTS "Enable insert access for all users on incident_candidates" ON public.incident_candidates;
-CREATE POLICY "Enable insert access for all users on incident_candidates"
-  ON public.incident_candidates FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Enable update access for all users on incident_candidates" ON public.incident_candidates;
-CREATE POLICY "Enable update access for all users on incident_candidates"
-  ON public.incident_candidates FOR UPDATE USING (true);
