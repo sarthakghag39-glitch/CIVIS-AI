@@ -2727,30 +2727,31 @@ function openScanModal() {
 function openReportModal() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude),
-      () => openReportModalAtCoords(18.5204, 73.8567)
+      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, '', '', '', '', null, 'gps', pos.coords.accuracy || null),
+      () => openReportModalAtCoords(18.5204, 73.8567, '', '', '', '', null, 'fallback', null)
     );
   } else {
-    openReportModalAtCoords(18.5204, 73.8567);
+    openReportModalAtCoords(18.5204, 73.8567, '', '', '', '', null, 'fallback', null);
   }
 }
 
 function openReportModalWithDetails(title, category) {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, title, category),
-      () => openReportModalAtCoords(18.5204, 73.8567, title, category)
+      (pos) => openReportModalAtCoords(pos.coords.latitude, pos.coords.longitude, title, category, '', '', null, 'gps', pos.coords.accuracy || null),
+      () => openReportModalAtCoords(18.5204, 73.8567, title, category, '', '', null, 'fallback', null)
     );
   } else {
-    openReportModalAtCoords(18.5204, 73.8567, title, category);
+    openReportModalAtCoords(18.5204, 73.8567, title, category, '', '', null, 'fallback', null);
   }
 }
 
-function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '', initialAiAnalysis = null) {
+function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = '', defaultLocation = '', defaultDesc = '', initialAiAnalysis = null, locationSource = 'fallback', locationAccuracy = null) {
   defaultTitle = defaultTitle || '';
   defaultCategory = defaultCategory || '';
   defaultLocation = defaultLocation || '';
   defaultDesc = defaultDesc || '';
+  locationSource = locationSource || (lat === 18.5204 && lng === 73.8567 ? 'fallback' : 'gps');
 
   let activeAiAnalysis = initialAiAnalysis || null;
 
@@ -3142,6 +3143,8 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       assigned_department: routingFields.assigned_department,
       auto_routed: routingFields.auto_routed,
       routed_at: routingFields.routed_at,
+      location_source: isDefaultCoords ? 'fallback' : (locationSource || 'gps'),
+      location_accuracy_meters: locationAccuracy || null,
       description,
       image_url: uploadedImagePath,
       lat: isDefaultCoords ? lat + (Math.random() - 0.5) * 0.01 : lat,
@@ -3173,8 +3176,16 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       if (data && data.length > 0) {
         const insertedId = data[0].id;
         const complaint_id = `CIV-2026-${String(insertedId).padStart(5, '0')}`;
+        const insertedObj = { ...data[0], complaint_id, location_source: newIssue.location_source };
         await supabaseClient.from('issues').update({ complaint_id }).eq('id', insertedId);
         generatedIdMsg = `\nComplaint ID: ${complaint_id}`;
+
+        // Trigger Phase 4 Incident Candidate Detection (non-blocking)
+        try {
+          await checkForDuplicateCandidates(insertedObj);
+        } catch (candErr) {
+          console.warn("Phase 4 Candidate detection error:", candErr);
+        }
       }
       alert(`Report submitted successfully!${generatedIdMsg}`);
       modal.remove();
@@ -3303,3 +3314,45 @@ function openDialerModal(serviceName) {
     }
   });
 }
+
+// Phase 4: Incident & Duplicate Candidate Detection
+async function checkForDuplicateCandidates(insertedIssue) {
+  if (!insertedIssue || !insertedIssue.id) return;
+  const engine = (typeof window !== 'undefined' && window.CivisClusteringEngine) ? window.CivisClusteringEngine : (typeof CivisClusteringEngine !== 'undefined' ? CivisClusteringEngine : null);
+  if (!engine) return;
+
+  const { data: existingIssues, error } = await supabaseClient
+    .from('issues')
+    .select('*')
+    .neq('id', insertedIssue.id)
+    .order('id', { ascending: false })
+    .limit(50);
+
+  if (error || !existingIssues || existingIssues.length === 0) return;
+
+  for (const existingIssue of existingIssues) {
+    const match = engine.evaluateMatch(insertedIssue, existingIssue);
+    if (match && match.matched) {
+      const issue_id = Math.min(insertedIssue.id, existingIssue.id);
+      const matched_issue_id = Math.max(insertedIssue.id, existingIssue.id);
+
+      const candidateObj = {
+        issue_id,
+        matched_issue_id,
+        distance_meters: match.distanceMeters,
+        category_match: match.categoryMatch,
+        tag_similarity: match.tagSimilarity,
+        description_similarity: match.descriptionSimilarity,
+        time_difference_hours: match.timeDifferenceHours,
+        match_score: match.matchScore,
+        status: 'pending'
+      };
+
+      await supabaseClient.from('incident_candidates').upsert([candidateObj], {
+        onConflict: 'issue_id,matched_issue_id',
+        ignoreDuplicates: true
+      });
+    }
+  }
+}
+

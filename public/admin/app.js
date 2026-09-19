@@ -2573,30 +2573,42 @@ async function openAdminComplaintDetailModal(issueId) {
             <span class="font-semibold text-on-surface text-xs mt-0.5 block">${issue.location}</span>
           </div>
           <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
-            <span class="text-outline font-medium block">Reported Date</span>
-            <span class="font-semibold text-on-surface text-xs mt-0.5 block">${issue.date || 'N/A'}</span>
+          <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs">
+            <span class="text-outline font-semibold text-[10px]">Location & Address</span>
+            <span class="font-bold text-on-surface">${issue.location || 'N/A'}</span>
+            <span class="text-outline font-mono text-[10px]">${issue.lat ? issue.lat.toFixed(5) : 'N/A'}, ${issue.lng ? issue.lng.toFixed(5) : 'N/A'} (${issue.location_source || 'unknown'})</span>
           </div>
-          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
-            <span class="text-outline font-medium block">Status & Progress</span>
-            <span class="font-bold text-xs mt-0.5 flex items-center gap-1.5" style="color: ${markerColor}">
-              <span class="w-2 h-2 rounded-full" style="background-color: ${markerColor}"></span>
-              ${issue.status} (${issue.progress || 0}%)
-            </span>
+          <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs">
+            <span class="text-outline font-semibold text-[10px]">Reported By</span>
+            <span class="font-bold text-on-surface">${issue.reported_by || 'Anonymous'}</span>
+            <span class="text-outline text-[11px]">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</span>
           </div>
-          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle sm:col-span-2">
-            <span class="text-outline font-medium block">Reported By</span>
-            <div class="font-bold text-on-surface text-xs mt-0.5">${issue.reported_by || 'Anonymous'}</div>
-            <div class="text-[11px] text-outline mt-0.5">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</div>
+        </div>
+
+        <!-- Complaint Image & Description -->
+        <div class="flex flex-col gap-3">
+          ${resolvedUrl ? `
+            <div class="rounded-xl overflow-hidden border border-border-subtle bg-black/5 max-h-48 flex items-center justify-center">
+              <img src="${resolvedUrl}" alt="Complaint Image" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300">
+            </div>
+          ` : `
+            <div class="p-4 bg-surface-container-low border border-border-subtle rounded-xl flex items-center justify-center text-center text-outline text-xs h-32">
+              No photo attached with complaint
+            </div>
+          `}
+          <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs flex-1">
+            <span class="text-outline font-semibold text-[10px]">Citizen Description</span>
+            <p class="text-on-surface font-normal leading-relaxed text-xs opacity-90">${issue.description || 'No description provided.'}</p>
           </div>
         </div>
       </div>
 
       <!-- AI Analysis Section -->
       ${issue.ai_analyzed ? `
-        <div class="p-4 bg-primary-container/10 border border-primary/20 rounded-xl flex flex-col gap-3 text-xs">
-          <div class="flex items-center justify-between border-b border-primary/10 pb-2">
-            <span class="flex items-center gap-1.5 font-bold text-sm text-primary">
-              <span class="material-symbols-outlined text-lg">psychology</span>
+        <div class="p-4 bg-surface-container-low border border-primary/20 rounded-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-border-subtle pb-2">
+            <span class="font-bold text-xs text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">psychology</span>
               AI Analysis
             </span>
             <span class="text-[11px] font-mono px-2.5 py-0.5 bg-primary/10 text-primary rounded-md font-semibold">
@@ -2675,6 +2687,102 @@ async function openAdminComplaintDetailModal(issueId) {
   if (closeBtn) closeBtn.addEventListener('click', () => modal.remove());
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
+  });
+
+  // Attach Phase 4 Event Listeners
+  const toggleIncBtn = modal.querySelector('#toggle-incident-status-btn');
+  if (toggleIncBtn) {
+    toggleIncBtn.addEventListener('click', async () => {
+      const incId = toggleIncBtn.getAttribute('data-inc-id');
+      const newStatus = toggleIncBtn.getAttribute('data-new-status');
+      toggleIncBtn.disabled = true;
+      toggleIncBtn.innerText = 'Updating...';
+
+      const { error } = await supabaseClient.from('incidents').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', incId);
+      if (error) {
+        alert(`Error updating incident status: ${error.message}`);
+      } else {
+        modal.remove();
+        openAdminComplaintDetailModal(issue.id);
+      }
+    });
+  }
+
+  modal.querySelectorAll('.view-linked-issue-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-issue-id');
+      modal.remove();
+      openAdminComplaintDetailModal(targetId);
+    });
+  });
+
+  modal.querySelectorAll('.confirm-candidate-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const candId = btn.getAttribute('data-cand-id');
+      const otherId = btn.getAttribute('data-other-id');
+      btn.disabled = true;
+      btn.innerText = 'Confirming...';
+
+      try {
+        const { data: otherIssueData } = await supabaseClient.from('issues').select('*').eq('id', otherId).single();
+        const otherIssue = otherIssueData || { id: otherId };
+
+        let targetIncidentId = issue.incident_id || otherIssue.incident_id || null;
+
+        if (!targetIncidentId) {
+          const randCode = `INC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+          const canonicalCat = (issue.ai_analyzed && issue.ai_category) ? issue.ai_category : issue.category;
+          const highestSev = (issue.criticality === 'Critical' || otherIssue.criticality === 'Critical') ? 'Critical' : 'High';
+          const highestScore = Math.max(issue.ai_severity_score || 50, otherIssue.ai_severity_score || 50);
+
+          const { data: newIncData, error: newIncErr } = await supabaseClient.from('incidents').insert([{
+            incident_code: randCode,
+            title: `Incident: ${issue.title}`,
+            category: canonicalCat,
+            severity: highestSev,
+            severity_score: highestScore,
+            department: issue.assigned_department || 'General Municipal Administration',
+            status: 'Open'
+          }]).select();
+
+          if (newIncErr) throw newIncErr;
+          if (newIncData && newIncData.length > 0) {
+            targetIncidentId = newIncData[0].id;
+          }
+        }
+
+        if (targetIncidentId) {
+          await supabaseClient.from('issues').update({ incident_id: targetIncidentId }).in('id', [issue.id, otherIssue.id]);
+          await supabaseClient.from('incident_candidates').update({ status: 'confirmed', reviewed_at: new Date().toISOString() }).eq('id', candId);
+        }
+
+        modal.remove();
+        await renderAdminIssues();
+        openAdminComplaintDetailModal(issue.id);
+      } catch (err) {
+        alert(`Failed to confirm candidate: ${err.message}`);
+        btn.disabled = false;
+        btn.innerText = 'Confirm Same Incident';
+      }
+    });
+  });
+
+  modal.querySelectorAll('.reject-candidate-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const candId = btn.getAttribute('data-cand-id');
+      btn.disabled = true;
+      btn.innerText = 'Rejecting...';
+
+      try {
+        await supabaseClient.from('incident_candidates').update({ status: 'rejected', reviewed_at: new Date().toISOString() }).eq('id', candId);
+        modal.remove();
+        openAdminComplaintDetailModal(issue.id);
+      } catch (err) {
+        alert(`Failed to reject candidate: ${err.message}`);
+        btn.disabled = false;
+        btn.innerText = 'Not Related';
+      }
+    });
   });
 
   const saveDeptBtn = modal.querySelector('#save-reassign-dept-btn');
