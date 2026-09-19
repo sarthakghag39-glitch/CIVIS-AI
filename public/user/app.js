@@ -3315,44 +3315,21 @@ function openDialerModal(serviceName) {
   });
 }
 
-// Phase 4: Incident & Duplicate Candidate Detection
+// Phase 4: Incident & Duplicate Candidate Detection via Trusted Backend API
 async function checkForDuplicateCandidates(insertedIssue) {
   if (!insertedIssue || !insertedIssue.id) return;
-  const engine = (typeof window !== 'undefined' && window.CivisClusteringEngine) ? window.CivisClusteringEngine : (typeof CivisClusteringEngine !== 'undefined' ? CivisClusteringEngine : null);
-  if (!engine) return;
 
-  const { data: existingIssues, error } = await supabaseClient
-    .from('issues')
-    .select('*')
-    .neq('id', insertedIssue.id)
-    .order('id', { ascending: false })
-    .limit(50);
-
-  if (error || !existingIssues || existingIssues.length === 0) return;
-
-  for (const existingIssue of existingIssues) {
-    const match = engine.evaluateMatch(insertedIssue, existingIssue);
-    if (match && match.matched) {
-      const issue_id = Math.min(insertedIssue.id, existingIssue.id);
-      const matched_issue_id = Math.max(insertedIssue.id, existingIssue.id);
-
-      const candidateObj = {
-        issue_id,
-        matched_issue_id,
-        distance_meters: match.distanceMeters,
-        category_match: match.categoryMatch,
-        tag_similarity: match.tagSimilarity,
-        description_similarity: match.descriptionSimilarity,
-        time_difference_hours: match.timeDifferenceHours,
-        match_score: match.matchScore,
-        status: 'pending'
-      };
-
-      await supabaseClient.from('incident_candidates').upsert([candidateObj], {
-        onConflict: 'issue_id,matched_issue_id',
-        ignoreDuplicates: true
-      });
+  try {
+    const res = await fetch('/api/detect_candidates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ issue_id: insertedIssue.id })
+    });
+    if (!res.ok) {
+      console.warn('Backend candidate detection API returned status:', res.status);
     }
+  } catch (err) {
+    console.warn('Candidate detection API call failed:', err);
   }
 }
 

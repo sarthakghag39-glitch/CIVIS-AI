@@ -1,8 +1,7 @@
 // Phase 4 RLS Security Model Verification Test Suite
-// Simulates and verifies PostgreSQL RLS Policy and Trigger logic for Scenarios A through I
+// Simulates and verifies PostgreSQL RLS Policy and Trigger logic for Scenarios A through J
 
 const path = require('path');
-const fs = require('fs');
 
 let passed = 0;
 let total = 0;
@@ -19,9 +18,10 @@ function assertEqual(actual, expected, testName) {
   }
 }
 
-// Simulated User Contexts
+// Simulated User & System Contexts
 const citizenUser = { uid: 'citizen-uuid-101', role: 'citizen' };
 const adminUser = { uid: 'admin-uuid-001', role: 'admin' };
+const trustedServerContext = { isServiceRole: true, name: 'Trusted backend serverless API' };
 
 function isAdmin(user) {
   return Boolean(user && user.role === 'admin');
@@ -39,11 +39,13 @@ function canUpdateIncident(user) {
 }
 
 // 2. RLS Policy Simulator for public.incident_candidates
-function canInsertCandidate(user, candidatePayload) {
-  // Policy: WITH CHECK (status = 'pending' AND (auth.uid() IS NOT NULL OR public.is_admin() = true))
-  if (!user || !user.uid) return false;
-  if (candidatePayload.status !== 'pending') return false;
-  return true;
+function canInsertCandidate(user) {
+  // Policy: WITH CHECK (public.is_admin() = true)
+  // Trusted backend API uses service_role key, bypassing RLS to insert verified candidate rows
+  if (user && (user.role === 'admin' || user.isServiceRole === true)) {
+    return true;
+  }
+  return false;
 }
 
 function canUpdateCandidateStatus(user, oldCandidate, newStatus) {
@@ -110,28 +112,15 @@ const newComplaint = { id: 22, description: 'Broken pipe', lat: 18.52, lng: 73.8
 const resH = evaluateProtectIssueIncidentIdTrigger(citizenUser, 'INSERT', null, newComplaint);
 assertEqual(resH.allowed, true, 'Test H: Normal citizen submits new complaint -> SUCCESS (Expected: allowed=true)');
 
-// Test I: Candidate generation after a new complaint still works (status = "pending")
-const candidatePayload = { issue_id: 21, matched_issue_id: 22, match_score: 85, status: 'pending' };
-const resI = canInsertCandidate(citizenUser, candidatePayload);
-assertEqual(resI, true, 'Test I: Candidate generation with status=pending -> SUCCESS (Expected: true)');
+// Test I: Trusted candidate-generation path creates a legitimate pending candidate after a real complaint
+const resI = canInsertCandidate(trustedServerContext);
+assertEqual(resI, true, 'Test I: Trusted candidate-generation path creates legitimate pending candidate -> SUCCESS (Expected: true)');
 
-// Test J: Normal citizen attempts to INSERT a fabricated candidate row with status = 'pending'
-const fabricatedCandidate = {
-  issue_id: 10,
-  matched_issue_id: 99,
-  distance_meters: 5.0,
-  category_match: true,
-  tag_similarity: 1.0,
-  description_similarity: 1.0,
-  time_difference_hours: 0.1,
-  match_score: 99.0,
-  status: 'pending'
-};
-const resJ = canInsertCandidate(citizenUser, fabricatedCandidate);
-assertEqual(resJ, true, 'Test J: Authenticated citizen attempts fabricated candidate INSERT with status=pending -> ALLOWED by RLS INSERT policy');
+// Test J: Normal citizen attempts direct INSERT of a fabricated candidate row
+const resJ = canInsertCandidate(citizenUser);
+assertEqual(resJ, false, 'Test J: Normal citizen fabricated candidate INSERT -> DENIED (Expected: false)');
 
 console.log(`\nSECURITY TEST RESULTS: ${passed}/${total} assertions passed.`);
 if (passed !== total) {
   process.exit(1);
 }
-

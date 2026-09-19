@@ -60,12 +60,11 @@ CREATE POLICY "Anyone can view incident_candidates"
   ON public.incident_candidates FOR SELECT
   USING (true);
 
--- INSERT: Citizens and Admins can insert candidates, BUT non-admins can ONLY insert with status = 'pending'
-CREATE POLICY "Authenticated users can insert pending candidates"
+-- INSERT: Admin-only (Trusted server backend uses service_role key to insert candidate rows; direct citizen INSERTs are DENIED)
+DROP POLICY IF EXISTS "Admins can insert incident_candidates" ON public.incident_candidates;
+CREATE POLICY "Admins can insert incident_candidates"
   ON public.incident_candidates FOR INSERT
-  WITH CHECK (
-    status = 'pending' AND (auth.uid() IS NOT NULL OR public.is_admin() = true)
-  );
+  WITH CHECK (public.is_admin() = true);
 
 -- UPDATE: Admin-only! Citizens CANNOT change candidate status to 'confirmed' or 'rejected'
 CREATE POLICY "Admins can update incident_candidates"
