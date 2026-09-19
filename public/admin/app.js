@@ -2474,6 +2474,181 @@ async function openAdminComplaintDetailModal(issueId) {
   else if (issue.criticality === 'Moderate') markerColor = '#F59E0B';
   else if (issue.status === 'Resolved') markerColor = '#22C55E';
 
+  // 1. Fetch Linked Incident Cluster (If issue belongs to an incident)
+  let incidentCardHTML = '';
+  if (issue.incident_id) {
+    try {
+      const { data: incData } = await supabaseClient
+        .from('incidents')
+        .select('*')
+        .eq('id', issue.incident_id)
+        .single();
+
+      const { data: linkedIssuesData } = await supabaseClient
+        .from('issues')
+        .select('*')
+        .eq('incident_id', issue.incident_id);
+
+      if (incData) {
+        const otherLinkedIssues = (linkedIssuesData || []).filter(i => Number(i.id) !== Number(issue.id));
+        const statusBadge = incData.status === 'Resolved' 
+          ? '<span class="px-2 py-0.5 bg-success/20 text-success rounded text-[10px] font-bold">Resolved</span>' 
+          : '<span class="px-2 py-0.5 bg-primary/20 text-primary rounded text-[10px] font-bold">Open</span>';
+
+        incidentCardHTML = `
+          <div class="p-4 bg-surface-container-low border border-primary/20 rounded-xl flex flex-col gap-3">
+            <div class="flex items-center justify-between border-b border-border-subtle pb-2">
+              <span class="font-bold text-xs text-primary flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-base">hub</span>
+                Linked Incident Cluster: ${incData.incident_code || 'INC-2026'}
+              </span>
+              <div class="flex items-center gap-2">
+                ${statusBadge}
+                <button type="button" id="toggle-incident-status-btn" data-inc-id="${incData.id}" data-new-status="${incData.status === 'Open' ? 'Resolved' : 'Open'}" class="px-2.5 py-1 bg-surface-container-high hover:bg-surface-variant text-on-surface text-[11px] font-semibold rounded-lg transition-all cursor-pointer">
+                  Mark ${incData.status === 'Open' ? 'Resolved' : 'Open'}
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+              <div class="p-2 bg-card-bg rounded-lg border border-border-subtle">
+                <span class="text-outline text-[10px] block">Severity</span>
+                <span class="font-bold text-on-surface">${incData.severity || 'High'}</span>
+              </div>
+              <div class="p-2 bg-card-bg rounded-lg border border-border-subtle">
+                <span class="text-outline text-[10px] block">Department</span>
+                <span class="font-bold text-on-surface truncate block">${incData.department || 'General'}</span>
+              </div>
+              <div class="p-2 bg-card-bg rounded-lg border border-border-subtle col-span-2 sm:col-span-1">
+                <span class="text-outline text-[10px] block">Linked Complaints</span>
+                <span class="font-bold text-primary">${(linkedIssuesData || []).length} Total</span>
+              </div>
+            </div>
+
+            ${otherLinkedIssues.length > 0 ? `
+              <div class="pt-1">
+                <span class="text-outline text-[11px] font-semibold block mb-1.5">Other Complaints in this Incident:</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${otherLinkedIssues.map(li => `
+                    <button type="button" data-issue-id="${li.id}" class="view-linked-issue-btn px-2.5 py-1 bg-card-bg hover:bg-surface-container-high border border-border-subtle rounded-lg text-xs font-mono font-semibold text-primary flex items-center gap-1 cursor-pointer">
+                      <span>${li.complaint_id || `CIV-2026-${String(li.id).padStart(5, '0')}`}</span>
+                      <span class="material-symbols-outlined text-xs">open_in_new</span>
+                    </button>
+                  `).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }
+    } catch (err) {
+      console.error('Error fetching linked incident details:', err);
+    }
+  }
+
+  // 2. Fetch Potential Related Incident Candidates (Pending Status)
+  let candidatesHTML = '';
+  try {
+    const { data: candList, error: candErr } = await supabaseClient
+      .from('incident_candidates')
+      .select('*')
+      .or(`issue_id.eq.${issue.id},matched_issue_id.eq.${issue.id}`)
+      .eq('status', 'pending');
+
+    if (candErr) {
+      console.error('Failed to query incident candidates:', candErr.message);
+    } else if (candList && candList.length > 0) {
+      const relatedIds = candList.map(c => Number(c.issue_id) === Number(issue.id) ? Number(c.matched_issue_id) : Number(c.issue_id));
+
+      const { data: relatedIssuesData } = await supabaseClient
+        .from('issues')
+        .select('*')
+        .in('id', relatedIds);
+
+      const relatedMap = new Map((relatedIssuesData || []).map(r => [Number(r.id), r]));
+
+      const candidateCards = candList.map(c => {
+        const isPrimary = Number(c.issue_id) === Number(issue.id);
+        const relatedId = isPrimary ? Number(c.matched_issue_id) : Number(c.issue_id);
+        const relatedIssue = relatedMap.get(relatedId) || (cachedIssues || []).find(i => Number(i.id) === relatedId) || { id: relatedId, title: `Complaint #${relatedId}`, category: 'Unknown' };
+
+        const relatedDisplayId = relatedIssue.complaint_id || `CIV-2026-${String(relatedId).padStart(5, '0')}`;
+        const distStr = typeof c.distance_meters === 'number' ? `${Math.round(c.distance_meters)}m` : 'N/A';
+        const scoreStr = typeof c.match_score === 'number' ? `${Math.round(c.match_score)}%` : 'N/A';
+        const timeStr = typeof c.time_difference_hours === 'number' ? (c.time_difference_hours < 1 ? `${Math.round(c.time_difference_hours * 60)} mins` : `${Math.round(c.time_difference_hours)} hrs`) : 'N/A';
+        const tagSimStr = typeof c.tag_similarity === 'number' ? `${Math.round(c.tag_similarity * 100)}%` : 'N/A';
+        const descSimStr = typeof c.description_similarity === 'number' ? `${Math.round(c.description_similarity * 100)}%` : 'N/A';
+
+        return `
+          <div class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col gap-3">
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex flex-col gap-1">
+                <div class="flex items-center flex-wrap gap-2">
+                  <span class="text-xs font-mono font-bold px-2 py-0.5 bg-amber-500/20 text-amber-600 rounded">${relatedDisplayId}</span>
+                  <span class="text-xs font-bold text-on-surface">${relatedIssue.title || 'Civic Issue'}</span>
+                  <span class="text-[10px] px-2 py-0.5 bg-surface-container-high text-on-surface-variant rounded-full font-medium">${relatedIssue.category || 'General'}</span>
+                </div>
+                ${relatedIssue.description ? `<p class="text-xs text-on-surface-variant line-clamp-1 mt-0.5">${relatedIssue.description}</p>` : ''}
+              </div>
+              <span class="text-xs font-bold px-2.5 py-1 bg-amber-600 text-white rounded-lg shadow-sm shrink-0">
+                Match Score: ${scoreStr}
+              </span>
+            </div>
+
+            <!-- Similarity Signals Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-card-bg/70 p-2.5 rounded-lg border border-border-subtle">
+              <div>
+                <span class="text-outline block text-[10px]">Distance</span>
+                <span class="font-bold text-on-surface">${distStr}</span>
+              </div>
+              <div>
+                <span class="text-outline block text-[10px]">Time Gap</span>
+                <span class="font-bold text-on-surface">${timeStr}</span>
+              </div>
+              <div>
+                <span class="text-outline block text-[10px]">Tag Similarity</span>
+                <span class="font-bold text-on-surface">${tagSimStr}</span>
+              </div>
+              <div>
+                <span class="text-outline block text-[10px]">Text Overlap</span>
+                <span class="font-bold text-on-surface">${descSimStr}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center justify-end gap-2 pt-1 border-t border-amber-500/20">
+              <button type="button" data-cand-id="${c.id}" data-other-id="${relatedId}" class="reject-candidate-btn px-3 py-1.5 bg-surface-container-high hover:bg-surface-variant text-on-surface text-xs font-semibold rounded-lg transition-all cursor-pointer">
+                Not Related
+              </button>
+              <button type="button" data-cand-id="${c.id}" data-other-id="${relatedId}" class="confirm-candidate-btn px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">link</span> Confirm Same Incident
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      candidatesHTML = `
+        <div class="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl flex flex-col gap-3">
+          <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
+            <span class="font-bold text-xs text-amber-600 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-base">hub</span>
+              Potential Related Incidents (${candList.length})
+            </span>
+            <span class="text-[10px] font-semibold text-amber-700 bg-amber-500/10 px-2 py-0.5 rounded-md">
+              Pending Review
+            </span>
+          </div>
+          <div class="flex flex-col gap-3">
+            ${candidateCards}
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    console.error('Error fetching incident candidates for modal:', err);
+  }
+
   const modal = document.createElement('div');
   modal.id = 'admin-issue-detail-modal';
   modal.className = 'fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto';
@@ -2562,17 +2737,8 @@ async function openAdminComplaintDetailModal(issueId) {
           <p class="text-sm font-medium text-on-surface leading-relaxed whitespace-pre-wrap">${issue.description || 'No description provided.'}</p>
         </div>
 
-        <!-- Metadata Grid -->
+        <!-- Location & Citizen Info Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
-            <span class="text-outline font-medium block">Category</span>
-            <span class="font-bold text-on-surface text-sm mt-0.5 block">${issue.category}</span>
-          </div>
-          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
-            <span class="text-outline font-medium block">Location</span>
-            <span class="font-semibold text-on-surface text-xs mt-0.5 block">${issue.location}</span>
-          </div>
-          <div class="p-3 bg-surface-container-lowest rounded-xl border border-border-subtle">
           <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs">
             <span class="text-outline font-semibold text-[10px]">Location & Address</span>
             <span class="font-bold text-on-surface">${issue.location || 'N/A'}</span>
@@ -2584,24 +2750,13 @@ async function openAdminComplaintDetailModal(issueId) {
             <span class="text-outline text-[11px]">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</span>
           </div>
         </div>
-
-        <!-- Complaint Image & Description -->
-        <div class="flex flex-col gap-3">
-          ${resolvedUrl ? `
-            <div class="rounded-xl overflow-hidden border border-border-subtle bg-black/5 max-h-48 flex items-center justify-center">
-              <img src="${resolvedUrl}" alt="Complaint Image" class="w-full h-48 object-cover hover:scale-105 transition-transform duration-300">
-            </div>
-          ` : `
-            <div class="p-4 bg-surface-container-low border border-border-subtle rounded-xl flex items-center justify-center text-center text-outline text-xs h-32">
-              No photo attached with complaint
-            </div>
-          `}
-          <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs flex-1">
-            <span class="text-outline font-semibold text-[10px]">Citizen Description</span>
-            <p class="text-on-surface font-normal leading-relaxed text-xs opacity-90">${issue.description || 'No description provided.'}</p>
-          </div>
-        </div>
       </div>
+
+      <!-- Linked Incident Cluster Card (If Confirmed) -->
+      ${incidentCardHTML}
+
+      <!-- Potential Related Incidents Card (If Pending Candidates Exist) -->
+      ${candidatesHTML}
 
       <!-- AI Analysis Section -->
       ${issue.ai_analyzed ? `
