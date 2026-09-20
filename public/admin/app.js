@@ -1040,6 +1040,8 @@ function openImageLightbox(imgSrc) {
   document.body.appendChild(modal);
 }
 
+let cachedIssues = [];
+
 async function getIssues() {
   const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
   if (error) {
@@ -2348,6 +2350,407 @@ function openAdminFilterModal() {
   });
 }
 
+// --- Phase 6 Analytics Helpers & Normalization Utilities ---
+
+function normalizeCategory(cat) {
+  if (!cat) return 'Other';
+  const c = String(cat).trim();
+  if (c === 'Road Damage' || c === 'Roads & Potholes' || c.toLowerCase().includes('pothole') || c.toLowerCase().includes('road')) return 'Road Damage';
+  if (c === 'Garbage' || c === 'Sanitation' || c.toLowerCase().includes('trash') || c.toLowerCase().includes('waste')) return 'Garbage';
+  if (c === 'Streetlights' || c === 'Street Lighting' || c.toLowerCase().includes('light')) return 'Streetlights';
+  if (c === 'Water Leakage' || c.toLowerCase().includes('water') || c.toLowerCase().includes('leak')) return 'Water Leakage';
+  return 'Other';
+}
+
+function normalizeSeverity(sev) {
+  if (!sev) return 'Normal';
+  const s = String(sev).trim();
+  if (s === 'Critical') return 'Critical';
+  if (s === 'High') return 'High';
+  if (s === 'Medium' || s === 'Moderate') return 'Moderate';
+  if (s === 'Low' || s === 'Normal') return 'Normal';
+  return 'Normal';
+}
+
+function normalizeStatus(st) {
+  if (!st) return 'Pending';
+  const s = String(st).trim();
+  if (s === 'Resolved') return 'Resolved';
+  if (s === 'In Progress' || s === 'Assigned') return 'Assigned / In Progress';
+  return 'Pending';
+}
+
+function getChartThemeColors() {
+  const isDark = document.documentElement.classList.contains('dark');
+  return {
+    textColor: isDark ? '#a8adc4' : '#434655',
+    gridColor: isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+    borderColor: isDark ? 'rgba(28, 32, 52, 0.9)' : '#ffffff',
+    fontFamily: "'Poppins', sans-serif"
+  };
+}
+
+window.adminCharts = window.adminCharts || {};
+
+function destroyAdminChart(chartId) {
+  if (window.adminCharts[chartId]) {
+    try {
+      window.adminCharts[chartId].destroy();
+    } catch (e) {
+      console.warn(`Failed to destroy chart ${chartId}:`, e);
+    }
+    delete window.adminCharts[chartId];
+  }
+}
+
+let currentTrendDays = 30;
+
+function setTrendRange(days) {
+  currentTrendDays = days;
+  const btn7 = document.getElementById('trend-range-7');
+  const btn30 = document.getElementById('trend-range-30');
+  const btn90 = document.getElementById('trend-range-90');
+
+  const activeClasses = ['bg-white', 'dark:bg-surface-container-high', 'shadow-sm', 'text-primary'];
+  const inactiveClasses = ['text-on-surface-variant', 'hover:text-on-surface'];
+
+  [btn7, btn30, btn90].forEach(btn => {
+    if (!btn) return;
+    btn.classList.remove(...activeClasses);
+    btn.classList.add(...inactiveClasses);
+  });
+
+  const activeBtn = days === 7 ? btn7 : days === 90 ? btn90 : btn30;
+  if (activeBtn) {
+    activeBtn.classList.remove(...inactiveClasses);
+    activeBtn.classList.add(...activeClasses);
+  }
+
+  if (cachedIssues && cachedIssues.length) {
+    renderTrendChart(cachedIssues, currentTrendDays);
+  }
+}
+
+function renderTrendChart(issues, days = 30) {
+  const canvas = document.getElementById('chart-trend');
+  if (!canvas) return;
+
+  destroyAdminChart('chart-trend');
+
+  const now = new Date();
+  const dateMap = {};
+  const labels = [];
+  const dataCounts = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const labelStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    dateMap[dateStr] = { count: 0, label: labelStr };
+  }
+
+  for (const issue of issues) {
+    if (!issue.created_at) continue;
+    const issueDateStr = new Date(issue.created_at).toISOString().split('T')[0];
+    if (dateMap[issueDateStr]) {
+      dateMap[issueDateStr].count++;
+    }
+  }
+
+  Object.keys(dateMap).forEach(key => {
+    labels.push(dateMap[key].label);
+    dataCounts.push(dateMap[key].count);
+  });
+
+  const theme = getChartThemeColors();
+
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+  gradient.addColorStop(0, 'rgba(37, 99, 235, 0.35)');
+  gradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+  window.adminCharts['chart-trend'] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Complaints Reported',
+        data: dataCounts,
+        borderColor: '#2563EB',
+        borderWidth: 2.5,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: '#2563EB',
+        pointRadius: days > 30 ? 2 : 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          bodyFont: { family: theme.fontFamily },
+          titleFont: { family: theme.fontFamily, weight: 'bold' }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: theme.gridColor },
+          ticks: {
+            color: theme.textColor,
+            font: { family: theme.fontFamily, size: 11 },
+            maxTicksLimit: days > 30 ? 12 : 8
+          }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: theme.gridColor },
+          ticks: {
+            color: theme.textColor,
+            font: { family: theme.fontFamily, size: 11 },
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+function renderDashboardCharts(issues) {
+  if (typeof Chart === 'undefined') return;
+
+  const theme = getChartThemeColors();
+
+  // 1. Category Chart
+  const catCanvas = document.getElementById('chart-categories');
+  if (catCanvas) {
+    destroyAdminChart('chart-categories');
+    const catCounts = {
+      'Road Damage': 0,
+      'Garbage': 0,
+      'Streetlights': 0,
+      'Water Leakage': 0,
+      'Other': 0
+    };
+    issues.forEach(i => {
+      const norm = normalizeCategory(i.category);
+      catCounts[norm] = (catCounts[norm] || 0) + 1;
+    });
+
+    window.adminCharts['chart-categories'] = new Chart(catCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(catCounts),
+        datasets: [{
+          data: Object.values(catCounts),
+          backgroundColor: ['#2563EB', '#006b5f', '#F59E0B', '#60A5FA', '#943700'],
+          borderWidth: 2,
+          borderColor: theme.borderColor
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: theme.textColor, font: { family: theme.fontFamily, size: 10 }, boxWidth: 10, padding: 8 }
+          }
+        }
+      }
+    });
+  }
+
+  // 2. Status Chart
+  const statusCanvas = document.getElementById('chart-status');
+  if (statusCanvas) {
+    destroyAdminChart('chart-status');
+    const statusCounts = {
+      'Pending': 0,
+      'Assigned / In Progress': 0,
+      'Resolved': 0
+    };
+    issues.forEach(i => {
+      const norm = normalizeStatus(i.status);
+      statusCounts[norm] = (statusCounts[norm] || 0) + 1;
+    });
+
+    window.adminCharts['chart-status'] = new Chart(statusCanvas.getContext('2d'), {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(statusCounts),
+        datasets: [{
+          data: Object.values(statusCounts),
+          backgroundColor: ['#F59E0B', '#2563EB', '#22C55E'],
+          borderWidth: 2,
+          borderColor: theme.borderColor
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: theme.textColor, font: { family: theme.fontFamily, size: 9 }, boxWidth: 8, padding: 4 }
+          }
+        }
+      }
+    });
+  }
+
+  // 3. Severity Distribution Chart
+  const sevCanvas = document.getElementById('chart-severity');
+  if (sevCanvas) {
+    destroyAdminChart('chart-severity');
+    const sevCounts = {
+      'Critical': 0,
+      'High': 0,
+      'Moderate': 0,
+      'Normal': 0
+    };
+    issues.forEach(i => {
+      const norm = normalizeSeverity(i.criticality);
+      sevCounts[norm] = (sevCounts[norm] || 0) + 1;
+    });
+
+    window.adminCharts['chart-severity'] = new Chart(sevCanvas.getContext('2d'), {
+      type: 'pie',
+      data: {
+        labels: Object.keys(sevCounts),
+        datasets: [{
+          data: Object.values(sevCounts),
+          backgroundColor: ['#EF4444', '#F97316', '#F59E0B', '#64748B'],
+          borderWidth: 2,
+          borderColor: theme.borderColor
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: theme.textColor, font: { family: theme.fontFamily, size: 9 }, boxWidth: 8, padding: 4 }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Department Workload Chart
+  const deptCanvas = document.getElementById('chart-department');
+  if (deptCanvas) {
+    destroyAdminChart('chart-department');
+    const deptCounts = {
+      'Road Maintenance & PWD': 0,
+      'Solid Waste & Sanitation': 0,
+      'Electrical & Street Lighting': 0,
+      'Water Supply & Drainage': 0,
+      'General Municipal Administration': 0
+    };
+    issues.forEach(i => {
+      const d = i.assigned_department || 'General Municipal Administration';
+      deptCounts[d] = (deptCounts[d] || 0) + 1;
+    });
+
+    window.adminCharts['chart-department'] = new Chart(deptCanvas.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(deptCounts).map(d => d.replace('& PWD', '').replace('& Sanitation', '').replace('& Street Lighting', '').replace('& Drainage', '')),
+        datasets: [{
+          label: 'Complaints Assigned',
+          data: Object.values(deptCounts),
+          backgroundColor: '#2563EB',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            grid: { color: theme.gridColor },
+            ticks: { color: theme.textColor, font: { family: theme.fontFamily, size: 10 }, precision: 0 }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: theme.textColor, font: { family: theme.fontFamily, size: 10 } }
+          }
+        }
+      }
+    });
+  }
+
+  // 5. Trend Chart
+  renderTrendChart(issues, currentTrendDays);
+}
+
+async function fetchIncidentAnalytics() {
+  const elTotal = document.getElementById('stat-total-incidents');
+  const elLinked = document.getElementById('stat-linked-complaints');
+  const elCandidates = document.getElementById('stat-pending-candidates');
+  const elStatus = document.getElementById('incident-analytics-status');
+
+  if (!elTotal && !elLinked && !elCandidates) return;
+
+  try {
+    const { count: incidentsCount, error: incErr } = await supabaseClient
+      .from('incidents')
+      .select('*', { count: 'exact', head: true });
+
+    if (incErr) throw incErr;
+
+    const { count: linkedCount, error: linkErr } = await supabaseClient
+      .from('issues')
+      .select('*', { count: 'exact', head: true })
+      .not('incident_id', 'is', null);
+
+    if (linkErr) throw linkErr;
+
+    const { count: candCount, error: candErr } = await supabaseClient
+      .from('incident_candidates')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+
+    if (candErr) throw candErr;
+
+    if (elTotal) elTotal.innerText = (incidentsCount || 0).toLocaleString();
+    if (elLinked) elLinked.innerText = (linkedCount || 0).toLocaleString();
+    if (elCandidates) elCandidates.innerText = (candCount || 0).toLocaleString();
+    if (elStatus) elStatus.innerText = 'Phase 4 Active';
+  } catch (err) {
+    console.warn("Incident Analytics query failed independently:", err?.message || err);
+    if (elTotal) elTotal.innerText = 'N/A';
+    if (elLinked) elLinked.innerText = 'N/A';
+    if (elCandidates) elCandidates.innerText = 'N/A';
+    if (elStatus) elStatus.innerText = 'Telemetry Unavailable';
+  }
+}
+
+// Re-render charts when dark mode theme changes
+if (typeof MutationObserver !== 'undefined' && document.documentElement) {
+  const themeObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.attributeName === 'class' && cachedIssues && cachedIssues.length) {
+        renderDashboardCharts(cachedIssues);
+      }
+    });
+  });
+  themeObserver.observe(document.documentElement, { attributes: true });
+}
+
 async function renderAdminIssues() {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
@@ -2356,25 +2759,31 @@ async function renderAdminIssues() {
 
   // 1. Calculate overall stats for cards
   const totalCount = issues.length;
-  const criticalCount = issues.filter(issue => issue.criticality === 'Critical' && issue.status !== 'Resolved').length;
+  const criticalCount = issues.filter(issue => normalizeSeverity(issue.criticality) === 'Critical').length;
   const resolvedCount = issues.filter(issue => issue.status === 'Resolved').length;
   const pendingCount = issues.filter(issue => issue.status !== 'Resolved').length;
   
-  const roadsCount = issues.filter(issue => issue.category === 'Road Damage' || issue.category === 'Roads & Potholes').length;
-  const garbageCount = issues.filter(issue => issue.category === 'Garbage' || issue.category === 'Sanitation').length;
-  const lightingCount = issues.filter(issue => issue.category === 'Streetlights' || issue.category === 'Street Lighting').length;
-  const waterCount = issues.filter(issue => issue.category === 'Water Leakage').length;
+  const roadsCount = issues.filter(issue => normalizeCategory(issue.category) === 'Road Damage').length;
+  const garbageCount = issues.filter(issue => normalizeCategory(issue.category) === 'Garbage').length;
+  const lightingCount = issues.filter(issue => normalizeCategory(issue.category) === 'Streetlights').length;
+  const waterCount = issues.filter(issue => normalizeCategory(issue.category) === 'Water Leakage').length;
 
   // Update top stats cards
   const elTotal = document.getElementById('stat-total-complaints');
   const elCritical = document.getElementById('stat-critical-issues');
   const elResolved = document.getElementById('stat-resolved-cases');
   const elPending = document.getElementById('stat-pending-cases');
+  const elEfficiency = document.getElementById('stat-efficiency-percent');
   
   if (elTotal) elTotal.innerText = totalCount.toLocaleString();
   if (elCritical) elCritical.innerText = criticalCount.toLocaleString();
   if (elResolved) elResolved.innerText = resolvedCount.toLocaleString();
   if (elPending) elPending.innerText = pendingCount.toLocaleString();
+
+  if (elEfficiency) {
+    const resPct = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 0;
+    elEfficiency.innerText = `${resPct}% Resolved`;
+  }
 
   // Update categories bars
   const updateCat = (idCount, idBar, count) => {
@@ -2390,6 +2799,10 @@ async function renderAdminIssues() {
   updateCat('cat-garbage-count', 'cat-garbage-bar', garbageCount);
   updateCat('cat-lighting-count', 'cat-lighting-bar', lightingCount);
   updateCat('cat-water-count', 'cat-water-bar', waterCount);
+
+  // Render Charts & Incident Telemetry
+  renderDashboardCharts(issues);
+  fetchIncidentAnalytics();
 
   // 2. Filter issues
   let filtered = issues.filter(issue => {

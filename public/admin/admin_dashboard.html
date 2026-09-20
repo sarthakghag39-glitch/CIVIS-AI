@@ -152,6 +152,7 @@
         html.dark aside                        { background-color: #141720 !important; border-color: rgba(52,58,80,0.8) !important; }
     </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-background text-on-surface">
 <!-- Navigation Drawer -->
@@ -259,7 +260,7 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
 <span class="material-symbols-outlined">forum</span>
 </div>
-<span class="text-success text-[12px] font-bold" id="stat-total-percent">+0% vs LW</span>
+<span class="text-primary text-[12px] font-bold" id="stat-total-percent">Total</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Total Complaints</p>
 <h4 class="text-display-lg font-display-lg text-on-surface mt-1" id="stat-total-complaints">0</h4>
@@ -270,7 +271,7 @@
 <div class="p-3 rounded-xl bg-error-container text-on-error-container group-hover:bg-critical group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">warning</span>
 </div>
-<span class="text-critical text-[12px] font-bold" id="stat-critical-today">+0 Today</span>
+<span class="text-critical text-[12px] font-bold" id="stat-critical-today">Critical Priority</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Critical Issues</p>
 <h4 class="text-display-lg font-display-lg text-critical mt-1" id="stat-critical-issues">0</h4>
@@ -281,7 +282,7 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-success group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">check_circle</span>
 </div>
-<span class="text-success text-[12px] font-bold" id="stat-efficiency-percent">0% Efficiency</span>
+<span class="text-success text-[12px] font-bold" id="stat-efficiency-percent">Resolution Rate</span>
 </div>
 <p class="text-outline font-label-md text-label-md">Resolved Cases</p>
 <h4 class="text-display-lg font-display-lg text-success mt-1" id="stat-resolved-cases">0</h4>
@@ -292,51 +293,52 @@
 <div class="p-3 rounded-xl bg-surface-container-high text-on-surface-variant group-hover:bg-warning group-hover:text-on-primary transition-colors">
 <span class="material-symbols-outlined">schedule</span>
 </div>
-<span class="text-outline text-[12px] font-bold" id="stat-avg-days">Avg 1.2 days</span>
+<span class="text-warning text-[12px] font-bold" id="stat-avg-days">Non-Resolved</span>
 </div>
-<p class="text-outline font-label-md text-label-md">Pending Cases</p>
+<p class="text-outline font-label-md text-label-md">Pending &amp; Open Cases</p>
 <h4 class="text-display-lg font-display-lg text-on-surface mt-1" id="stat-pending-cases">0</h4>
 </div>
 </div>
-<!-- Analytics Section: Bento Grid -->
+<!-- Analytics Section: Primary Bento Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-<!-- Bar Chart: Complaints by Category -->
-<div class="lg:col-span-1 bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
-<div class="flex items-center justify-between mb-8">
+<!-- Category Distribution Breakdown -->
+<div class="lg:col-span-1 bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-6">
 <h5 class="font-headline-md text-headline-md text-on-surface">Categories</h5>
-<button class="text-primary font-label-md text-label-md">View all</button>
+<span class="text-xs text-outline font-medium">Canonical Breakdown</span>
 </div>
-<div class="space-y-6">
-<div class="space-y-2">
+<div class="space-y-4">
+<div class="space-y-1">
 <div class="flex justify-between text-label-md font-medium">
-<span class="">Roads &amp; Potholes</span>
+<span>Road Damage</span>
 <span class="text-on-surface-variant" id="cat-roads-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
 <div class="h-full bg-primary rounded-full transition-all duration-500" id="cat-roads-bar" style="width: 0%"></div>
 </div>
 </div>
-<div class="space-y-2">
+<div class="space-y-1">
 <div class="flex justify-between text-label-md font-medium">
-<span class="">Sanitation</span>
+<span>Garbage</span>
 <span class="text-on-surface-variant" id="cat-garbage-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
 <div class="h-full bg-secondary rounded-full transition-all duration-500" id="cat-garbage-bar" style="width: 0%"></div>
 </div>
 </div>
-<div class="space-y-2">
+<div class="space-y-1">
 <div class="flex justify-between text-label-md font-medium">
-<span class="">Street Lighting</span>
+<span>Streetlights</span>
 <span class="text-on-surface-variant" id="cat-lighting-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
 <div class="h-full bg-warning rounded-full transition-all duration-500" id="cat-lighting-bar" style="width: 0%"></div>
 </div>
 </div>
-<div class="space-y-2">
+<div class="space-y-1">
 <div class="flex justify-between text-label-md font-medium">
-<span class="">Water Leakage</span>
+<span>Water Leakage</span>
 <span class="text-on-surface-variant" id="cat-water-count">0</span>
 </div>
 <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
@@ -344,41 +346,98 @@
 </div>
 </div>
 </div>
-<div class="mt-8 pt-6 border-t border-border-subtle flex items-center gap-3">
+<div class="mt-6 h-44 relative flex items-center justify-center">
+<canvas id="chart-categories" class="max-h-full"></canvas>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-border-subtle flex items-center gap-3">
 <span class="material-symbols-outlined text-outline">info</span>
-<p class="text-label-sm text-outline">Road issues increased by 8% this month.</p>
+<p class="text-label-sm text-outline">Real-time category breakdown from live issue records.</p>
 </div>
 </div>
-<!-- Line Chart: Resolution Trend Placeholder -->
+<!-- Real Time-Based Trend Chart -->
 <div class="lg:col-span-2 bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col">
-<div class="flex items-center justify-between mb-8">
+<div class="flex flex-wrap items-center justify-between gap-4 mb-6">
 <div>
-<h5 class="font-headline-md text-headline-md text-on-surface">Resolution Trend</h5>
-<p class="text-label-sm text-outline">Tracking efficiency over the last 30 days</p>
+<h5 class="font-headline-md text-headline-md text-on-surface">Complaint Trend</h5>
+<p class="text-label-sm text-outline">Time-series daily complaints aggregated from live data</p>
 </div>
-<div class="flex bg-surface-container-low p-1 rounded-lg">
-<button class="px-4 py-1.5 rounded-md text-label-sm font-bold bg-white shadow-sm text-primary">Daily</button>
-<button class="px-4 py-1.5 rounded-md text-label-sm font-bold text-on-surface-variant hover:text-on-surface">Weekly</button>
+<div class="flex bg-surface-container-low p-1 rounded-lg gap-1 border border-border-subtle">
+<button id="trend-range-7" class="trend-range-btn px-3 py-1.5 rounded-md text-label-sm font-bold transition-all text-on-surface-variant hover:text-on-surface cursor-pointer" onclick="setTrendRange(7)">7 Days</button>
+<button id="trend-range-30" class="trend-range-btn px-3 py-1.5 rounded-md text-label-sm font-bold transition-all bg-white dark:bg-surface-container-high shadow-sm text-primary cursor-pointer" onclick="setTrendRange(30)">30 Days</button>
+<button id="trend-range-90" class="trend-range-btn px-3 py-1.5 rounded-md text-label-sm font-bold transition-all text-on-surface-variant hover:text-on-surface cursor-pointer" onclick="setTrendRange(90)">90 Days</button>
 </div>
 </div>
-<div class="flex-1 relative min-h-[250px] w-full bg-surface-container-lowest rounded-xl overflow-hidden border border-border-subtle flex items-end justify-between px-6 pb-4">
-<!-- Simulated Chart Visual -->
-<div class="h-[40%] w-8 bg-primary/20 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[60%] w-8 bg-primary/30 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[55%] w-8 bg-primary/40 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[80%] w-8 bg-primary/50 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[70%] w-8 bg-primary/60 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[90%] w-8 bg-primary rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[85%] w-8 bg-primary/80 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[75%] w-8 bg-primary/40 rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[95%] w-8 bg-primary rounded-t-sm chart-bar-glow transition-all"></div>
-<div class="h-[65%] w-8 bg-primary/30 rounded-t-sm chart-bar-glow transition-all"></div>
+<div class="flex-1 relative min-h-[280px] w-full bg-surface-container-lowest rounded-xl p-4 border border-border-subtle flex items-center justify-center">
+<canvas id="chart-trend" class="w-full h-full"></canvas>
 </div>
-<div class="mt-4 flex justify-between px-6">
-<span class="text-[10px] font-bold text-outline uppercase tracking-wider">01 Oct</span>
-<span class="text-[10px] font-bold text-outline uppercase tracking-wider">10 Oct</span>
-<span class="text-[10px] font-bold text-outline uppercase tracking-wider">20 Oct</span>
-<span class="text-[10px] font-bold text-outline uppercase tracking-wider">30 Oct</span>
+</div>
+</div>
+
+<!-- Secondary Analytics Bento Grid: Status, Severity, Department Workload & Incident Telemetry -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Status & Severity Distribution Card -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h5 class="font-headline-md text-headline-md text-on-surface">Status &amp; Severity</h5>
+<span class="text-xs text-outline font-medium">Distribution</span>
+</div>
+<div class="grid grid-cols-2 gap-4 h-48 relative">
+<div class="flex flex-col items-center justify-center">
+<p class="text-xs font-bold text-outline mb-1">Status</p>
+<div class="w-full h-36 relative">
+<canvas id="chart-status"></canvas>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center">
+<p class="text-xs font-bold text-outline mb-1">Severity</p>
+<div class="w-full h-36 relative">
+<canvas id="chart-severity"></canvas>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Department Workload Card -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h5 class="font-headline-md text-headline-md text-on-surface">Department Workload</h5>
+<span class="text-xs text-outline font-medium">Assigned Load</span>
+</div>
+<div class="h-48 relative">
+<canvas id="chart-department"></canvas>
+</div>
+</div>
+</div>
+
+<!-- Incident Clustering Telemetry Card (Fails Independently) -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h5 class="font-headline-md text-headline-md text-on-surface">Incident Clusters</h5>
+<span id="incident-analytics-status" class="text-xs font-semibold text-primary">Phase 4 Active</span>
+</div>
+<div class="grid grid-cols-3 gap-2 my-2 text-center">
+<div class="bg-surface-container-low p-3 rounded-xl border border-border-subtle">
+<p class="text-xs text-outline font-medium">Total Clusters</p>
+<h4 id="stat-total-incidents" class="text-xl font-bold text-primary mt-1">--</h4>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl border border-border-subtle">
+<p class="text-xs text-outline font-medium">Linked Issues</p>
+<h4 id="stat-linked-complaints" class="text-xl font-bold text-secondary mt-1">--</h4>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl border border-border-subtle">
+<p class="text-xs text-outline font-medium">Pending Review</p>
+<h4 id="stat-pending-candidates" class="text-xl font-bold text-warning mt-1">--</h4>
+</div>
+</div>
+</div>
+<div class="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-outline">
+<span>Auto-Spatial Deduplication</span>
+<a href="/citizen_issues.html" class="text-primary font-semibold hover:underline">Review Pairs &rarr;</a>
 </div>
 </div>
 </div>
