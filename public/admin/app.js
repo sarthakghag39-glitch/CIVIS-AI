@@ -2177,6 +2177,79 @@ let activeFilterDepartment = 'all'; // 'all', 'Road Maintenance & PWD', 'Solid W
 let activeFilterPriorityTier = 'all'; // 'all', 'p1', 'p2', 'p3', 'p4'
 let activeAdminSort = 'priority_desc'; // 'priority_desc', 'priority_asc', 'date_desc', 'date_asc'
 
+function initAdminDashboard() {
+  const issuesList = document.querySelector('table tbody, main .divide-y');
+  if (issuesList) {
+    renderAdminIssues();
+  }
+
+  // Wire up the Search Bar
+  const searchInput = document.getElementById('admin-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      adminSearchQuery = e.target.value.toLowerCase().trim();
+      currentAdminPage = 1;
+      renderAdminIssues();
+    });
+  }
+
+  // Wire up the Filter Button
+  const filterBtn = document.getElementById('admin-filter-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Filter'));
+  if (filterBtn) {
+    filterBtn.style.cursor = 'pointer';
+    filterBtn.addEventListener('click', () => openAdminFilterModal());
+  }
+
+  // Wire up the CSV Export Button
+  const exportBtn = document.getElementById('admin-export-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Export'));
+  if (exportBtn) {
+    exportBtn.style.cursor = 'pointer';
+    exportBtn.addEventListener('click', () => handleExportCSV());
+  }
+}
+
+async function handleExportCSV() {
+  const issues = await getIssues();
+  if (!issues || !issues.length) {
+    alert("No issues found to export.");
+    return;
+  }
+  
+  const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Assigned Department', 'Priority', 'Location', 'Date', 'Status', 'Progress', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
+  const csvRows = [headers.join(',')];
+  
+  issues.forEach(issue => {
+    const complaintId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
+    const values = [
+      `"${complaintId}"`,
+      issue.id,
+      `"${(issue.title || '').replace(/"/g, '""')}"`,
+      `"${(issue.category || '').replace(/"/g, '""')}"`,
+      `"${(issue.assigned_department || 'General Municipal Administration').replace(/"/g, '""')}"`,
+      `"${(issue.criticality || '').replace(/"/g, '""')}"`,
+      `"${(issue.location || '').replace(/"/g, '""')}"`,
+      `"${(issue.date || '').replace(/"/g, '""')}"`,
+      `"${(issue.status || '').replace(/"/g, '""')}"`,
+      issue.progress || 0,
+      `"${(issue.reported_by || '').replace(/"/g, '""')}"`,
+      `"${(issue.reported_by_email || '').replace(/"/g, '""')}"`,
+      `"${(issue.reported_by_phone || '').replace(/"/g, '""')}"`,
+      issue.lat || 0,
+      issue.lng || 0
+    ];
+    csvRows.push(values.join(','));
+  });
+  
+  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `CIVIS_AI_Complaints_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function openAdminFilterModal() {
   const existingModal = document.getElementById('admin-filter-modal');
   if (existingModal) existingModal.remove();
