@@ -2925,6 +2925,204 @@ if (typeof MutationObserver !== 'undefined' && document.documentElement) {
   themeObserver.observe(document.documentElement, { attributes: true });
 }
 
+// --- Phase 8A: Operational Command Center Renderer ---
+function renderCommandCenter(issues, incidentMap) {
+  const container = document.getElementById('command-center-section');
+  if (!container) return;
+
+  const safeIssues = Array.isArray(issues) ? issues : [];
+  const now = new Date();
+  const esc = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+
+  const activeQueue = [];
+  let slaBreachedCount = 0;
+  let slaWarningCount = 0;
+  let withinSlaCount = 0;
+  let activeUnresolvedCount = 0;
+
+  const departmentMatrix = {
+    'Road Maintenance & PWD': { active: 0, p1: 0, p2: 0, breached: 0, warning: 0 },
+    'Solid Waste & Sanitation': { active: 0, p1: 0, p2: 0, breached: 0, warning: 0 },
+    'Electrical & Street Lighting': { active: 0, p1: 0, p2: 0, breached: 0, warning: 0 },
+    'Water Supply & Drainage': { active: 0, p1: 0, p2: 0, breached: 0, warning: 0 },
+    'General Municipal Administration': { active: 0, p1: 0, p2: 0, breached: 0, warning: 0 }
+  };
+
+  safeIssues.forEach(issue => {
+    if (!issue || typeof issue !== 'object') return;
+
+    const isResolved = String(issue.status || '').trim() === 'Resolved';
+    const pData = (typeof CivisPrioritizationEngine !== 'undefined')
+      ? CivisPrioritizationEngine.calculatePriorityScore(issue, incidentMap, now)
+      : { score: 25, tier: 'P4 Routine', locationQualityLabel: 'Unknown', locationConfidence: 0 };
+    const sla = (typeof CivisPrioritizationEngine !== 'undefined')
+      ? CivisPrioritizationEngine.getSLAStatus(issue, pData, now)
+      : { isSLABreached: false, isSLAWarning: false, openDays: 0, targetDays: 15, overdueDays: 0 };
+
+    if (!isResolved) {
+      activeUnresolvedCount++;
+
+      if (sla.isSLABreached) slaBreachedCount++;
+      else if (sla.isSLAWarning) slaWarningCount++;
+      else withinSlaCount++;
+
+      if (pData.tier === 'P1 Critical' || pData.tier === 'P2 High') {
+        activeQueue.push({ issue, pData, sla });
+      }
+
+      let rawDept = String(issue.assigned_department || '').trim();
+      if (!departmentMatrix[rawDept]) {
+        rawDept = 'General Municipal Administration';
+      }
+      const deptObj = departmentMatrix[rawDept];
+      deptObj.active++;
+      if (pData.tier === 'P1 Critical') deptObj.p1++;
+      if (pData.tier === 'P2 High') deptObj.p2++;
+      if (sla.isSLABreached) deptObj.breached++;
+      if (sla.isSLAWarning) deptObj.warning++;
+    }
+  });
+
+  // Sort activeQueue descending by priority score, then by openDays descending
+  activeQueue.sort((a, b) => {
+    if (b.pData.score !== a.pData.score) return b.pData.score - a.pData.score;
+    return b.sla.openDays - a.sla.openDays;
+  });
+
+  // Render SLA Summary Pills
+  const totalSlaBase = activeUnresolvedCount > 0 ? activeUnresolvedCount : 1;
+  const breachedPct = activeUnresolvedCount > 0 ? Math.round((slaBreachedCount / totalSlaBase) * 100) : 0;
+  const warningPct = activeUnresolvedCount > 0 ? Math.round((slaWarningCount / totalSlaBase) * 100) : 0;
+  const withinPct = activeUnresolvedCount > 0 ? Math.round((withinSlaCount / totalSlaBase) * 100) : 0;
+
+  const elSlaBreachedCount = document.getElementById('cmd-sla-breached-count');
+  const elSlaBreachedPct = document.getElementById('cmd-sla-breached-pct');
+  const elSlaWarningCount = document.getElementById('cmd-sla-warning-count');
+  const elSlaWarningPct = document.getElementById('cmd-sla-warning-pct');
+  const elSlaWithinCount = document.getElementById('cmd-sla-within-count');
+  const elSlaWithinPct = document.getElementById('cmd-sla-within-pct');
+
+  if (elSlaBreachedCount) elSlaBreachedCount.innerText = `${slaBreachedCount} Breached`;
+  if (elSlaBreachedPct) elSlaBreachedPct.innerText = `(${breachedPct}%)`;
+  if (elSlaWarningCount) elSlaWarningCount.innerText = `${slaWarningCount} Warning`;
+  if (elSlaWarningPct) elSlaWarningPct.innerText = `(${warningPct}%)`;
+  if (elSlaWithinCount) elSlaWithinCount.innerText = `${withinSlaCount} Within SLA`;
+  if (elSlaWithinPct) elSlaWithinPct.innerText = `(${withinPct}%)`;
+
+  // Render Operational Insights
+  const insightsContainer = document.getElementById('cmd-insights-container');
+  if (insightsContainer) {
+    const insights = [];
+    if (activeQueue.length > 0) {
+      insights.push(`${activeQueue.length} unresolved priority complaint${activeQueue.length > 1 ? 's' : ''} (P1/P2) require immediate administrative attention`);
+    }
+    if (slaBreachedCount > 0) {
+      insights.push(`${slaBreachedCount} active complaint${slaBreachedCount > 1 ? 's have' : ' has'} exceeded target SLA resolution time`);
+    }
+
+    let topDeptName = null;
+    let topDeptP1P2 = 0;
+    Object.keys(departmentMatrix).forEach(d => {
+      const p1p2 = departmentMatrix[d].p1 + departmentMatrix[d].p2;
+      if (p1p2 > topDeptP1P2) {
+        topDeptP1P2 = p1p2;
+        topDeptName = d;
+      }
+    });
+    if (topDeptName && topDeptP1P2 > 0) {
+      insights.push(`${topDeptName} carries highest priority burden with ${topDeptP1P2} active P1/P2 case${topDeptP1P2 > 1 ? 's' : ''}`);
+    }
+
+    if (insights.length === 0) {
+      insights.push('All active municipal complaints are currently within normal operational bounds.');
+    }
+
+    insightsContainer.innerHTML = insights.map(text => `
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-surface-container-high text-on-surface border border-border-subtle">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+        ${esc(text)}
+      </span>
+    `).join('');
+  }
+
+  // Render Active Queue Badge & Table
+  const queueBadge = document.getElementById('cmd-queue-badge');
+  if (queueBadge) {
+    queueBadge.innerText = `${activeQueue.length} Urgent Case${activeQueue.length === 1 ? '' : 's'}`;
+  }
+
+  const tbody = document.getElementById('cmd-attention-queue-tbody');
+  if (tbody) {
+    if (activeQueue.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="9" class="p-6 text-center text-outline font-medium text-sm">
+            <span class="material-symbols-outlined text-success text-3xl block mb-1">check_circle</span>
+            No active P1 or P2 complaints requiring immediate attention.
+          </td>
+        </tr>
+      `;
+    } else {
+      tbody.innerHTML = activeQueue.map(item => {
+        const i = item.issue;
+        const pData = item.pData;
+        const sla = item.sla;
+
+        const isP1 = pData.tier === 'P1 Critical';
+        const tierBadgeClass = isP1
+          ? 'bg-critical/10 text-critical border-critical/30'
+          : 'bg-warning/10 text-warning border-warning/30';
+
+        let slaBadgeClass = 'bg-success/10 text-success border-success/30';
+        let slaLabel = `${sla.openDays}d / ${sla.targetDays}d target`;
+        if (sla.isSLABreached) {
+          slaBadgeClass = 'bg-critical/10 text-critical border-critical/30';
+          slaLabel = `SLA Breached (+${sla.overdueDays}d overdue)`;
+        } else if (sla.isSLAWarning) {
+          slaBadgeClass = 'bg-warning/10 text-warning border-warning/30';
+          slaLabel = `SLA Warning (${sla.openDays}d / ${sla.targetDays}d)`;
+        }
+
+        const cid = i.complaint_id || `CIV-${String(i.id).padStart(4, '0')}`;
+        const dept = i.assigned_department || 'General Municipal Administration';
+
+        return `
+          <tr class="hover:bg-surface-container-low/60 transition-colors text-xs text-on-surface">
+            <td class="p-3 font-mono font-bold text-primary">${esc(cid)}</td>
+            <td class="p-3">
+              <div class="font-bold text-on-surface line-clamp-1">${esc(i.title || 'Untitled Complaint')}</div>
+              <div class="text-[11px] text-outline">${esc(i.category || 'Other')}</div>
+            </td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-extrabold border ${tierBadgeClass}">
+                ${esc(pData.tier)}
+              </span>
+            </td>
+            <td class="p-3 font-bold">${pData.score}/100</td>
+            <td class="p-3 text-outline text-[11px]">${esc(dept)}</td>
+            <td class="p-3 font-medium">${sla.openDays} days</td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold border ${slaBadgeClass}">
+                ${esc(slaLabel)}
+              </span>
+            </td>
+            <td class="p-3">
+              <span class="px-2 py-0.5 rounded-md text-[11px] font-medium bg-surface-container-high text-on-surface-variant">
+                ${esc(pData.locationQualityLabel)} (${pData.locationConfidence}%)
+              </span>
+            </td>
+            <td class="p-3 text-right">
+              <button onclick="openAdminComplaintDetailModal('${esc(String(i.id))}')" class="px-2.5 py-1 rounded-md bg-primary text-on-primary font-bold text-[11px] hover:opacity-90 transition-opacity">
+                View
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+  }
+}
+
 async function renderAdminIssues() {
   const tbody = document.querySelector('table tbody');
   if (!tbody) return;
@@ -3032,6 +3230,7 @@ async function renderAdminIssues() {
   // Render Charts & Incident Telemetry
   renderDashboardCharts(issues);
   fetchIncidentAnalytics();
+  renderCommandCenter(issues, incidentMap);
 
   // 2. Filter issues
   let filtered = issues.filter(issue => {

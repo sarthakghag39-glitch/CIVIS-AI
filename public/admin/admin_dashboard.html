@@ -376,6 +376,84 @@
 </div>
 </div>
 
+<!-- Phase 8A: OPERATIONAL COMMAND CENTER -->
+<div id="command-center-section" class="space-y-gutter">
+  <!-- Command Insights & SLA Summary Banner -->
+  <div class="bg-card-bg p-6 rounded-2xl border border-primary/20 ambient-shadow">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div class="space-y-2 flex-1">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary">radar</span>
+          <h3 class="font-headline-md text-headline-md text-on-surface font-bold">Operational Command Center</h3>
+          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container text-on-primary-container">Phase 8A Live</span>
+        </div>
+        <div id="cmd-insights-container" class="flex flex-wrap gap-2 pt-1">
+          <span class="text-label-sm text-outline">Loading operational insights...</span>
+        </div>
+      </div>
+      <!-- SLA Health Summary Pills -->
+      <div class="flex flex-wrap items-center gap-3 bg-surface-container-low p-3 rounded-xl border border-border-subtle">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-error-container/40 border border-critical/30">
+          <span class="w-2 h-2 rounded-full bg-critical"></span>
+          <span class="text-xs font-bold text-critical" id="cmd-sla-breached-count">0 Breached</span>
+          <span class="text-[11px] text-outline" id="cmd-sla-breached-pct">(0%)</span>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/30">
+          <span class="w-2 h-2 rounded-full bg-warning"></span>
+          <span class="text-xs font-bold text-warning" id="cmd-sla-warning-count">0 Warning</span>
+          <span class="text-[11px] text-outline" id="cmd-sla-warning-pct">(0%)</span>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 border border-success/30">
+          <span class="w-2 h-2 rounded-full bg-success"></span>
+          <span class="text-xs font-bold text-success" id="cmd-sla-within-count">0 Within SLA</span>
+          <span class="text-[11px] text-outline" id="cmd-sla-within-pct">(0%)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Attention Queue (P1 Critical & P2 High Unresolved) -->
+  <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow">
+    <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+      <div>
+        <h4 class="font-headline-md text-headline-md text-on-surface font-bold flex items-center gap-2">
+          <span>Active Attention Queue</span>
+          <span id="cmd-queue-badge" class="px-2 py-0.5 rounded-full text-xs font-bold bg-critical/10 text-critical border border-critical/20">0 Urgent</span>
+        </h4>
+        <p class="text-label-sm text-outline">Unresolved P1 Critical &amp; P2 High complaints requiring immediate action</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openAdminFilterModal()" class="px-3 py-1.5 rounded-lg border border-border-subtle text-xs font-semibold hover:bg-surface-container-low transition-colors flex items-center gap-1 text-on-surface">
+          <span class="material-symbols-outlined text-base">filter_alt</span> View All Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm border-collapse">
+        <thead>
+          <tr class="border-b border-border-subtle text-outline text-xs uppercase tracking-wider bg-surface-container-low/50">
+            <th class="p-3 font-semibold">Complaint ID</th>
+            <th class="p-3 font-semibold">Title / Category</th>
+            <th class="p-3 font-semibold">Priority Tier</th>
+            <th class="p-3 font-semibold">Score</th>
+            <th class="p-3 font-semibold">Department</th>
+            <th class="p-3 font-semibold">Open Duration</th>
+            <th class="p-3 font-semibold">SLA Status</th>
+            <th class="p-3 font-semibold">GPS Confidence</th>
+            <th class="p-3 font-semibold text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody id="cmd-attention-queue-tbody" class="divide-y divide-border-subtle">
+          <tr>
+            <td colspan="9" class="p-4 text-center text-outline text-sm">No active P1 or P2 complaints requiring immediate attention.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Secondary Analytics Bento Grid: Status, Severity, Department Workload, Incident Telemetry & Priority Signal -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
 <!-- Status & Severity Distribution Card -->
