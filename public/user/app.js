@@ -26,6 +26,78 @@ function isValidCoordinate(lat, lng) {
          typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
 }
 
+// --- Phase 5B Location & Map UX Helpers ---
+
+async function fetchReverseGeocodeAddress(lat, lng, timeoutMs = 4000) {
+  if (!isValidCoordinate(lat, lng)) return null;
+  try {
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&zoom=18&addressdetails=1`;
+    const res = await fetch(url, {
+      signal: controller ? controller.signal : undefined,
+      headers: { 'Accept': 'application/json' }
+    });
+    if (timer) clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data || !data.address) return null;
+
+    const addr = data.address;
+    const road = addr.road || addr.pedestrian || addr.building || addr.footway || addr.path || '';
+    const suburb = addr.suburb || addr.neighbourhood || addr.quarter || addr.residential || addr.subdivision || '';
+    const city = addr.city || addr.town || addr.village || addr.municipality || addr.county || addr.state_district || '';
+
+    const parts = [road, suburb, city].filter(Boolean);
+    const formatted = parts.length > 0 ? parts.join(', ') : (data.display_name || '');
+    return {
+      formattedAddress: formatted,
+      road,
+      suburb,
+      city,
+      rawAddress: addr,
+      displayName: data.display_name || ''
+    };
+  } catch (err) {
+    console.warn("Reverse geocoding fetch failed:", err?.message || err);
+    return null;
+  }
+}
+
+function checkAddressMismatchPositiveConflict(userText, geocodedResult) {
+  if (!userText || !geocodedResult) return null;
+
+  const normalize = (str) => (str || '').toLowerCase().replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  const normUser = normalize(userText);
+  if (!normUser) return null;
+
+  const normGeocoded = normalize(
+    `${geocodedResult.road || ''} ${geocodedResult.suburb || ''} ${geocodedResult.city || ''} ${geocodedResult.displayName || ''}`
+  );
+
+  const knownLocalities = [
+    'kothrud', 'shivajinagar', 'viman nagar', 'hadapsar', 'baner', 'wakad', 'aundh',
+    'camp', 'kondhwa', 'pimple saudagar', 'pimpri', 'chinchwad', 'kalyani nagar',
+    'yerwada', 'magarpatta', 'katraj', 'swargate', 'deccan', 'karve nagar', 'bhavani peth',
+    'pune', 'mumbai', 'delhi', 'bangalore', 'hyderabad', 'nagpur', 'nashik', 'thane'
+  ];
+
+  for (const loc of knownLocalities) {
+    if (normUser.includes(loc)) {
+      if (!normGeocoded.includes(loc)) {
+        return {
+          hasConflict: true,
+          userLocality: loc,
+          geocodedLocality: geocodedResult.suburb || geocodedResult.city || 'selected pin area'
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
+
 let leafletLoadPromise = null;
 
 function ensureLeafletLoaded() {
@@ -2822,6 +2894,12 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
   let activeAiAnalysis = initialAiAnalysis || null;
 
+  // Phase 5B Location & Reverse Geocoding State
+  let userEditedAddress = !!(defaultLocation && defaultLocation.trim().length > 0);
+  let latestGeocodeSeq = 0;
+  let geocodeDebounceTimer = null;
+  let lastGeocodeResult = null;
+
   // Prevent duplicate modals from spawning
   if (document.getElementById('report-issue-modal')) return;
 
@@ -2860,7 +2938,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
             <span class="material-symbols-outlined text-sm">map</span>
             <span id="modal-map-btn-text">Select / Adjust Pin on Map</span>
           </button>
-          <div id="modal-map-picker-wrapper" class="hidden w-full h-48 rounded-xl border border-border-subtle overflow-hidden relative">
+          <div id="modal-map-picker-wrapper" class="hidden w-full h-48 rounded-xl border border-border-subtle overflow-hidden relative" style="touch-action: none;">
             <div id="modal-map-picker" class="w-full h-full"></div>
             <div class="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-lg z-[1000] flex items-center justify-between pointer-events-none">
               <span>Click/Tap map to set pin</span>
@@ -2916,21 +2994,101 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   const badgeBox = modal.querySelector('#location-badge-box');
   const toggleMapBtn = modal.querySelector('#toggle-modal-map-btn');
   const mapWrapper = modal.querySelector('#modal-map-picker-wrapper');
+  const locationInput = modal.querySelector('#form-location');
+
+  // Mobile Touch Isolation on map wrapper
+  if (mapWrapper) {
+    ['touchstart', 'touchmove', 'touchend'].forEach(evtType => {
+      mapWrapper.addEventListener(evtType, (e) => {
+        e.stopPropagation();
+      }, { passive: false });
+    });
+  }
+
+  // Address Mismatch Warning Element
+  const mismatchWarningBox = document.createElement('div');
+  mismatchWarningBox.id = 'location-mismatch-warning';
+  mismatchWarningBox.className = 'hidden text-xs text-amber-700 bg-amber-50 p-2.5 rounded-xl mt-1.5 flex items-center gap-1.5 font-medium border border-amber-200/80';
+  if (locationInput && locationInput.parentNode) {
+    locationInput.parentNode.appendChild(mismatchWarningBox);
+  }
+
+  const checkAndDisplayAddressMismatch = (geoResult = lastGeocodeResult) => {
+    if (!mismatchWarningBox || !locationInput) return;
+    const currentVal = locationInput.value.trim();
+    const conflict = checkAddressMismatchPositiveConflict(currentVal, geoResult);
+    if (conflict && conflict.hasConflict) {
+      const userCap = conflict.userLocality.charAt(0).toUpperCase() + conflict.userLocality.slice(1);
+      const geoCap = conflict.geocodedLocality.charAt(0).toUpperCase() + conflict.geocodedLocality.slice(1);
+      mismatchWarningBox.innerHTML = `
+        <span class="material-symbols-outlined text-sm shrink-0">warning</span>
+        <span>Location text ("${userCap}") may not match map pin area ("${geoCap}").</span>
+      `;
+      mismatchWarningBox.classList.remove('hidden');
+    } else {
+      mismatchWarningBox.classList.add('hidden');
+    }
+  };
+
+  if (locationInput) {
+    locationInput.addEventListener('input', () => {
+      userEditedAddress = true;
+      checkAndDisplayAddressMismatch();
+    });
+  }
+
+  const triggerReverseGeocode = (latVal, lngVal) => {
+    if (!isValidCoordinate(latVal, lngVal)) return;
+    if (geocodeDebounceTimer) clearTimeout(geocodeDebounceTimer);
+
+    const reqSeq = ++latestGeocodeSeq;
+    geocodeDebounceTimer = setTimeout(async () => {
+      const geoResult = await fetchReverseGeocodeAddress(latVal, lngVal);
+      if (reqSeq !== latestGeocodeSeq) return;
+      if (!document.getElementById('report-issue-modal')) return;
+
+      if (geoResult && geoResult.formattedAddress) {
+        lastGeocodeResult = geoResult;
+        if (!userEditedAddress && locationInput) {
+          locationInput.value = geoResult.formattedAddress;
+        }
+        checkAndDisplayAddressMismatch(geoResult);
+      }
+    }, 500);
+  };
 
   const updateBadge = () => {
     if (!badgeBox) return;
     const valid = isValidCoordinate(currentLat, currentLng);
     if (valid && currentLocationSource === 'gps') {
-      const accStr = currentLocationAccuracy ? ` (±${Math.round(currentLocationAccuracy)}m)` : '';
-      badgeBox.innerHTML = `
-        <div class="p-3 rounded-xl bg-success/10 border border-success/30 text-success text-xs font-semibold flex items-center justify-between">
-          <div class="flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-sm">my_location</span>
-            <span>GPS location obtained${accStr}</span>
+      const acc = Math.round(currentLocationAccuracy || 0);
+      const isCoarse = currentLocationAccuracy && currentLocationAccuracy > 200;
+      if (isCoarse) {
+        badgeBox.innerHTML = `
+          <div class="p-3 rounded-xl bg-warning/15 border border-warning/40 text-warning text-xs font-semibold flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">location_searching</span>
+              <span>GPS location obtained (±${acc}m — Coarse)</span>
+            </div>
+            <span class="text-[10px] opacity-80">${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}</span>
           </div>
-          <span class="text-[10px] opacity-80">${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}</span>
-        </div>
-      `;
+          <div class="mt-1 text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg font-medium flex items-center gap-1 border border-amber-200/80">
+            <span class="material-symbols-outlined text-xs shrink-0">warning</span>
+            <span>GPS accuracy is coarse (±${acc}m). Consider adjusting pin location on map.</span>
+          </div>
+        `;
+      } else {
+        const accStr = currentLocationAccuracy ? ` (±${acc}m)` : '';
+        badgeBox.innerHTML = `
+          <div class="p-3 rounded-xl bg-success/10 border border-success/30 text-success text-xs font-semibold flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-sm">my_location</span>
+              <span>GPS location obtained${accStr}</span>
+            </div>
+            <span class="text-[10px] opacity-80">${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}</span>
+          </div>
+        `;
+      }
     } else if (valid && currentLocationSource === 'manual_pin') {
       badgeBox.innerHTML = `
         <div class="p-3 rounded-xl bg-primary/10 border border-primary/30 text-primary text-xs font-semibold flex items-center justify-between">
@@ -2952,6 +3110,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   };
 
   updateBadge();
+
+  if (isValidCoordinate(currentLat, currentLng)) {
+    triggerReverseGeocode(currentLat, currentLng);
+  }
 
   let miniMap = null;
   let miniMarker = null;
@@ -2984,6 +3146,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
                 miniMarker.on('dragend', (evt) => {
                   const pos = evt.target.getLatLng();
                   handleMapSelection(pos.lat, pos.lng);
+                  triggerReverseGeocode(pos.lat, pos.lng);
                 });
               } else {
                 miniMarker.setLatLng([currentLat, currentLng]);
@@ -2993,6 +3156,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
             miniMap.on('click', (e) => {
               handleMapSelection(e.latlng.lat, e.latlng.lng);
+              triggerReverseGeocode(e.latlng.lat, e.latlng.lng);
             });
 
             if (isValidCoordinate(currentLat, currentLng)) {
@@ -3000,6 +3164,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
               miniMarker.on('dragend', (evt) => {
                 const pos = evt.target.getLatLng();
                 handleMapSelection(pos.lat, pos.lng);
+                triggerReverseGeocode(pos.lat, pos.lng);
               });
             }
           }
