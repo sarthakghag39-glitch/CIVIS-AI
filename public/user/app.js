@@ -1422,7 +1422,7 @@ function openWeatherModal(weather) {
 document.addEventListener("DOMContentLoaded", async () => {
   // Helper for computing user initials
   function getInitials(name) {
-    if (!name) return 'U';
+    if (!name) return 'SG';
     const parts = name.trim().split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
@@ -1430,36 +1430,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (parts.length === 1 && parts[0].length >= 2) {
       return parts[0].slice(0, 2).toUpperCase();
     }
-    return parts[0] ? parts[0][0].toUpperCase() : 'U';
+    return parts[0] ? parts[0][0].toUpperCase() : 'SG';
   }
 
-  // Instant Welcome & Avatar dynamic sync (Runs immediately before network calls)
-  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
-  if (localUser.name) {
-    const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
-    greetings.forEach(el => {
-      const text = el.innerText.trim();
-      if (text.includes('Hi,') || text.includes('Good Morning,') || text.includes('Good Afternoon,')) {
-        el.innerText = text.replace(/Hi,.*$/, `Hi, ${localUser.name}`).replace(/Good Morning,.*$/, `Good Morning, ${localUser.name}`);
-      }
+  function updateUserAvatarInitials(name) {
+    const userInitials = getInitials(name);
+
+    document.querySelectorAll('.user-avatar-circle').forEach(el => {
+      el.textContent = userInitials;
     });
 
-    const userInitials = getInitials(localUser.name);
-    document.querySelectorAll('header .rounded-full, button .rounded-full, .user-avatar, #profile-btn .rounded-full').forEach(el => {
+    document.querySelectorAll('.user-hero-avatar-circle').forEach(el => {
+      el.textContent = userInitials;
+    });
+
+    document.querySelectorAll('header div.w-10.h-10, header div.w-9.h-9, header button div.w-8.h-8').forEach(el => {
       if (el.closest('aside, nav, #nav-social-pulse')) return;
-      const txt = el.textContent ? el.textContent.trim() : '';
-      if ((txt === 'IS' || txt === 'A' || (txt.length >= 1 && txt.length <= 3 && /^[A-Za-z]{1,3}$/.test(txt))) && !el.children.length) {
+      const img = el.querySelector('img');
+      if (img) {
+        el.className = 'user-avatar-circle w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-sm border border-white';
+        el.innerHTML = userInitials;
+      } else if (!el.children.length || el.children[0]?.tagName === 'SPAN') {
+        el.classList.add('bg-blue-600', 'text-white', 'flex', 'items-center', 'justify-center', 'font-bold', 'text-sm');
         el.textContent = userInitials;
       }
     });
 
-    // Update profile photos with user avatar
-    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(localUser.name)}`;
-    const profileImages = document.querySelectorAll('img[src*="profile_photo"], img[data-alt*="portrait"], img[src*="aida-public"]');
-    profileImages.forEach(img => {
-      img.src = avatarUrl;
+    document.querySelectorAll('main div.w-32.h-32, main div.w-24.h-24').forEach(el => {
+      const img = el.querySelector('img');
+      if (img) {
+        el.className = 'user-hero-avatar-circle w-32 h-32 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-4xl shadow-lg border-4 border-white';
+        el.innerHTML = userInitials;
+      } else if (!el.children.length) {
+        el.classList.add('bg-blue-600', 'text-white', 'flex', 'items-center', 'justify-center', 'font-bold', 'text-4xl');
+        el.textContent = userInitials;
+      }
     });
   }
+
+  window.updateUserAvatarInitials = updateUserAvatarInitials;
+
+  // Instant Welcome & Avatar dynamic sync (Runs immediately before network calls)
+  const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
+  const activeName = localUser.name || 'Sarthak M Ghag';
+  
+  const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
+  greetings.forEach(el => {
+    const text = el.innerText.trim();
+    if (text.includes('Hi,') || text.includes('Good Morning,') || text.includes('Good Afternoon,')) {
+      el.innerText = text.replace(/Hi,.*$/, `Hi, ${activeName}`).replace(/Good Morning,.*$/, `Good Morning, ${activeName}`);
+    }
+  });
+
+  updateUserAvatarInitials(activeName);
 
   // Apply translation
   translatePage();
@@ -2655,12 +2678,13 @@ function openEditProfileModal() {
     alert("Profile updated successfully!");
     modal.remove();
     
-    // Globally update greeting and avatars immediately
-    const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(newName)}`;
-    const profileImages = document.querySelectorAll('img[src*="profile_photo"], img[data-alt*="portrait"], img[src*="aida-public"]');
-    profileImages.forEach(img => {
-      img.src = avatarUrl;
-    });
+    // Globally update greeting and initials avatars immediately
+    const profName = document.getElementById('profile-name');
+    if (profName) profName.innerText = newName;
+    const profPhone = document.getElementById('profile-phone');
+    if (profPhone) profPhone.innerText = newPhone;
+
+    updateUserAvatarInitials(newName);
 
     const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
     greetings.forEach(el => {
