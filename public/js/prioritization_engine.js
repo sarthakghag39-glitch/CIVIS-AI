@@ -39,6 +39,17 @@
     const aiSevScore = Number(issue.ai_severity_score);
     if (typeof issue.ai_severity_score !== 'undefined' && issue.ai_severity_score !== null && !isNaN(aiSevScore) && aiSevScore >= 1 && aiSevScore <= 100) {
       severityScore = Math.max(aiSevScore, critBase);
+    } else {
+      const rawAiSevText = String(issue.ai_severity || '').trim();
+      let aiTextScore = null;
+      if (rawAiSevText === 'Critical') aiTextScore = 100;
+      else if (rawAiSevText === 'High') aiTextScore = 80;
+      else if (rawAiSevText === 'Moderate' || rawAiSevText === 'Medium') aiTextScore = 50;
+      else if (rawAiSevText === 'Low' || rawAiSevText === 'Normal') aiTextScore = 25;
+
+      if (aiTextScore !== null) {
+        severityScore = Math.max(aiTextScore, critBase);
+      }
     }
 
     // B. CATEGORY SCORE (25% Weight)

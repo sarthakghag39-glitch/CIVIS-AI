@@ -136,4 +136,53 @@ assert.doesNotThrow(() => {
 });
 console.log("[PASS] Test 21: Missing fields do not throw exceptions");
 
-console.log("\nPHASE 7A TEST RESULTS: 21/21 assertions passed.");
+// --- PHASE 7A AI SEVERITY FALLBACK TESTS ---
+
+// Test 22: Case 1 - ai_severity_score = 80, ai_severity = High -> severity = 80
+const res22 = calculatePriorityScore({ ai_severity_score: 80, ai_severity: 'High', criticality: 'Normal' });
+assert.strictEqual(res22.severityScore, 80);
+console.log("[PASS] Test 22: ai_severity_score = 80, ai_severity = High -> severity = 80");
+
+// Test 23: Case 2 - ai_severity_score = null, ai_severity = High -> severity = 80
+const res23 = calculatePriorityScore({ ai_severity_score: null, ai_severity: 'High', criticality: 'Normal' });
+assert.strictEqual(res23.severityScore, 80);
+console.log("[PASS] Test 23: ai_severity_score = null, ai_severity = High -> severity = 80");
+
+// Test 24: Case 3 - ai_severity_score = null, ai_severity = Critical -> severity = 100
+const res24 = calculatePriorityScore({ ai_severity_score: null, ai_severity: 'Critical', criticality: 'Normal' });
+assert.strictEqual(res24.severityScore, 100);
+console.log("[PASS] Test 24: ai_severity_score = null, ai_severity = Critical -> severity = 100");
+
+// Test 25: Case 4 - ai_severity_score = null, ai_severity = Moderate -> severity = 50
+const res25 = calculatePriorityScore({ ai_severity_score: null, ai_severity: 'Moderate', criticality: 'Normal' });
+assert.strictEqual(res25.severityScore, 50);
+console.log("[PASS] Test 25: ai_severity_score = null, ai_severity = Moderate -> severity = 50");
+
+// Test 26: Case 5 - ai_severity_score = null, ai_severity = Low -> severity = 25
+const res26 = calculatePriorityScore({ ai_severity_score: null, ai_severity: 'Low', criticality: 'Normal' });
+assert.strictEqual(res26.severityScore, 25);
+console.log("[PASS] Test 26: ai_severity_score = null, ai_severity = Low -> severity = 25");
+
+// Test 27: Case 6 - ai_severity_score = null, ai_severity = null, criticality = High -> severity = 75
+const res27 = calculatePriorityScore({ ai_severity_score: null, ai_severity: null, criticality: 'High' });
+assert.strictEqual(res27.severityScore, 75);
+console.log("[PASS] Test 27: ai_severity_score = null, ai_severity = null, criticality = High -> severity = 75");
+
+// Test 28: Production-like Complaint Case (category=Other, ai_severity=High, ai_severity_score=null, criticality=Normal)
+const prodIssue = {
+  category: 'Other',
+  ai_severity: 'High',
+  ai_severity_score: null,
+  criticality: 'Normal',
+  incident_id: null,
+  created_at: null,
+  status: 'Pending'
+};
+const res28 = calculatePriorityScore(prodIssue);
+assert.strictEqual(res28.severityScore, 80, "Production issue severity should be 80");
+assert.strictEqual(res28.categoryScore, 40, "Other category score should be 40");
+assert.strictEqual(res28.score, 38, "Production issue total score should be 38");
+assert.strictEqual(res28.tier, 'P3 Moderate', "Production issue tier should be P3 Moderate");
+console.log("[PASS] Test 28: Production-like complaint case -> severity=80, score=38, tier=P3 Moderate");
+
+console.log("\nPHASE 7A TEST RESULTS: 28/28 assertions passed.");
