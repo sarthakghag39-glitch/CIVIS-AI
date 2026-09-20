@@ -1420,15 +1420,6 @@ function openWeatherModal(weather) {
 
 // --- 2. Global Event Listeners & Page Handlers ---
 document.addEventListener("DOMContentLoaded", async () => {
-  // Apply translation
-  translatePage();
-
-  // Initialize DB
-  await getIssues();
-
-  // Initialize Live Weather System
-  initWeatherSystem();
-
   // Helper for computing user initials
   function getInitials(name) {
     if (!name) return 'U';
@@ -1442,7 +1433,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return parts[0] ? parts[0][0].toUpperCase() : 'U';
   }
 
-  // Welcome & Avatar dynamic sync
+  // Instant Welcome & Avatar dynamic sync (Runs immediately before network calls)
   const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
   if (localUser.name) {
     const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
@@ -1462,13 +1453,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    // Update all profile photos with user-specific DiceBear adventurer avatar based on their name
+    // Update profile photos with user avatar
     const avatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(localUser.name)}`;
     const profileImages = document.querySelectorAll('img[src*="profile_photo"], img[data-alt*="portrait"], img[src*="aida-public"]');
     profileImages.forEach(img => {
       img.src = avatarUrl;
     });
   }
+
+  // Apply translation
+  translatePage();
+
+  // Initialize DB
+  await getIssues();
+
+  // Initialize Live Weather System
+  initWeatherSystem();
 
   // Admin Quick Redirect Shortcut Pill in Headers removed for user portal
 
@@ -2554,7 +2554,7 @@ function openEditProfileModal() {
       <form id="edit-profile-form" class="flex flex-col gap-4">
         <div>
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Full Name</label>
-          <input required id="edit-form-name" value="${localUser.name || ''}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Sarthak">
+          <input required id="edit-form-name" value="${localUser.name || ''}" class="w-full p-3 border border-border-subtle rounded-xl outline-none focus:ring-2 focus:ring-primary/40" placeholder="e.g. Citizen Name">
         </div>
         <div>
           <label class="block text-label-sm font-semibold mb-1 text-on-surface-variant">Phone Number</label>
