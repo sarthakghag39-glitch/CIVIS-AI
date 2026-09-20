@@ -2250,6 +2250,121 @@ async function handleExportCSV() {
   document.body.removeChild(link);
 }
 
+function openPriorityBreakdownModal(issueId) {
+  const issue = (cachedIssues || []).find(i => String(i.id) === String(issueId));
+  if (!issue) return;
+
+  const existing = document.getElementById('priority-breakdown-modal');
+  if (existing) existing.remove();
+
+  const incidentMap = new Map();
+  (cachedIssues || []).forEach(i => {
+    if (i.incident_id !== null && i.incident_id !== undefined && i.incident_id !== '') {
+      const key = String(i.incident_id);
+      incidentMap.set(key, (incidentMap.get(key) || 0) + 1);
+    }
+  });
+
+  const pData = (typeof CivisPrioritizationEngine !== 'undefined')
+    ? CivisPrioritizationEngine.calculatePriorityScore(issue, incidentMap)
+    : { score: 25, tier: 'P4 Routine', severityScore: 25, categoryScore: 40, incidentScore: 0, agingScore: 0, locationConfidence: 0, locationQualityLabel: 'Unknown' };
+
+  const sla = (typeof CivisPrioritizationEngine !== 'undefined' && CivisPrioritizationEngine.getSLAStatus)
+    ? CivisPrioritizationEngine.getSLAStatus(issue, pData)
+    : { isSLABreached: false, isSLAWarning: false, openDays: 0, targetDays: 15, overdueDays: 0 };
+
+  const modal = document.createElement('div');
+  modal.id = 'priority-breakdown-modal';
+  modal.className = 'fixed inset-0 z-[300] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 selection:bg-brand-500 selection:text-white';
+  modal.innerHTML = `
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 relative animate-in fade-in zoom-in duration-200">
+      <button id="close-priority-modal" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm transition-colors cursor-pointer">✕</button>
+
+      <div class="flex items-center space-x-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl">analytics</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-800">Priority Attention Breakdown</h3>
+          <p class="text-xs text-slate-500 font-mono">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 mb-4 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-slate-500 font-semibold block">Composite Score</span>
+          <span class="text-2xl font-extrabold text-slate-800">${pData.score} <span class="text-xs font-normal text-slate-400">/ 100</span></span>
+        </div>
+        <div class="text-right">
+          <span class="text-xs text-slate-500 font-semibold block">Attention Tier</span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold ${pData.tier === 'P1 Critical' ? 'bg-red-100 text-red-700 border border-red-300' : pData.tier === 'P2 High' ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-blue-100 text-blue-700 border border-blue-300'}">
+            ${pData.tier}
+          </span>
+        </div>
+      </div>
+
+      <div class="space-y-3.5 mb-5 text-xs">
+        <div>
+          <div class="flex justify-between font-bold text-slate-700 mb-1">
+            <span>Severity Score (35% Weight)</span>
+            <span>${pData.severityScore} / 100</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-red-500 h-full rounded-full" style="width: ${pData.severityScore}%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Max of AI severity score (${issue.ai_severity_score || 'N/A'}) and human criticality (${issue.criticality || 'Normal'}).</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between font-bold text-slate-700 mb-1">
+            <span>Category Base Impact (25% Weight)</span>
+            <span>${pData.categoryScore} / 100</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-blue-500 h-full rounded-full" style="width: ${pData.categoryScore}%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Category: ${issue.category || 'Other'}.</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between font-bold text-slate-700 mb-1">
+            <span>Incident Density Score (15% Weight)</span>
+            <span>${pData.incidentScore} / 100</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-purple-500 h-full rounded-full" style="width: ${pData.incidentScore}%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Linked reports in same incident cluster: ${issue.incident_id ? (incidentMap.get(String(issue.incident_id)) || 1) : 1}.</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between font-bold text-slate-700 mb-1">
+            <span>SLA Aging Score (15% Weight)</span>
+            <span>${pData.agingScore} / 100</span>
+          </div>
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-amber-500 h-full rounded-full" style="width: ${pData.agingScore}%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400 mt-0.5">Open duration: ${sla.openDays} days (Target SLA: ${sla.targetDays} days).</p>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-200 flex justify-end">
+        <button id="close-priority-btn" class="px-5 py-2 bg-slate-900 text-white font-bold rounded-xl text-xs hover:bg-slate-800 transition-colors cursor-pointer">
+          Close Breakdown
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  document.getElementById('close-priority-modal')?.addEventListener('click', () => modal.remove());
+  document.getElementById('close-priority-btn')?.addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+}
+window.openPriorityBreakdownModal = openPriorityBreakdownModal;
+
 function openAdminFilterModal() {
   const existingModal = document.getElementById('admin-filter-modal');
   if (existingModal) existingModal.remove();
@@ -2817,6 +2932,25 @@ async function renderAdminIssues() {
   if (elP3) elP3.innerText = p3Count.toLocaleString();
   if (elP4) elP4.innerText = p4Count.toLocaleString();
 
+  // Wire up interactive Priority Attention Bento Card metric shortcut filters
+  [
+    { el: elP1?.closest('.p-2'), tier: 'P1 Critical' },
+    { el: elP2?.closest('.p-2'), tier: 'P2 High' },
+    { el: elP3?.closest('.p-2'), tier: 'P3 Moderate' },
+    { el: elP4?.closest('.p-2'), tier: 'P4 Routine' }
+  ].forEach(item => {
+    if (item.el && !item.el.dataset.boundPriorityFilter) {
+      item.el.dataset.boundPriorityFilter = 'true';
+      item.el.style.cursor = 'pointer';
+      item.el.title = `Click to filter table by ${item.tier}`;
+      item.el.addEventListener('click', () => {
+        activeFilterPriorityTier = (activeFilterPriorityTier === item.tier) ? 'all' : item.tier;
+        currentAdminPage = 1;
+        renderAdminIssues();
+      });
+    }
+  });
+
   // 1. Calculate overall stats for cards
   const totalCount = issues.length;
   const criticalCount = issues.filter(issue => normalizeSeverity(issue.criticality) === 'Critical').length;
@@ -2950,6 +3084,10 @@ async function renderAdminIssues() {
       else if (pData.tier === 'P2 High') tierStyle = 'bg-warning/20 text-warning border-warning/30';
       else if (pData.tier === 'P3 Moderate') tierStyle = 'bg-primary/10 text-primary border-primary/20';
 
+      const sla = (typeof CivisPrioritizationEngine !== 'undefined' && CivisPrioritizationEngine.getSLAStatus)
+        ? CivisPrioritizationEngine.getSLAStatus(issue, pData)
+        : { isSLABreached: false, isSLAWarning: false, openDays: 0, targetDays: 15, overdueDays: 0 };
+
       const row = document.createElement('tr');
       row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
       row.innerHTML = `
@@ -2970,16 +3108,24 @@ async function renderAdminIssues() {
           </div>
         </td>
         <td class="px-6 py-4">
-          <div class="flex flex-col gap-1">
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${tierStyle}" title="Calculated Priority Score: ${pData.score}/100">
+          <div class="flex flex-col gap-1 cursor-pointer" onclick="openPriorityBreakdownModal(${issue.id})" title="Click to view Priority Factor Breakdown">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${tierStyle} hover:opacity-80 transition-opacity">
               ${pData.tier} (${pData.score})
             </span>
+            ${sla.isSLABreached ? `
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error border border-error/20" title="Target SLA (${sla.targetDays}d) exceeded by ${sla.overdueDays} days">
+                <span class="material-symbols-outlined text-[12px]">warning</span> SLA Exceeded (+${sla.overdueDays}d)
+              </span>
+            ` : sla.isSLAWarning ? `
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-warning/10 text-warning border border-warning/20" title="Approaching SLA target (${sla.targetDays}d)">
+                <span class="material-symbols-outlined text-[12px]">schedule</span> SLA Warning (${sla.openDays}/${sla.targetDays}d)
+              </span>
+            ` : ''}
             <span class="text-[10px] text-outline font-medium flex items-center gap-1" title="Location Confidence Signal">
               <span class="w-1.5 h-1.5 rounded-full ${pData.locationConfidence >= 60 ? 'bg-success' : 'bg-warning'}"></span>
               Location: ${pData.locationQualityLabel}
             </span>
           </div>
-        </td>
         </td>
         <td class="px-6 py-4">
           <div class="font-semibold text-sm text-on-surface">${issue.reported_by || 'Anonymous'}</div>

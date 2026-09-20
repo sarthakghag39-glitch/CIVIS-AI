@@ -130,7 +130,49 @@
     };
   }
 
+  function getSLAStatus(issue, priorityData = null, nowOverride = null) {
+    if (!issue || typeof issue !== 'object') {
+      return { isSLABreached: false, isSLAWarning: false, openDays: 0, targetDays: 15, overdueDays: 0 };
+    }
+    const isResolved = String(issue.status || '').trim() === 'Resolved';
+    if (isResolved) {
+      return { isSLABreached: false, isSLAWarning: false, openDays: 0, targetDays: 15, overdueDays: 0 };
+    }
+
+    const pData = priorityData || calculatePriorityScore(issue, null, nowOverride);
+    let targetDays = 15;
+    if (pData.tier === 'P1 Critical') targetDays = 2;
+    else if (pData.tier === 'P2 High') targetDays = 5;
+    else if (pData.tier === 'P3 Moderate') targetDays = 10;
+    else targetDays = 15;
+
+    const createdStr = issue.created_at || issue.date;
+    let openDays = 0;
+    if (createdStr) {
+      const createdDate = new Date(createdStr);
+      const now = nowOverride ? new Date(nowOverride) : new Date();
+      if (!isNaN(createdDate.getTime()) && createdDate <= now) {
+        const diffMs = now.getTime() - createdDate.getTime();
+        openDays = Math.max(0, diffMs / (1000 * 60 * 60 * 24));
+      }
+    }
+
+    const roundedOpenDays = Math.round(openDays * 10) / 10;
+    const isSLABreached = openDays > targetDays;
+    const isSLAWarning = !isSLABreached && openDays >= (targetDays * 0.75);
+    const overdueDays = isSLABreached ? Math.round((openDays - targetDays) * 10) / 10 : 0;
+
+    return {
+      isSLABreached,
+      isSLAWarning,
+      openDays: roundedOpenDays,
+      targetDays,
+      overdueDays
+    };
+  }
+
   exports.normalizeCategory = normalizeCategory;
   exports.calculatePriorityScore = calculatePriorityScore;
+  exports.getSLAStatus = getSLAStatus;
 
 })(typeof exports !== 'undefined' ? exports : (window.CivisPrioritizationEngine = {}));
