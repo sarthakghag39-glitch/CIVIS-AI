@@ -1713,11 +1713,9 @@ async function initMapPage() {
 
   if (!leafletMap && typeof L !== 'undefined') {
     leafletMap = L.map('map', { zoomControl: false }).setView([18.5204, 73.8567], 13);
-    const CARTO_MAP_API_KEY = 'cb1_3o5x_1_eb216b4e16b30330e13e4fc8';
-    L.tileLayer(`https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=${CARTO_MAP_API_KEY}`, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-      subdomains: 'abcd',
-      maxZoom: 20
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(leafletMap);
 
     leafletMap.on('click', (e) => {
@@ -3800,8 +3798,9 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
             const centerLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
             const centerLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
             miniMap = L.map(pickerDiv, { zoomControl: false }).setView([centerLat, centerLng], 14);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-              maxZoom: 20
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 19,
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(miniMap);
 
             const handleMapSelection = (latVal, lngVal) => {

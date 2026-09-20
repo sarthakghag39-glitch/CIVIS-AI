@@ -196,7 +196,17 @@ assertEqual(
   'Test 6: Coarse GPS threshold (>200m) accurately flags low-accuracy fixes -> SUCCESS'
 );
 
-// Test 7: Phase 5A / Phase 4 Data Payload Preservation
+// Test 7: Phase 5A / Phase 4 Data Payload & OpenStreetMap Basemap Tile Verification
+const fs = require('fs');
+const userAppCode = fs.readFileSync('public/user/app.js', 'utf8');
+const adminAppCode = fs.readFileSync('public/admin/app.js', 'utf8');
+
+const osmTileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+const osmAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+const userHasOsmTiles = userAppCode.includes(osmTileUrl) && userAppCode.includes(osmAttribution) && !userAppCode.includes('basemaps.cartocdn.com') && !userAppCode.includes('CARTO_MAP_API_KEY');
+const adminHasOsmTiles = adminAppCode.includes(osmTileUrl) && adminAppCode.includes(osmAttribution) && !adminAppCode.includes('basemaps.cartocdn.com') && !adminAppCode.includes('CARTO_MAP_API_KEY');
+
 const payload7 = {
   lat: 18.5204,
   lng: 73.8567,
@@ -205,12 +215,13 @@ const payload7 = {
   location: 'FC Road, Shivajinagar, Pune'
 };
 assertEqual(
-  payload7.location_source === 'gps' && payload7.location_accuracy_meters === 18 && payload7.lat === 18.5204 && payload7.lng === 73.8567,
+  payload7.location_source === 'gps' && payload7.location_accuracy_meters === 18 && payload7.lat === 18.5204 && payload7.lng === 73.8567 && userHasOsmTiles && adminHasOsmTiles,
   true,
-  'Test 7: Phase 5A & 4 location source and accuracy payload contracts remain 100% intact -> SUCCESS'
+  'Test 7: Phase 5A & 4 location contracts and OSM tile basemap compliance verified -> SUCCESS'
 );
 
 console.log(`\nPHASE 5B TEST RESULTS: ${passed}/${total} assertions passed.`);
 if (passed !== total) {
   process.exit(1);
 }
+
