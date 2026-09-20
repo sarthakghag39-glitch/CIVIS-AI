@@ -324,25 +324,27 @@
 </main>
 <!-- Bottom Navigation Bar -->
 <nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 pb-6 bg-surface shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-xl">
-<a href="/index.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined">home</span>
-<span class="font-label-sm text-label-sm">Home</span>
+<a href="/index.html" class="flex flex-col items-center justify-center text-slate-600 hover:text-blue-600 scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-slate-600">home</span>
+<span class="font-label-sm text-label-sm mt-1 text-slate-600">Home</span>
 </a>
-<a href="/smart_map.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined">map</span>
-<span class="font-label-sm text-label-sm">Map</span>
+<a href="/smart_map.html" class="flex flex-col items-center justify-center text-slate-600 hover:text-blue-600 scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-slate-600">map</span>
+<span class="font-label-sm text-label-sm mt-1 text-slate-600">Map</span>
 </a>
-<a href="#" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined">qr_code_scanner</span>
-<span class="font-label-sm text-label-sm">Scan</span>
+<div class="relative -top-4">
+<button onclick="window.location.href='/user/ai_analysis.html'" class="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-xl border-4 border-white">
+<span class="material-symbols-outlined text-[32px] text-white">qr_code_scanner</span>
+</button>
+<span class="block text-center font-label-sm text-label-sm mt-2 text-slate-600">Scan</span>
+</div>
+<a href="/my_complaints.html" class="flex flex-col items-center justify-center text-slate-600 hover:text-blue-600 scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-slate-600">notifications</span>
+<span class="font-label-sm text-label-sm mt-1 text-slate-600">Alerts</span>
 </a>
-<a href="/my_complaints.html" class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined">notifications</span>
-<span class="font-label-sm text-label-sm">Alerts</span>
-</a>
-<a href="/profile.html" class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-2xl px-4 py-1 scale-95 transition-transform duration-150">
-<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
-<span class="font-label-sm text-label-sm">Profile</span>
+<a href="/profile.html" class="flex flex-col items-center justify-center bg-blue-600 text-white font-semibold shadow-sm rounded-2xl px-4 py-1 scale-95 transition-transform duration-150">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-sm text-label-sm mt-1 text-white">Profile</span>
 </a>
 </nav>
 <script>

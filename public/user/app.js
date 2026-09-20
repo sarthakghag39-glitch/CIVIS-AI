@@ -1488,21 +1488,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   document.querySelectorAll('nav.fixed a, footer nav a').forEach(link => {
     const href = link.getAttribute('href');
+    if (!href || href === '#') return;
     const linkClean = getCleanUserPageName(href);
 
+    const icon = link.querySelector('.material-symbols-outlined');
+    const label = link.querySelector('span:not(.material-symbols-outlined)');
+
     if (currentCleanUser === linkClean) {
-      link.classList.add('text-blue-600', 'font-bold');
-      link.classList.remove('text-on-surface-variant', 'text-slate-500');
-      const icon = link.querySelector('.material-symbols-outlined');
+      link.classList.add('bg-blue-600', 'text-white', 'font-semibold', 'shadow-sm', 'rounded-2xl', 'px-4', 'py-1');
+      link.classList.remove('text-on-surface-variant', 'text-slate-500', 'text-slate-600', 'text-blue-600', 'bg-primary-container', 'text-on-primary-container');
       if (icon) {
         icon.style.fontVariationSettings = "'FILL' 1";
+        icon.classList.add('text-white');
+        icon.classList.remove('text-blue-600', 'text-on-surface-variant', 'text-slate-600');
+      }
+      if (label) {
+        label.classList.add('text-white');
+        label.classList.remove('text-blue-600', 'text-on-surface-variant', 'text-slate-600');
       }
     } else {
-      link.classList.remove('text-blue-600', 'font-bold', 'text-primary');
-      link.classList.add('text-on-surface-variant');
-      const icon = link.querySelector('.material-symbols-outlined');
+      link.classList.remove('bg-blue-600', 'text-white', 'font-semibold', 'shadow-sm', 'bg-primary-container', 'text-on-primary-container');
+      link.classList.add('text-slate-600', 'hover:text-blue-600');
       if (icon) {
         icon.style.fontVariationSettings = "'FILL' 0";
+        icon.classList.remove('text-white', 'text-blue-600');
+        icon.classList.add('text-slate-600');
+      }
+      if (label) {
+        label.classList.remove('text-white', 'text-blue-600');
+        label.classList.add('text-slate-600');
       }
     }
   });
