@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>CIVIS AI - System Health</title>
+    <title>CIVIS AI - System Health & Observability</title>
     <link rel="stylesheet" href="/dark-mode.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -67,6 +67,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/prioritization_engine.js"></script>
 </head>
 <body class="bg-background text-on-surface">
 
@@ -110,8 +111,8 @@
             </a>
             <div class="mx-4 mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-fixed border border-primary/10">
-                        <img class="w-full h-full object-cover" data-alt="..." src="/profile_photo.jpg">
+                    <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container border border-primary/10">
+                        <img class="w-full h-full object-cover" data-alt="City Admin" src="/profile_photo.jpg" onerror="this.onerror=null; this.src='https://api.dicebear.com/7.x/adventurer/svg?seed=Admin';">
                     </div>
                     <div>
                         <p class="font-label-md text-label-md font-bold text-on-surface">City Admin</p>
@@ -128,155 +129,228 @@
 
     <!-- Main Content -->
     <main class="ml-64 min-h-screen flex flex-col pb-16">
-        <header class="sticky top-0 z-45 w-full bg-surface/90 border-b border-border-subtle px-8 py-4 flex items-center justify-between">
-            <h2 class="font-headline-md text-headline-md text-primary font-bold text-2xl">System Health</h2>
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-success"></span>
-                </span>
-                <span class="text-xs font-semibold text-success uppercase tracking-wider">All Systems Operational</span>
+        <header class="sticky top-0 z-40 w-full bg-surface/90 border-b border-border-subtle px-8 py-4 flex items-center justify-between">
+            <div>
+                <h2 class="font-headline-md text-headline-md text-primary font-bold text-2xl">System Health &amp; Observability</h2>
+                <p class="text-xs text-outline">Phase 8B Deterministic System Observability Dashboard</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="btn-manual-refresh" onclick="runHealthDiagnostics()" class="px-3.5 py-1.5 rounded-xl border border-border-subtle bg-card-bg text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-all flex items-center gap-1.5 shadow-sm">
+                    <span class="material-symbols-outlined text-sm" id="icon-refresh">refresh</span>
+                    <span>Refresh Diagnostics</span>
+                </button>
+                <div class="flex items-center gap-2 bg-surface-container-low px-3 py-1.5 rounded-xl border border-border-subtle">
+                    <span class="relative flex h-2.5 w-2.5" id="status-dot-container">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success" id="overall-status-dot"></span>
+                    </span>
+                    <span class="text-xs font-semibold text-on-surface uppercase tracking-wider" id="overall-status-text">HEALTHY</span>
+                </div>
             </div>
         </header>
 
         <div class="px-8 py-6 space-y-8 max-w-[1440px] mx-auto w-full">
-            <!-- Resource Usage Bento Grid -->
+            <!-- Resource & Observability Bento Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- CPU Usage -->
+                <!-- Event Loop Responsiveness -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-primary">memory</span>
-                            <span class="font-bold text-sm text-on-surface">CPU Load</span>
+                            <span class="material-symbols-outlined text-primary">speed</span>
+                            <span class="font-bold text-sm text-on-surface">Event Loop Responsiveness</span>
                         </div>
-                        <span class="text-xs text-outline font-semibold" id="cpu-load-text">24%</span>
+                        <span class="text-xs text-outline font-semibold" id="cpu-load-text">Measuring...</span>
                     </div>
                     <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div class="h-full bg-primary transition-all duration-500 rounded-full" id="cpu-load-bar" style="width: 24%"></div>
+                        <div class="h-full bg-primary transition-all duration-500 rounded-full" id="cpu-load-bar" style="width: 100%"></div>
                     </div>
+                    <p class="text-[11px] text-outline">Browser timer delay proxy for JS main thread responsiveness.</p>
                 </div>
 
-                <!-- RAM Usage -->
+                <!-- Browser JS Heap -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-warning">developer_board</span>
-                            <span class="font-bold text-sm text-on-surface">RAM Usage</span>
+                            <span class="font-bold text-sm text-on-surface">Browser JS Heap</span>
                         </div>
-                        <span class="text-xs text-outline font-semibold" id="ram-usage-text">4.2 / 8 GB (52%)</span>
+                        <span class="text-xs text-outline font-semibold" id="ram-usage-text">Checking...</span>
                     </div>
                     <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div class="h-full bg-warning transition-all duration-500 rounded-full" id="ram-usage-bar" style="width: 52%"></div>
+                        <div class="h-full bg-warning transition-all duration-500 rounded-full" id="ram-usage-bar" style="width: 0%"></div>
                     </div>
+                    <p class="text-[11px] text-outline" id="ram-usage-subtext">Javascript heap memory allocated by browser engine.</p>
                 </div>
 
-                <!-- Network Ping -->
+                <!-- Database Latency -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm space-y-4">
                     <div class="flex justify-between items-center">
                         <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-success">wifi_tethering</span>
+                            <span class="material-symbols-outlined text-success">database</span>
                             <span class="font-bold text-sm text-on-surface">Database Response</span>
                         </div>
-                        <span class="text-xs text-outline font-semibold" id="ping-text">14 ms</span>
+                        <span class="text-xs text-outline font-semibold" id="ping-text">Connecting...</span>
                     </div>
                     <div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
-                        <div class="h-full bg-success transition-all duration-500 rounded-full" id="ping-bar" style="width: 14%"></div>
+                        <div class="h-full bg-success transition-all duration-500 rounded-full" id="ping-bar" style="width: 0%"></div>
                     </div>
+                    <p class="text-[11px] text-outline" id="db-last-checked">Last checked: Never</p>
                 </div>
             </div>
 
-            <!-- System Stats Grid -->
+            <!-- Application Data & Metrics Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Logged-in Members -->
+                <!-- Registered Profiles -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex items-center justify-between group hover:border-primary/30 transition-all">
                     <div class="space-y-1">
-                        <span class="text-outline text-xs font-semibold uppercase tracking-wider">Logged-in Members</span>
-                        <h4 class="text-3xl font-extrabold text-on-surface mt-1" id="stat-login-members">Loading...</h4>
+                        <span class="text-outline text-xs font-semibold uppercase tracking-wider">Registered Profiles</span>
+                        <h4 class="text-3xl font-extrabold text-on-surface mt-1" id="stat-login-members">--</h4>
                     </div>
                     <div class="p-3 rounded-xl bg-primary/10 text-primary">
                         <span class="material-symbols-outlined text-2xl">people</span>
                     </div>
                 </div>
 
-                <!-- Page Views -->
+                <!-- Active Complaints -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex items-center justify-between group hover:border-warning/30 transition-all">
                     <div class="space-y-1">
-                        <span class="text-outline text-xs font-semibold uppercase tracking-wider">Total Page Views</span>
-                        <h4 class="text-3xl font-extrabold text-warning mt-1" id="stat-page-views">Loading...</h4>
+                        <span class="text-outline text-xs font-semibold uppercase tracking-wider">Active Complaints</span>
+                        <h4 class="text-3xl font-extrabold text-warning mt-1" id="stat-active-issues">--</h4>
                     </div>
                     <div class="p-3 rounded-xl bg-warning/10 text-warning">
-                        <span class="material-symbols-outlined text-2xl">visibility</span>
+                        <span class="material-symbols-outlined text-2xl">assignment</span>
                     </div>
                 </div>
 
-                <!-- Online Users -->
-                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex items-center justify-between group hover:border-success/30 transition-all">
+                <!-- Unresolved P1/P2 Urgent Cases -->
+                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex items-center justify-between group hover:border-critical/30 transition-all">
                     <div class="space-y-1">
                         <div class="flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></span>
-                            <span class="text-outline text-xs font-semibold uppercase tracking-wider">Active Online</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-critical animate-pulse"></span>
+                            <span class="text-outline text-xs font-semibold uppercase tracking-wider">P1/P2 Urgent Queue</span>
                         </div>
-                        <h4 class="text-3xl font-extrabold text-success mt-1" id="stat-online-users">Loading...</h4>
+                        <h4 class="text-3xl font-extrabold text-critical mt-1" id="stat-p1p2-urgent">--</h4>
                     </div>
-                    <div class="p-3 rounded-xl bg-success/10 text-success">
-                        <span class="material-symbols-outlined text-2xl">sensors</span>
+                    <div class="p-3 rounded-xl bg-error-container/40 text-critical">
+                        <span class="material-symbols-outlined text-2xl">warning</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Nodes & Services List -->
+            <!-- Application Service Status -->
             <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-border-subtle">
-                    <h4 class="text-lg font-bold text-on-surface">Platform Component Node Health</h4>
-                </div>
-                <div class="divide-y divide-border-subtle">
-                    <!-- Node 1 -->
-                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-lg bg-primary-container/10 text-primary flex items-center justify-center">
-                                <span class="material-symbols-outlined">dns</span>
-                            </div>
-                            <div>
-                                <h5 class="font-bold text-on-surface">API Gateway Node</h5>
-                                <p class="text-xs text-outline mt-0.5">https://api.civis-ai.org (v1.2.4-edge)</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-6">
-                            <span class="text-sm font-semibold text-outline">Uptime: 99.99%</span>
-                            <span class="px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/10">ONLINE</span>
-                        </div>
+                <div class="p-6 border-b border-border-subtle flex items-center justify-between">
+                    <div>
+                        <h4 class="text-lg font-bold text-on-surface">Application Service Status</h4>
+                        <p class="text-xs text-outline">Truthful verification of core platform system modules</p>
                     </div>
-                    <!-- Node 2 -->
-                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
+                    <span class="text-xs text-outline font-semibold">Live Diagnostic Status</span>
+                </div>
+                <div class="divide-y divide-border-subtle" id="service-status-list">
+                    <!-- Service 1: Supabase Database -->
+                    <div class="p-5 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-lg bg-success/10 text-success flex items-center justify-center">
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                                 <span class="material-symbols-outlined">database</span>
                             </div>
                             <div>
-                                <h5 class="font-bold text-on-surface">Supabase Cloud Database</h5>
-                                <p class="text-xs text-outline mt-0.5">PostgreSQL Engine (us-east-1)</p>
+                                <h5 class="font-bold text-on-surface text-sm">Supabase Database</h5>
+                                <p class="text-xs text-outline mt-0.5" id="svc-db-subtext">Checking connection...</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <span class="text-sm font-semibold text-outline">Uptime: 100%</span>
-                            <span class="px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/10">ONLINE</span>
+                        <div class="flex items-center gap-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border" id="svc-db-badge">CHECKING</span>
                         </div>
                     </div>
-                    <!-- Node 3 -->
-                    <div class="p-6 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
+                    <!-- Service 2: Complaint Data Repository -->
+                    <div class="p-5 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center">
+                                <span class="material-symbols-outlined">folder_open</span>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-on-surface text-sm">Complaint Data Repository</h5>
+                                <p class="text-xs text-outline mt-0.5" id="svc-issues-subtext">Querying issue records...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border" id="svc-issues-badge">CHECKING</span>
+                        </div>
+                    </div>
+                    <!-- Service 3: Deterministic Priority Engine -->
+                    <div class="p-5 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-lg bg-warning/10 text-warning flex items-center justify-center">
+                                <span class="material-symbols-outlined">balance</span>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-on-surface text-sm">Deterministic Priority Engine</h5>
+                                <p class="text-xs text-outline mt-0.5" id="svc-engine-subtext">Verifying Phase 7A module...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border" id="svc-engine-badge">CHECKING</span>
+                        </div>
+                    </div>
+                    <!-- Service 4: Incident Clustering Telemetry -->
+                    <div class="p-5 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-primary-container/10 text-primary flex items-center justify-center">
+                                <span class="material-symbols-outlined">bubble_chart</span>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-on-surface text-sm">Incident Deduplication System</h5>
+                                <p class="text-xs text-outline mt-0.5" id="svc-incident-subtext">Verifying candidate telemetry...</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span class="px-2.5 py-1 text-xs font-bold rounded-full border" id="svc-incident-badge">CHECKING</span>
+                        </div>
+                    </div>
+                    <!-- Service 5: AI Analysis API Integration -->
+                    <div class="p-5 flex items-center justify-between hover:bg-surface-container-low/30 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-lg bg-surface-container-high text-on-surface-variant flex items-center justify-center">
                                 <span class="material-symbols-outlined">psychology</span>
                             </div>
                             <div>
-                                <h5 class="font-bold text-on-surface">TensorFlow Edge classifier Node</h5>
-                                <p class="text-xs text-outline mt-0.5">MobileNet Image Classification Endpoint</p>
+                                <h5 class="font-bold text-on-surface text-sm">AI Analysis API Endpoint</h5>
+                                <p class="text-xs text-outline mt-0.5">Groq / Gemini client integration — static ping omitted to conserve API quota.</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-6">
-                            <span class="text-sm font-semibold text-outline">Uptime: 99.95%</span>
-                            <span class="px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/10">ONLINE</span>
+                        <div class="flex items-center gap-4">
+                            <span class="px-2.5 py-1 bg-surface-container-high text-on-surface-variant text-xs font-bold rounded-full border border-border-subtle">CONFIGURED</span>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Integrity Breakdown Card -->
+            <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-border-subtle pb-4">
+                    <h4 class="text-lg font-bold text-on-surface">Data Integrity &amp; Quality Audit</h4>
+                    <span class="text-xs text-outline font-semibold">Real-time Data Metrics</span>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle space-y-1">
+                        <p class="text-xs text-outline font-medium">GPS Coordinates</p>
+                        <h5 class="text-xl font-bold text-on-surface" id="integrity-gps-count">--</h5>
+                        <p class="text-[11px] text-outline" id="integrity-gps-pct">0% of total</p>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle space-y-1">
+                        <p class="text-xs text-outline font-medium">Department Assigned</p>
+                        <h5 class="text-xl font-bold text-on-surface" id="integrity-dept-count">--</h5>
+                        <p class="text-[11px] text-outline" id="integrity-dept-pct">0% of total</p>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle space-y-1">
+                        <p class="text-xs text-outline font-medium">AI Analyzed</p>
+                        <h5 class="text-xl font-bold text-on-surface" id="integrity-ai-count">--</h5>
+                        <p class="text-[11px] text-outline" id="integrity-ai-pct">0% of total</p>
+                    </div>
+                    <div class="bg-surface-container-low p-4 rounded-xl border border-border-subtle space-y-1">
+                        <p class="text-xs text-outline font-medium">Pending Candidates</p>
+                        <h5 class="text-xl font-bold text-on-surface" id="integrity-candidates-count">--</h5>
+                        <p class="text-[11px] text-outline">Incident pairs for review</p>
                     </div>
                 </div>
             </div>
@@ -284,7 +358,10 @@
             <!-- Logged-in Members Table -->
             <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-border-subtle flex justify-between items-center">
-                    <h4 class="text-lg font-bold text-on-surface">Registered & Logged-in Members</h4>
+                    <div>
+                        <h4 class="text-lg font-bold text-on-surface">Registered User Profiles</h4>
+                        <p class="text-xs text-outline">Active profiles fetched directly from database</p>
+                    </div>
                     <span class="text-xs text-outline font-semibold uppercase tracking-wider">Live Database Sync</span>
                 </div>
                 <div class="overflow-x-auto">
@@ -311,21 +388,17 @@
                 </div>
             </div>
 
-            <!-- Console System Logs -->
+            <!-- Console Session Diagnostics -->
             <div class="bg-black text-[#00ff00] rounded-2xl p-6 shadow-lg border border-border-subtle/20 flex flex-col gap-3">
                 <div class="flex items-center justify-between border-b border-[#00ff00]/20 pb-3">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">terminal</span>
-                        <span class="console-font text-sm font-bold uppercase">System Console Logs</span>
+                        <span class="console-font text-sm font-bold uppercase">Session Diagnostics Console</span>
                     </div>
-                    <span class="console-font text-xs opacity-60">LIVE STREAM</span>
+                    <span class="console-font text-xs opacity-60">SESSION DIAGNOSTICS</span>
                 </div>
                 <div class="console-font text-xs space-y-1.5 h-48 overflow-y-auto" id="console-logs">
-                    <p class="opacity-50">[2026-08-11 22:31:02] Platform core bootstrap initialized.</p>
-                    <p class="opacity-50">[2026-08-11 22:31:04] DB Connection to Supabase Cloud verified.</p>
-                    <p class="opacity-50">[2026-08-11 22:31:05] TensorFlow client runtime compiled. Loaded model in 384ms.</p>
-                    <p class="opacity-50">[2026-08-11 22:31:10] Sync engine completed fetching 12 active issues.</p>
-                    <p class="opacity-80">[2026-08-11 22:33:14] GET /api/v1/issues status=200 size=18.4kb response=14ms</p>
+                    <!-- Dynamic session logs appended here -->
                 </div>
             </div>
         </div>
@@ -333,165 +406,351 @@
 
     <script src="/app.js"></script>
     <script>
-        let views = parseInt(localStorage.getItem('civis_mock_views') || '128');
-        views += 1;
-        localStorage.setItem('civis_mock_views', views.toString());
-        const elViews = document.getElementById('stat-page-views');
-        if (elViews) elViews.innerText = views.toLocaleString();
+        // Phase 8B System Health Diagnostics Logic
+        const REFRESH_INTERVAL_MS = 20000; // 20 seconds non-aggressive loop
+        let isDiagnosticsRunning = false;
 
-        let onlineUsers = 1;
-        const elOnline = document.getElementById('stat-online-users');
-        if (elOnline) elOnline.innerText = onlineUsers.toLocaleString();
+        function esc(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
 
-        // Main health check loop
+        function appendSessionLog(message, isHighlight = false) {
+            const consoleBox = document.getElementById('console-logs');
+            if (!consoleBox) return;
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const p = document.createElement('p');
+            p.className = isHighlight ? 'animate-pulse text-[#00ff00] font-bold' : 'opacity-80 text-[#00ff00]';
+            p.innerText = `[${timeStr}] ${message}`;
+            consoleBox.appendChild(p);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+            while (consoleBox.children.length > 30) {
+                consoleBox.removeChild(consoleBox.firstChild);
+            }
+        }
+
+        // Initialize initial session log
+        appendSessionLog('Session Diagnostics initialized.', true);
+
         async function runHealthDiagnostics() {
-            let dbPing = 15;
-            let profilesCount = 0;
+            if (isDiagnosticsRunning) return;
+            isDiagnosticsRunning = true;
 
-            // 1. Live Database Queries (Real Supabase integration)
+            const btnRefresh = document.getElementById('btn-manual-refresh');
+            const iconRefresh = document.getElementById('icon-refresh');
+            if (iconRefresh) iconRefresh.classList.add('animate-spin');
+
+            appendSessionLog('Starting health diagnostics check...');
+
+            let isDbHealthy = false;
+            let dbLatency = null;
             let profiles = [];
-            if (typeof supabaseClient !== 'undefined') {
-                try {
+            let profilesCount = 0;
+            let issues = [];
+            let activeIssuesCount = 0;
+            let urgentP1P2Count = 0;
+            let pendingCandidatesCount = 0;
+
+            // --- 1. Database Health Check ---
+            try {
+                if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                     const startTime = performance.now();
                     const { data: dbProfiles, error: pError } = await supabaseClient.from('profiles').select('id, full_name, phone, updated_at');
-                    dbPing = Math.round(performance.now() - startTime);
+                    dbLatency = Math.round(performance.now() - startTime);
 
-                    if (!pError && dbProfiles) {
+                    if (!pError && Array.isArray(dbProfiles)) {
                         profiles = dbProfiles;
                         profilesCount = profiles.length;
-                        
-                        // Count users active in the last 15 minutes
-                        const fifteenMinsAgo = Date.now() - 15 * 60 * 1000;
-                        const activeProfiles = profiles.filter(p => {
-                            if (!p.updated_at) return false;
-                            const updateTime = new Date(p.updated_at).getTime();
-                            return updateTime > fifteenMinsAgo;
-                        });
-                        onlineUsers = Math.max(1, activeProfiles.length);
+                        isDbHealthy = true;
                     }
-                } catch (err) {
-                    console.error("Supabase live diagnostics check failed:", err);
                 }
+            } catch (err) {
+                console.warn('Database health check failed:', err?.message || err);
             }
 
-            // Update registered members and online users
-            const elMembers = document.getElementById('stat-login-members');
-            if (elMembers) elMembers.innerText = profilesCount.toLocaleString();
-            
-            const elOnlineUpdate = document.getElementById('stat-online-users');
-            if (elOnlineUpdate) elOnlineUpdate.innerText = onlineUsers.toLocaleString();
+            // Update DB UI
+            const elPingText = document.getElementById('ping-text');
+            const elPingBar = document.getElementById('ping-bar');
+            const elDbLastChecked = document.getElementById('db-last-checked');
+            const elSvcDbSubtext = document.getElementById('svc-db-subtext');
+            const elSvcDbBadge = document.getElementById('svc-db-badge');
 
-            // Populate profiles table
+            const nowStr = new Date().toLocaleTimeString();
+            if (elDbLastChecked) elDbLastChecked.innerText = `Last checked: ${nowStr}`;
+
+            if (isDbHealthy && dbLatency !== null) {
+                if (elPingText) elPingText.innerText = `${dbLatency} ms`;
+                if (elPingBar) {
+                    elPingBar.style.width = `${Math.min(100, Math.max(5, dbLatency / 5))}%`;
+                    elPingBar.className = dbLatency > 1000 ? 'h-full bg-warning transition-all duration-500 rounded-full' : 'h-full bg-success transition-all duration-500 rounded-full';
+                }
+                if (elSvcDbSubtext) elSvcDbSubtext.innerText = `PostgreSQL Engine online — ${dbLatency} ms latency`;
+                if (elSvcDbBadge) {
+                    elSvcDbBadge.innerText = dbLatency > 1000 ? 'DEGRADED' : 'ONLINE';
+                    elSvcDbBadge.className = dbLatency > 1000 ? 'px-2.5 py-1 bg-warning/15 text-warning text-xs font-bold rounded-full border border-warning/20' : 'px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/20';
+                }
+                appendSessionLog(`Supabase DB query completed — ${dbLatency}ms (${profilesCount} profiles)`);
+            } else {
+                if (elPingText) elPingText.innerText = 'Unavailable';
+                if (elPingBar) {
+                    elPingBar.style.width = '100%';
+                    elPingBar.className = 'h-full bg-critical transition-all duration-500 rounded-full';
+                }
+                if (elSvcDbSubtext) elSvcDbSubtext.innerText = 'Supabase database query failed or offline';
+                if (elSvcDbBadge) {
+                    elSvcDbBadge.innerText = 'UNAVAILABLE';
+                    elSvcDbBadge.className = 'px-2.5 py-1 bg-critical/15 text-critical text-xs font-bold rounded-full border border-critical/20';
+                }
+                appendSessionLog('Supabase DB query failed — database unavailable');
+            }
+
+            // Update profiles stat & table
+            const elMembers = document.getElementById('stat-login-members');
+            if (elMembers) elMembers.innerText = isDbHealthy ? profilesCount.toLocaleString() : 'Unavailable';
+
             const elListBody = document.getElementById('members-list-body');
             if (elListBody) {
-                if (profilesCount === 0) {
+                if (!isDbHealthy) {
                     elListBody.innerHTML = `
                         <tr>
                             <td class="px-6 py-8 text-center text-outline" colspan="4">
-                                <div class="flex flex-col items-center justify-center gap-1.5 py-4">
+                                <div class="flex flex-col items-center justify-center gap-1.5 py-2">
+                                    <span class="material-symbols-outlined text-3xl text-critical">error</span>
+                                    <p class="text-xs font-semibold text-critical">Database connection unavailable. Unable to load profiles.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                } else if (profilesCount === 0) {
+                    elListBody.innerHTML = `
+                        <tr>
+                            <td class="px-6 py-8 text-center text-outline" colspan="4">
+                                <div class="flex flex-col items-center justify-center gap-1.5 py-2">
                                     <span class="material-symbols-outlined text-3xl text-outline/50">person_off</span>
-                                    <p class="text-xs font-semibold">No registered members found in Supabase database.</p>
+                                    <p class="text-xs font-semibold">No registered member profiles found in database.</p>
                                 </div>
                             </td>
                         </tr>
                     `;
                 } else {
-                    elListBody.innerHTML = '';
-                    if (profiles && profiles.length) {
-                        profiles.forEach(p => {
-                            const name = p.full_name || 'Anonymous User';
-                            const phone = p.phone || 'N/A';
-                            const avatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`;
-                            const id = p.id || 'N/A';
-                            const activeTime = p.updated_at ? new Date(p.updated_at).toLocaleString() : 'N/A';
-                            
-                            const row = document.createElement('tr');
-                            row.className = 'hover:bg-surface-container-low/50 transition-colors border-b border-border-subtle';
-                            row.innerHTML = `
+                    elListBody.innerHTML = profiles.map(p => {
+                        const name = p.full_name || 'Anonymous User';
+                        const phone = p.phone || 'N/A';
+                        const avatar = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(name)}`;
+                        const id = p.id || 'N/A';
+                        const activeTime = p.updated_at ? new Date(p.updated_at).toLocaleString() : 'N/A';
+                        return `
+                            <tr class="hover:bg-surface-container-low/50 transition-colors border-b border-border-subtle">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="w-9 h-9 rounded-full overflow-hidden bg-primary-container/10 border border-border-subtle shrink-0">
                                             <img class="w-full h-full object-cover" src="${avatar}" alt="Avatar">
                                         </div>
                                         <div>
-                                            <p class="font-bold text-on-surface">${name}</p>
+                                            <p class="font-bold text-on-surface">${esc(name)}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-xs font-mono text-outline">
-                                    ${id}
-                                </td>
-                                <td class="px-6 py-4 text-outline font-semibold">
-                                    ${phone}
-                                </td>
-                                <td class="px-6 py-4 text-xs text-outline font-medium">
-                                    ${activeTime}
-                                </td>
-                            `;
-                            elListBody.appendChild(row);
-                        });
-                    }
+                                <td class="px-6 py-4 text-xs font-mono text-outline">${esc(id)}</td>
+                                <td class="px-6 py-4 text-outline font-semibold">${esc(phone)}</td>
+                                <td class="px-6 py-4 text-xs text-outline font-medium">${esc(activeTime)}</td>
+                            </tr>
+                        `;
+                    }).join('');
                 }
             }
 
-            // Update DB latency ping bars
-            const elPingText = document.getElementById('ping-text');
-            const elPingBar = document.getElementById('ping-bar');
-            if (elPingText) elPingText.innerText = `${dbPing} ms`;
-            if (elPingBar) elPingBar.style.width = `${Math.min(100, dbPing)}%`;
+            // --- 2. Application Issues & Data Integrity Check ---
+            let isIssuesAvailable = false;
+            let totalIssuesCount = 0;
+            let gpsCount = 0;
+            let deptCount = 0;
+            let aiCount = 0;
 
-            // 2. Real Browser Memory usage
+            try {
+                if (typeof getIssues === 'function') {
+                    issues = await getIssues();
+                    if (Array.isArray(issues)) {
+                        isIssuesAvailable = true;
+                        totalIssuesCount = issues.length;
+
+                        // Incident Map for CivisPrioritizationEngine
+                        const incMap = new Map();
+                        issues.forEach(i => {
+                            if (i.incident_id !== null && i.incident_id !== undefined && i.incident_id !== '') {
+                                const key = String(i.incident_id);
+                                incMap.set(key, (incMap.get(key) || 0) + 1);
+                            }
+                        });
+
+                        issues.forEach(i => {
+                            const isResolved = String(i.status || '').trim() === 'Resolved';
+                            if (!isResolved) activeIssuesCount++;
+
+                            // Priority calculation reuse
+                            if (!isResolved && typeof CivisPrioritizationEngine !== 'undefined') {
+                                const pData = CivisPrioritizationEngine.calculatePriorityScore(i, incMap);
+                                if (pData.tier === 'P1 Critical' || pData.tier === 'P2 High') {
+                                    urgentP1P2Count++;
+                                }
+                            }
+
+                            // GPS check
+                            if (i.location_source === 'gps' || i.location_source === 'manual_pin' || (typeof i.lat === 'number' && typeof i.lng === 'number')) {
+                                gpsCount++;
+                            }
+                            // Department check
+                            if (i.assigned_department && String(i.assigned_department).trim() !== '') {
+                                deptCount++;
+                            }
+                            // AI Check
+                            if (i.ai_severity || i.ai_severity_score || i.ai_category) {
+                                aiCount++;
+                            }
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn('Issue data health check failed:', err?.message || err);
+            }
+
+            // Update Complaint Data UI
+            const elStatActiveIssues = document.getElementById('stat-active-issues');
+            const elStatUrgent = document.getElementById('stat-p1p2-urgent');
+            const elSvcIssuesSubtext = document.getElementById('svc-issues-subtext');
+            const elSvcIssuesBadge = document.getElementById('svc-issues-badge');
+
+            if (elStatActiveIssues) elStatActiveIssues.innerText = isIssuesAvailable ? activeIssuesCount.toLocaleString() : 'Unavailable';
+            if (elStatUrgent) elStatUrgent.innerText = isIssuesAvailable ? urgentP1P2Count.toLocaleString() : 'Unavailable';
+
+            if (elSvcIssuesSubtext) elSvcIssuesSubtext.innerText = isIssuesAvailable ? `${totalIssuesCount} total complaints (${activeIssuesCount} active)` : 'Issue data repository unavailable';
+            if (elSvcIssuesBadge) {
+                elSvcIssuesBadge.innerText = isIssuesAvailable ? 'AVAILABLE' : 'UNAVAILABLE';
+                elSvcIssuesBadge.className = isIssuesAvailable ? 'px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/20' : 'px-2.5 py-1 bg-critical/15 text-critical text-xs font-bold rounded-full border border-critical/20';
+            }
+
+            // Data Integrity Breakdown
+            const elGpsCount = document.getElementById('integrity-gps-count');
+            const elGpsPct = document.getElementById('integrity-gps-pct');
+            const elDeptCount = document.getElementById('integrity-dept-count');
+            const elDeptPct = document.getElementById('integrity-dept-pct');
+            const elAiCount = document.getElementById('integrity-ai-count');
+            const elAiPct = document.getElementById('integrity-ai-pct');
+            const elCandCount = document.getElementById('integrity-candidates-count');
+
+            const totalBase = totalIssuesCount > 0 ? totalIssuesCount : 1;
+            if (elGpsCount) elGpsCount.innerText = isIssuesAvailable ? gpsCount.toLocaleString() : 'Unavailable';
+            if (elGpsPct) elGpsPct.innerText = isIssuesAvailable ? `${Math.round((gpsCount / totalBase) * 100)}% of total` : 'N/A';
+            if (elDeptCount) elDeptCount.innerText = isIssuesAvailable ? deptCount.toLocaleString() : 'Unavailable';
+            if (elDeptPct) elDeptPct.innerText = isIssuesAvailable ? `${Math.round((deptCount / totalBase) * 100)}% of total` : 'N/A';
+            if (elAiCount) elAiCount.innerText = isIssuesAvailable ? aiCount.toLocaleString() : 'Unavailable';
+            if (elAiPct) elAiPct.innerText = isIssuesAvailable ? `${Math.round((aiCount / totalBase) * 100)}% of total` : 'N/A';
+
+            // --- 3. Incident Candidate Telemetry Check ---
+            let isIncidentSystemAvailable = false;
+            try {
+                if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                    const { data: candidates, error: cError } = await supabaseClient.from('incident_candidates').select('id', { count: 'exact' }).eq('status', 'pending');
+                    if (!cError) {
+                        isIncidentSystemAvailable = true;
+                        pendingCandidatesCount = candidates ? candidates.length : 0;
+                    }
+                }
+            } catch (err) {
+                console.warn('Incident candidates health check failed:', err?.message || err);
+            }
+
+            if (elCandCount) elCandCount.innerText = isIncidentSystemAvailable ? pendingCandidatesCount.toLocaleString() : 'Unavailable';
+
+            const elSvcIncidentSubtext = document.getElementById('svc-incident-subtext');
+            const elSvcIncidentBadge = document.getElementById('svc-incident-badge');
+            if (elSvcIncidentSubtext) elSvcIncidentSubtext.innerText = isIncidentSystemAvailable ? `Spatial clustering active (${pendingCandidatesCount} pending candidates)` : 'Incident candidate system telemetry unavailable';
+            if (elSvcIncidentBadge) {
+                elSvcIncidentBadge.innerText = isIncidentSystemAvailable ? 'AVAILABLE' : 'UNAVAILABLE';
+                elSvcIncidentBadge.className = isIncidentSystemAvailable ? 'px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/20' : 'px-2.5 py-1 bg-critical/15 text-critical text-xs font-bold rounded-full border border-critical/20';
+            }
+
+            // --- 4. Priority Engine Check ---
+            const isEngineLoaded = typeof CivisPrioritizationEngine !== 'undefined' && typeof CivisPrioritizationEngine.calculatePriorityScore === 'function';
+            const elSvcEngineSubtext = document.getElementById('svc-engine-subtext');
+            const elSvcEngineBadge = document.getElementById('svc-engine-badge');
+            if (elSvcEngineSubtext) elSvcEngineSubtext.innerText = isEngineLoaded ? 'CivisPrioritizationEngine Phase 7A module loaded' : 'Priority engine module not loaded';
+            if (elSvcEngineBadge) {
+                elSvcEngineBadge.innerText = isEngineLoaded ? 'AVAILABLE' : 'UNAVAILABLE';
+                elSvcEngineBadge.className = isEngineLoaded ? 'px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full border border-success/20' : 'px-2.5 py-1 bg-critical/15 text-critical text-xs font-bold rounded-full border border-critical/20';
+            }
+
+            // --- 5. Browser Observability: JS Heap Memory ---
             const elRamText = document.getElementById('ram-usage-text');
             const elRamBar = document.getElementById('ram-usage-bar');
+            const elRamSubtext = document.getElementById('ram-usage-subtext');
+
             if (window.performance && window.performance.memory) {
                 const usedMb = (performance.memory.usedJSHeapSize / (1024 * 1024)).toFixed(1);
                 const limitMb = (performance.memory.jsHeapSizeLimit / (1024 * 1024)).toFixed(1);
                 const ramPct = Math.round((performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100);
                 if (elRamText) elRamText.innerText = `${usedMb} / ${limitMb} MB (${ramPct}%)`;
-                if (elRamBar) elRamBar.style.width = `${ramPct}%`;
+                if (elRamBar) {
+                    elRamBar.style.width = `${ramPct}%`;
+                    elRamBar.className = 'h-full bg-warning transition-all duration-500 rounded-full';
+                }
+                if (elRamSubtext) elRamSubtext.innerText = 'Browser JS Heap memory allocated.';
             } else {
-                const mockRamPct = 42;
-                if (elRamText) elRamText.innerText = `3.4 / 8.0 GB (${mockRamPct}%)`;
-                if (elRamBar) elRamBar.style.width = `${mockRamPct}%`;
+                if (elRamText) elRamText.innerText = 'Unavailable in this browser';
+                if (elRamBar) {
+                    elRamBar.style.width = '0%';
+                }
+                if (elRamSubtext) elRamSubtext.innerText = 'performance.memory is not exposed by this browser.';
             }
 
-            // 3. Real Event Loop Lag (proxy for browser CPU load)
+            // --- 6. Browser Observability: Event Loop Responsiveness ---
             const cpuStart = performance.now();
             setTimeout(() => {
                 const cpuEnd = performance.now();
-                const lag = Math.max(0, (cpuEnd - cpuStart) - 50); // lag over 50ms delay
-                const cpuLoad = Math.min(99, Math.round(lag * 4.5) + 8); // scale event loop lag to a load percentage
+                const lagMs = Math.max(0, Math.round((cpuEnd - cpuStart) - 50));
                 const elCpuText = document.getElementById('cpu-load-text');
                 const elCpuBar = document.getElementById('cpu-load-bar');
-                if (elCpuText) elCpuText.innerText = `${cpuLoad}%`;
-                if (elCpuBar) elCpuBar.style.width = `${cpuLoad}%`;
-            }, 50);
 
-            // 4. Live Page views tracking
-            views += Math.floor(Math.random() * 2); // organic increment
-            localStorage.setItem('civis_mock_views', views.toString());
-            const elViewsUpdate = document.getElementById('stat-page-views');
-            if (elViewsUpdate) elViewsUpdate.innerText = views.toLocaleString();
-
-            // 5. Append Live Diagnostics log
-            const consoleBox = document.getElementById('console-logs');
-            if (consoleBox) {
-                const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-                const newLog = document.createElement('p');
-                newLog.className = 'animate-pulse text-[#00ff00]';
-                newLog.innerText = `[${now}] DIAGNOSTICS: members=${profilesCount} active=${onlineUsers} latency=${dbPing}ms`;
-                consoleBox.appendChild(newLog);
-                consoleBox.scrollTop = consoleBox.scrollHeight;
-                
-                while (consoleBox.children.length > 25) {
-                    consoleBox.removeChild(consoleBox.firstChild);
+                let statusLabel = 'HEALTHY';
+                let barClass = 'h-full bg-success transition-all duration-500 rounded-full';
+                if (lagMs > 50) {
+                    statusLabel = 'DEGRADED';
+                    barClass = 'h-full bg-warning transition-all duration-500 rounded-full';
                 }
-            }
+
+                if (elCpuText) elCpuText.innerText = `${lagMs} ms delay (${statusLabel})`;
+                if (elCpuBar) {
+                    elCpuBar.style.width = `${Math.min(100, Math.max(5, lagMs * 5 + 10))}%`;
+                    elCpuBar.className = barClass;
+                }
+
+                appendSessionLog(`Event loop lag check: ${lagMs}ms delay (${statusLabel})`);
+
+                // Update overall system status indicator
+                const elOverallStatusText = document.getElementById('overall-status-text');
+                const elOverallStatusDot = document.getElementById('overall-status-dot');
+                if (elOverallStatusText && elOverallStatusDot) {
+                    if (!isDbHealthy) {
+                        elOverallStatusText.innerText = 'DEGRADED / PARTIAL';
+                        elOverallStatusText.className = 'text-xs font-semibold text-warning uppercase tracking-wider';
+                        elOverallStatusDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-warning';
+                    } else {
+                        elOverallStatusText.innerText = 'HEALTHY';
+                        elOverallStatusText.className = 'text-xs font-semibold text-success uppercase tracking-wider';
+                        elOverallStatusDot.className = 'relative inline-flex rounded-full h-2.5 w-2.5 bg-success';
+                    }
+                }
+
+                if (iconRefresh) iconRefresh.classList.remove('animate-spin');
+                isDiagnosticsRunning = false;
+            }, 50);
         }
 
-        // Run diagnostics immediately and then every 3 seconds
+        // Run immediately on page load
         runHealthDiagnostics();
-        setInterval(runHealthDiagnostics, 3000);
+
+        // Non-aggressive refresh interval (every 20 seconds)
+        setInterval(runHealthDiagnostics, REFRESH_INTERVAL_MS);
     </script>
 </body>
 </html>
