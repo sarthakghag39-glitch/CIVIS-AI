@@ -136,12 +136,12 @@
         <header class="sticky top-0 z-40 w-full bg-surface/90 border-b border-border-subtle px-8 py-4 flex items-center justify-between">
             <div class="flex items-center gap-8 flex-1">
                 <h2 class="font-headline-md text-headline-md text-primary font-bold text-2xl">Social Pulse</h2>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2" id="feed-status-badge">
                     <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
                     </span>
-                    <span class="text-[12px] font-bold text-success uppercase tracking-wider">Demo Feed Active</span>
+                    <span class="text-[12px] font-bold text-success uppercase tracking-wider">Live Database Stream</span>
                 </div>
             </div>
             <div class="flex items-center gap-3">
@@ -166,11 +166,23 @@
                         <div>
                             <h3 class="text-lg font-bold text-on-surface">Hear what the city is saying.</h3>
                             <p class="text-sm text-outline mt-1 leading-relaxed">
-                                Monitor public social media signals (X, Instagram, Facebook, News) and use AI duplicate clustering to map, filter, and convert crowdsourced public intelligence into verified civic tickets.
+                                Monitor authenticated public social media signals (X, Instagram, Facebook, News) and use AI duplicate clustering to map, filter, and convert crowdsourced public intelligence into verified civic tickets.
                             </p>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Feed Status Error Banner (Hidden by default) -->
+            <div id="feed-error-banner" class="hidden p-4 rounded-xl bg-error-container/40 border border-critical/30 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-critical">cloud_off</span>
+                    <div>
+                        <h4 class="font-bold text-sm text-critical">LIVE FEED UNAVAILABLE</h4>
+                        <p class="text-xs text-outline">Unable to connect to live social signals database. Demonstrations can be performed using simulated signals.</p>
+                    </div>
+                </div>
+                <button onclick="init()" class="px-3 py-1.5 rounded-lg bg-critical text-white font-bold text-xs hover:opacity-90">Retry Connection</button>
             </div>
 
             <!-- KPI Cards Grid -->
@@ -181,10 +193,10 @@
                         <div class="p-3 rounded-xl bg-[#8B5CF6]/10 text-[#8B5CF6]">
                             <span class="material-symbols-outlined">rss_feed</span>
                         </div>
-                        <span class="text-success text-xs font-bold">+18% today</span>
+                        <span class="text-success text-xs font-bold">Live Stream</span>
                     </div>
                     <span class="text-outline text-xs font-semibold uppercase tracking-wider">Social Signals</span>
-                    <h4 class="text-4xl font-extrabold text-on-surface mt-1" id="kpi-signals">47</h4>
+                    <h4 class="text-4xl font-extrabold text-on-surface mt-1" id="kpi-signals">0</h4>
                 </div>
                 <!-- Card 2 -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-warning/30 transition-all">
@@ -192,10 +204,10 @@
                         <div class="p-3 rounded-xl bg-warning/10 text-warning">
                             <span class="material-symbols-outlined">warning</span>
                         </div>
-                        <span class="text-critical text-xs font-bold">6 critical</span>
+                        <span class="text-critical text-xs font-bold" id="kpi-critical-subtext">0 urgent</span>
                     </div>
                     <span class="text-outline text-xs font-semibold uppercase tracking-wider">Civic Issues Detected</span>
-                    <h4 class="text-4xl font-extrabold text-warning mt-1" id="kpi-issues">18</h4>
+                    <h4 class="text-4xl font-extrabold text-warning mt-1" id="kpi-issues">0</h4>
                 </div>
                 <!-- Card 3 -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-primary/30 transition-all">
@@ -206,7 +218,7 @@
                         <span class="text-outline text-xs font-bold">Across Pune</span>
                     </div>
                     <span class="text-outline text-xs font-semibold uppercase tracking-wider">Locations Identified</span>
-                    <h4 class="text-4xl font-extrabold text-primary mt-1" id="kpi-locations">12</h4>
+                    <h4 class="text-4xl font-extrabold text-primary mt-1" id="kpi-locations">0</h4>
                 </div>
                 <!-- Card 4 (Duplicate Clustering) -->
                 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between group hover:border-success/30 transition-all relative overflow-hidden">
@@ -214,145 +226,10 @@
                         <div class="p-3 rounded-xl bg-success/10 text-success">
                             <span class="material-symbols-outlined">layers</span>
                         </div>
-                        <span class="text-success text-xs font-bold">88% reduction</span>
+                        <span class="text-success text-xs font-bold">Spatial Deduplication</span>
                     </div>
                     <span class="text-outline text-xs font-semibold uppercase tracking-wider">Incidents Clustered</span>
-                    <h4 class="text-4xl font-extrabold text-success mt-1" id="kpi-clustered">8</h4>
-                </div>
-            </div>
-
-            <!-- Bento Row: Signal Sources + Duplicate Clustering Breakdown -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Platform Sources breakdown -->
-                <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between">
-                    <div>
-                        <h4 class="text-base font-bold text-on-surface mb-1">Social Signal Sources</h4>
-                        <p class="text-xs text-outline mb-6">Distribution across public monitoring hooks</p>
-                        
-                        <div class="space-y-4">
-                            <!-- X -->
-                            <div>
-                                <div class="flex justify-between text-xs font-semibold mb-1">
-                                    <span class="flex items-center gap-1.5"><span class="text-[#1da1f2] font-bold">🐦 X (Twitter)</span></span>
-                                    <span class="text-on-surface-variant">21 signals</span>
-                                </div>
-                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div class="h-full bg-[#1da1f2]" style="width: 45%"></div>
-                                </div>
-                            </div>
-                            <!-- Instagram -->
-                            <div>
-                                <div class="flex justify-between text-xs font-semibold mb-1">
-                                    <span class="flex items-center gap-1.5"><span class="text-[#e1306c] font-bold">📸 Instagram</span></span>
-                                    <span class="text-on-surface-variant">14 signals</span>
-                                </div>
-                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div class="h-full bg-[#e1306c]" style="width: 30%"></div>
-                                </div>
-                            </div>
-                            <!-- Facebook -->
-                            <div>
-                                <div class="flex justify-between text-xs font-semibold mb-1">
-                                    <span class="flex items-center gap-1.5"><span class="text-[#1877f2] font-bold">👥 Facebook</span></span>
-                                    <span class="text-on-surface-variant">7 signals</span>
-                                </div>
-                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div class="h-full bg-[#1877f2]" style="width: 15%"></div>
-                                </div>
-                            </div>
-                            <!-- News/Web -->
-                            <div>
-                                <div class="flex justify-between text-xs font-semibold mb-1">
-                                    <span class="flex items-center gap-1.5"><span class="text-outline font-bold">📰 News / Web</span></span>
-                                    <span class="text-on-surface-variant">5 signals</span>
-                                </div>
-                                <div class="w-full h-1.5 bg-surface-container-high rounded-full overflow-hidden">
-                                    <div class="h-full bg-outline" style="width: 10%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- One Incident Many Signals concept -->
-                <div class="lg:col-span-2 bg-card-bg p-6 rounded-2xl border border-border-subtle shadow-sm flex flex-col justify-between">
-                    <div>
-                        <h4 class="text-base font-bold text-[#8B5CF6] mb-1">Key Differentiator: One Incident. Many Signals.</h4>
-                        <p class="text-xs text-outline mb-6">CIVIS AI automatically clusters duplicate public social signals into unique, manageable incidents.</p>
-                        
-                        <!-- Visual Pipeline diagram -->
-                        <div class="grid grid-cols-5 gap-3 items-center text-center">
-                            <div class="p-3 bg-surface-container-low border border-border-subtle rounded-xl flex flex-col items-center justify-center gap-1">
-                                <span class="material-symbols-outlined text-[#1da1f2] text-xl">forum</span>
-                                <span class="text-[10px] font-bold text-outline">X Posts</span>
-                            </div>
-                            <div class="text-outline text-lg font-bold">+</div>
-                            <div class="p-3 bg-surface-container-low border border-border-subtle rounded-xl flex flex-col items-center justify-center gap-1">
-                                <span class="material-symbols-outlined text-[#e1306c] text-xl">photo_camera</span>
-                                <span class="text-[10px] font-bold text-outline">Instagram</span>
-                            </div>
-                            <div class="text-outline text-lg font-bold">➔</div>
-                            <div class="p-3 bg-[#8B5CF6]/15 border border-[#8B5CF6]/20 rounded-xl flex flex-col items-center justify-center gap-1">
-                                <span class="material-symbols-outlined text-[#8B5CF6] text-xl">layers</span>
-                                <span class="text-[10px] font-bold text-[#8B5CF6]">1 Incident</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 p-4 rounded-xl bg-surface-container-high border border-border-subtle text-xs text-on-surface-variant leading-relaxed">
-                            <strong>How it works:</strong> CIVIS AI ingests noisy social streams, parses context and descriptions, uses location coordinates/names to extract physical coordinates, matches reports within 100 meters, and clusters them. This prevents dispatching multiple crew resources to resolve the same pothole or streetlight error.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Emerging Civic Incidents (Clustered Incidents Panel) -->
-            <div class="bg-card-bg rounded-2xl border border-border-subtle shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-border-subtle flex justify-between items-center">
-                    <h4 class="text-lg font-bold text-on-surface">Emerging Civic Incidents (Active Clusters)</h4>
-                    <span class="text-[11px] font-bold text-[#8B5CF6] px-2 py-0.5 bg-[#8B5CF6]/10 rounded-full">Requires verification</span>
-                </div>
-                <div class="divide-y divide-border-subtle" id="incident-clusters-body">
-                    <!-- Incident 1 -->
-                    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group" id="cluster-CIV-PUN-KOT-001">
-                        <div class="flex items-start gap-4">
-                            <div class="p-3 bg-critical/10 text-critical rounded-xl shrink-0">
-                                <span class="material-symbols-outlined text-2xl">layers</span>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h5 class="font-bold text-on-surface">Kothrud Bus Stop Pothole Damage</h5>
-                                    <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">CIV-PUN-KOT-001</span>
-                                </div>
-                                <p class="text-xs text-outline mt-1 font-medium">Clustered: 18 public social signals (X: 10, Instagram: 5, Facebook: 3)</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                            <span class="px-2.5 py-1 bg-error-container text-error text-xs font-bold rounded-full">Critical</span>
-                            <span class="text-xs font-semibold text-outline">AI: 96% confidence</span>
-                            <button onclick="focusIncidentOnMap(18.5074, 73.8077)" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>
-                        </div>
-                    </div>
-
-                    <!-- Incident 2 -->
-                    <div class="p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group" id="cluster-CIV-PUN-BAN-002">
-                        <div class="flex items-start gap-4">
-                            <div class="p-3 bg-warning/10 text-warning rounded-xl shrink-0">
-                                <span class="material-symbols-outlined text-2xl">layers</span>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h5 class="font-bold text-on-surface">Baner Road Garbage Accumulation</h5>
-                                    <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">CIV-PUN-BAN-002</span>
-                                </div>
-                                <p class="text-xs text-outline mt-1 font-medium">Clustered: 11 public social signals (X: 6, Instagram: 3, Facebook: 2)</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                            <span class="px-2.5 py-1 bg-[#ffede6] text-warning text-xs font-bold rounded-full">High</span>
-                            <span class="text-xs font-semibold text-outline">AI: 94% confidence</span>
-                            <button onclick="focusIncidentOnMap(18.5590, 73.7925)" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>
-                        </div>
-                    </div>
+                    <h4 class="text-4xl font-extrabold text-success mt-1" id="kpi-clustered">0</h4>
                 </div>
             </div>
 
@@ -369,13 +246,6 @@
                             <option value="Facebook">Facebook</option>
                             <option value="News">News/Web</option>
                         </select>
-                        <select class="px-4 py-2 bg-surface-container-high border border-border-subtle rounded-xl text-xs font-semibold outline-none" id="filter-category">
-                            <option value="All">All Categories</option>
-                            <option value="Pothole">Pothole</option>
-                            <option value="Garbage">Garbage</option>
-                            <option value="Streetlight">Streetlights</option>
-                            <option value="Water Leakage">Water Leakage</option>
-                        </select>
                     </div>
                 </div>
 
@@ -386,29 +256,6 @@
             </div>
         </div>
     </main>
-
-    <!-- AI Analysis Modal (Bottom/Right Drawer) -->
-    <div class="fixed inset-0 z-50 hidden flex items-center justify-end px-4" id="analysisModal">
-        <div class="absolute inset-0 bg-on-surface/40 backdrop-blur-sm" onclick="closeModal('analysisModal')"></div>
-        <div class="relative bg-card-bg w-full max-w-lg h-full p-8 shadow-2xl overflow-y-auto flex flex-col justify-between transition-transform duration-300 translate-x-full" id="analysisModalContent">
-            <div>
-                <div class="flex justify-between items-center pb-4 border-b border-border-subtle mb-6">
-                    <h3 class="font-headline-md text-lg font-bold text-on-surface flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary">psychology</span>
-                        AI Civic Analysis
-                    </h3>
-                    <button class="material-symbols-outlined text-outline hover:text-on-surface" onclick="closeModal('analysisModal')">close</button>
-                </div>
-                <div class="space-y-5" id="analysis-details">
-                    <!-- Dynamic Content -->
-                </div>
-            </div>
-            <div class="pt-6 border-t border-border-subtle mt-6 flex gap-3">
-                <button class="flex-1 py-3 border border-border-subtle rounded-xl font-bold text-xs hover:bg-surface-variant transition-colors" onclick="closeModal('analysisModal')">Dismiss</button>
-                <button class="flex-grow-[2] py-3 bg-[#22C55E] text-white rounded-xl font-bold text-xs hover:opacity-90 active:scale-95 transition-all shadow-md" id="btn-convert-complaint">Convert to Complaint</button>
-            </div>
-        </div>
-    </div>
 
     <!-- Create Complaint Confirmation Modal -->
     <div class="fixed inset-0 z-[60] hidden flex items-center justify-center px-4" id="confirmModal">
@@ -442,132 +289,26 @@
 
     <script src="/app.js"></script>
     <script>
-        // Fallback local mock data
-        const localMockSignals = [
-            {
-                id: "SOC-001",
-                platform: "X",
-                username: "@punecitizen24",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=pune1",
-                timestamp: "12 minutes ago",
-                content: "Massive pothole near Kothrud bus stop. Two bikes almost slipped here today. Someone please fix this before there is an accident.",
-                issueType: "Pothole",
-                category: "Road Infrastructure",
-                location: "Kothrud Bus Stop, Pune",
-                latitude: 18.5074,
-                longitude: 73.8077,
-                severity: "Critical",
-                aiConfidence: 96,
-                sentiment: "Negative",
-                supportingSignals: 18,
-                clusterId: "CIV-PUN-KOT-001",
-                status: "Clustered",
-                department: "Road Maintenance",
-                recommendedAction: "Priority inspection and patch works required",
-                engagement: 18
-            },
-            {
-                id: "SOC-002",
-                platform: "Instagram",
-                username: "@citywatch_pune",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=citywatch",
-                timestamp: "45 minutes ago",
-                content: "Garbage has not been collected near Baner Road for the last three days. The area is becoming unhygienic.",
-                issueType: "Garbage",
-                category: "Waste Management",
-                location: "Baner Road, Pune",
-                latitude: 18.5590,
-                longitude: 73.7925,
-                severity: "High",
-                aiConfidence: 94,
-                sentiment: "Negative",
-                supportingSignals: 11,
-                clusterId: "CIV-PUN-BAN-002",
-                status: "Clustered",
-                department: "Sanitation",
-                recommendedAction: "Dispatch waste collection truck",
-                engagement: 22
-            },
-            {
-                id: "SOC-003",
-                platform: "X",
-                username: "@puneresident",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=resident",
-                timestamp: "1 hour ago",
-                content: "Streetlight has been broken outside the school on FC Road for almost a week. Very dark after 8 PM.",
-                issueType: "Streetlight",
-                category: "Electrical Infrastructure",
-                location: "FC Road, Pune",
-                latitude: 18.5244,
-                longitude: 73.8413,
-                severity: "High",
-                aiConfidence: 91,
-                sentiment: "Negative",
-                supportingSignals: 7,
-                clusterId: "CIV-PUN-FC-003",
-                status: "New",
-                department: "Electrical",
-                recommendedAction: "Replace light fixture",
-                engagement: 14
-            },
-            {
-                id: "SOC-004",
-                platform: "Facebook",
-                username: "@aundh_community",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=aundh",
-                timestamp: "2 hours ago",
-                content: "Water is leaking continuously near Aundh IT Park. Road is getting flooded.",
-                issueType: "Water Leakage",
-                category: "Utility Issues",
-                location: "Aundh IT Park, Pune",
-                latitude: 18.5596,
-                longitude: 73.8054,
-                severity: "Critical",
-                aiConfidence: 97,
-                sentiment: "Negative",
-                supportingSignals: 23,
-                clusterId: "CIV-PUN-AUN-004",
-                status: "Clustered",
-                department: "Water Supply",
-                recommendedAction: "Inspect pipeline leak",
-                engagement: 36
-            },
-            {
-                id: "SOC-005",
-                platform: "News",
-                username: "@punenews_alert",
-                avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=news",
-                timestamp: "3 hours ago",
-                content: "Heavy waterlogging reported on major Pune road after drainage failure near FC Road.",
-                issueType: "Water Leakage",
-                category: "Drainage",
-                location: "FC Road, Pune",
-                latitude: 18.5244,
-                longitude: 73.8413,
-                severity: "High",
-                aiConfidence: 89,
-                sentiment: "Negative",
-                supportingSignals: 8,
-                clusterId: "CIV-PUN-FC-005",
-                status: "New",
-                department: "Drainage & Sewerage",
-                recommendedAction: "Clear blockage",
-                engagement: 45
-            }
-        ];
+        let liveSignals = [];
+        let isFeedError = false;
+        let activeTargetSignal = null;
 
-        let mockSignals = [...localMockSignals];
+        function esc(str) {
+            return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
 
         async function fetchSignalsFromDb() {
+            isFeedError = false;
             let dbIssues = [];
-            if (typeof supabaseClient !== 'undefined') {
+            const banner = document.getElementById('feed-error-banner');
+            const badge = document.getElementById('feed-status-badge');
+
+            if (typeof supabaseClient !== 'undefined' && supabaseClient) {
                 try {
-                    const { data: issuesData, error: issuesError } = await supabaseClient.from('issues').select('*');
-                    if (!issuesError && issuesData) {
-                        dbIssues = issuesData;
-                    }
-                } catch(err) {
-                    console.warn("Could not load live issues:", err);
+                    const { data: issuesData } = await supabaseClient.from('issues').select('*');
+                    if (Array.isArray(issuesData)) dbIssues = issuesData;
+                } catch (err) {
+                    console.warn("Could not load issues:", err);
                 }
 
                 try {
@@ -576,47 +317,70 @@
                         .select('*')
                         .order('created_at', { ascending: false });
                     
-                    if (!error && data && data.length > 0) {
-                        mockSignals = data.map(row => ({
+                    if (!error && Array.isArray(data)) {
+                        // Successfully fetched from database
+                        liveSignals = data.map(row => ({
                             id: row.id,
-                            platform: row.platform,
-                            username: row.username,
-                            avatar: row.avatar,
-                            timestamp: row.timestamp,
-                            content: row.content,
-                            issueType: row.issue_type,
-                            category: row.category,
-                            location: row.location,
+                            platform: row.platform || 'Social',
+                            username: row.username || '@citizen',
+                            avatar: row.avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=resident`,
+                            timestamp: row.created_at ? new Date(row.created_at).toLocaleString() : 'Recent',
+                            content: row.content || '',
+                            issueType: row.issue_type || 'Unclassified',
+                            category: row.category || 'Social Signal',
+                            location: row.location || 'Pune',
                             latitude: row.latitude,
                             longitude: row.longitude,
                             severity: row.severity,
                             aiConfidence: row.ai_confidence,
                             sentiment: row.sentiment,
-                            supportingSignals: row.supporting_signals,
+                            supportingSignals: row.supporting_signals || 1,
                             clusterId: row.cluster_id,
-                            status: row.status,
-                            department: row.department,
-                            recommendedAction: row.recommended_action,
-                            engagement: row.engagement
+                            status: row.status || 'New',
+                            department: row.department || 'General Municipal Administration',
+                            recommendedAction: row.recommended_action || 'Pending Verification',
+                            engagement: row.engagement || 1,
+                            isSimulated: false
                         }));
-                        console.log("Successfully loaded social signals from Supabase!");
-                    } else {
-                        if (error && error.code !== 'PGRST205') {
-                            console.warn("Supabase social_signals error:", error.message);
+
+                        if (banner) banner.classList.add('hidden');
+                        if (badge) {
+                            badge.innerHTML = `
+                                <span class="relative flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-success"></span>
+                                </span>
+                                <span class="text-[12px] font-bold text-success uppercase tracking-wider">Live Database Feed</span>
+                            `;
                         }
-                        mockSignals = [...localMockSignals];
+                    } else {
+                        // Database query failed
+                        isFeedError = true;
+                        liveSignals = [];
+                        if (banner) banner.classList.remove('hidden');
+                        if (badge) {
+                            badge.innerHTML = `
+                                <span class="relative flex h-2.5 w-2.5">
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-critical"></span>
+                                </span>
+                                <span class="text-[12px] font-bold text-critical uppercase tracking-wider">LIVE FEED UNAVAILABLE</span>
+                            `;
+                        }
                     }
                 } catch (e) {
-                    console.warn("Failed to fetch social_signals, using fallback:", e);
-                    mockSignals = [...localMockSignals];
+                    console.warn("Failed to fetch social_signals:", e);
+                    isFeedError = true;
+                    liveSignals = [];
+                    if (banner) banner.classList.remove('hidden');
                 }
             }
 
             // Cross-reference with live issues in database
-            mockSignals.forEach(s => {
+            liveSignals.forEach(s => {
                 const matchedIssue = dbIssues.find(issue => 
                     issue.reported_by === 'Social Pulse' &&
                     issue.title.startsWith(s.issueType) &&
+                    s.latitude !== null && s.longitude !== null &&
                     Math.abs(issue.lat - s.latitude) < 0.001 &&
                     Math.abs(issue.lng - s.longitude) < 0.001
                 );
@@ -625,33 +389,57 @@
                     s.complaintId = matchedIssue.complaint_id || `CIV-2026-${String(matchedIssue.id).padStart(5, '0')}`;
                 }
             });
+
+            updateKPIs();
         }
 
-        let activeTargetSignal = null;
+        function updateKPIs() {
+            const elSig = document.getElementById('kpi-signals');
+            const elIss = document.getElementById('kpi-issues');
+            const elLoc = document.getElementById('kpi-locations');
+            const elClu = document.getElementById('kpi-clustered');
 
-        // Render loop
+            if (elSig) elSig.innerText = liveSignals.length.toString();
+            if (elIss) elIss.innerText = liveSignals.filter(s => s.severity === 'High' || s.severity === 'Critical').length.toString();
+            
+            const locs = new Set(liveSignals.map(s => s.location).filter(Boolean));
+            if (elLoc) elLoc.innerText = locs.size.toString();
+            
+            const clusters = new Set(liveSignals.map(s => s.clusterId).filter(Boolean));
+            if (elClu) elClu.innerText = clusters.size.toString();
+        }
+
         function renderFeed() {
             const container = document.getElementById('feed-container');
             if (!container) return;
 
             const searchVal = document.getElementById('search-location').value.toLowerCase().trim();
             const platformVal = document.getElementById('filter-platform').value;
-            const categoryVal = document.getElementById('filter-category').value;
 
             container.innerHTML = '';
 
-            const filtered = mockSignals.filter(s => {
-                const matchesSearch = s.location.toLowerCase().includes(searchVal) || s.content.toLowerCase().includes(searchVal);
+            if (isFeedError && liveSignals.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-outline bg-card-bg border border-border-subtle rounded-2xl p-8">
+                        <span class="material-symbols-outlined text-4xl text-critical mb-2">cloud_off</span>
+                        <h4 class="font-bold text-critical text-base">LIVE FEED UNAVAILABLE</h4>
+                        <p class="text-xs text-outline mt-1">Unable to load live social signals from database. Click "Simulate Signal" to test in-memory demonstration mode.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const filtered = liveSignals.filter(s => {
+                const matchesSearch = !searchVal || s.location.toLowerCase().includes(searchVal) || s.content.toLowerCase().includes(searchVal);
                 const matchesPlatform = platformVal === 'All' || s.platform === platformVal;
-                const matchesCategory = categoryVal === 'All' || s.issueType === categoryVal;
-                return matchesSearch && matchesPlatform && matchesCategory;
+                return matchesSearch && matchesPlatform;
             });
 
             if (filtered.length === 0) {
                 container.innerHTML = `
-                    <div class="col-span-full py-12 text-center text-outline">
-                        <span class="material-symbols-outlined text-4xl opacity-50 mb-2">forum</span>
-                        <p class="text-xs font-semibold">No social signals found matching the filters.</p>
+                    <div class="col-span-full py-12 text-center text-outline bg-card-bg border border-border-subtle rounded-2xl p-8">
+                        <span class="material-symbols-outlined text-4xl opacity-50 mb-2">inbox</span>
+                        <p class="text-xs font-semibold">No social signals recorded in database matching criteria.</p>
                     </div>
                 `;
                 return;
@@ -659,7 +447,7 @@
 
             filtered.forEach(s => {
                 const card = document.createElement('div');
-                card.className = `bg-card-bg border border-border-subtle rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/20 hover:scale-[1.01] transition-all duration-200`;
+                card.className = `bg-card-bg border ${s.isSimulated ? 'border-primary/40' : 'border-border-subtle'} rounded-2xl p-5 shadow-sm space-y-4 hover:border-primary/30 transition-all duration-200`;
                 
                 let platBadge = ``;
                 if (s.platform === 'X') platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1da1f2]/10 text-[#1da1f2]">🐦 X</span>`;
@@ -667,42 +455,53 @@
                 else if (s.platform === 'Facebook') platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-[#1877f2]/10 text-[#1877f2]">👥 Facebook</span>`;
                 else platBadge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-outline/10 text-outline">📰 News</span>`;
 
+                const liveBadge = s.isSimulated 
+                    ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/10 text-primary border border-primary/20">DEMO / SIMULATED</span>`
+                    : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-success/10 text-success border border-success/20">LIVE / VERIFIED</span>`;
+
+                const severityDisplay = s.severity 
+                    ? `<span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full ${s.severity === 'Critical' ? 'bg-error-container text-error' : 'bg-[#ffede6] text-warning'}">${esc(s.severity)}</span>`
+                    : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-surface-container-high text-outline">Unassessed</span>`;
+
+                const confidenceDisplay = s.aiConfidence ? `${s.aiConfidence}%` : 'Pending AI';
+                const latLngDisplay = (s.latitude !== null && s.longitude !== null) ? `Lat: ${s.latitude} • Lng: ${s.longitude}` : 'GPS: Not provided by source';
+
                 card.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container/10 border border-border-subtle">
-                                <img src="${s.avatar}" alt="User" class="w-full h-full object-cover">
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container/10 border border-border-subtle shrink-0">
+                                <img src="${esc(s.avatar)}" alt="User" class="w-full h-full object-cover">
                             </div>
                             <div>
-                                <p class="font-bold text-xs text-on-surface">${s.username}</p>
-                                <p class="text-[10px] text-outline">${s.timestamp} • ${platBadge}</p>
+                                <p class="font-bold text-xs text-on-surface">${esc(s.username)}</p>
+                                <p class="text-[10px] text-outline">${esc(s.timestamp)} • ${platBadge} ${liveBadge}</p>
                             </div>
                         </div>
-                        <span class="px-2.5 py-0.5 text-[10px] font-bold rounded-full ${s.severity === 'Critical' ? 'bg-error-container text-error' : 'bg-[#ffede6] text-warning'}">${s.severity}</span>
+                        ${severityDisplay}
                     </div>
-                    <p class="text-xs text-on-surface-variant leading-relaxed">"${s.content}"</p>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">"${esc(s.content)}"</p>
                     <div class="grid grid-cols-2 gap-3 text-[11px] text-outline font-semibold bg-surface-container-low border border-border-subtle/50 p-3 rounded-xl">
-                        <div>Issue: <span class="text-on-surface">${s.issueType}</span></div>
-                        <div>Confidence: <span class="text-on-surface">${s.aiConfidence}%</span></div>
-                        <div class="col-span-2">Location: <span class="text-on-surface">${s.location}</span></div>
+                        <div>Issue: <span class="text-on-surface">${esc(s.issueType)}</span></div>
+                        <div>Confidence: <span class="text-on-surface">${confidenceDisplay}</span></div>
+                        <div class="col-span-2">Location: <span class="text-on-surface">${esc(s.location)}</span> (${latLngDisplay})</div>
                         ${s.status === 'Converted' ? `
                             <div class="col-span-2 text-success font-bold flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                Converted to Ticket: ${s.complaintId}
+                                Converted to Ticket: ${esc(s.complaintId)}
                             </div>
                         ` : `
-                            <div class="col-span-2 text-[#8B5CF6]">Cluster ID: ${s.clusterId} (${s.supportingSignals} similar signals)</div>
+                            <div class="col-span-2 text-outline">Status: ${esc(s.status)}</div>
                         `}
                     </div>
                     <div class="flex items-center justify-between border-t border-border-subtle/50 pt-4 mt-2">
-                        <span class="text-[11px] text-outline font-bold">♥ ${s.engagement} supporting signals</span>
+                        <span class="text-[11px] text-outline font-bold">♥ ${s.engagement} engagements</span>
                         <div class="flex gap-2">
-                            <button onclick="focusIncidentOnMap(${s.latitude}, ${s.longitude})" class="px-3 py-1.5 bg-surface-container-high border border-border-subtle rounded-lg text-[10px] font-bold hover:bg-surface-variant transition-colors">Map</button>
-                            <button onclick="openAnalysis('${s.id}')" class="px-3 py-1.5 bg-[#8B5CF6]/10 text-[#8B5CF6] rounded-lg text-[10px] font-bold hover:bg-[#8B5CF6]/20 transition-colors">Analysis</button>
                             ${s.status === 'Converted' ? `
-                                <button disabled class="px-3 py-1.5 bg-[#eceef0] dark:bg-slate-800 text-outline rounded-lg text-[10px] font-bold cursor-not-allowed flex items-center gap-1"><span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> Converted</button>
+                                <button disabled class="px-3 py-1.5 bg-[#eceef0] dark:bg-slate-800 text-outline rounded-lg text-[10px] font-bold cursor-not-allowed flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">check_circle</span> Converted
+                                </button>
                             ` : `
-                                <button onclick="openConfirmModal('${s.id}')" class="px-3 py-1.5 bg-[#22C55E] text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition-colors">Complaint</button>
+                                <button onclick="openConfirmModal('${esc(s.id)}')" class="px-3 py-1.5 bg-[#22C55E] text-white rounded-lg text-[10px] font-bold hover:opacity-90 transition-colors">Convert to Complaint</button>
                             `}
                         </div>
                     </div>
@@ -711,160 +510,27 @@
             });
         }
 
-        // Action details
-        function focusIncidentOnMap(lat, lng) {
-            window.location.href = `/smart_map.html?focus=true&lat=${lat}&lng=${lng}`;
-        }
-
-        function renderClusters() {
-            const container = document.getElementById('incident-clusters-body');
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            // Group signals by cluster ID
-            const clusters = {};
-            mockSignals.forEach(s => {
-                if (s.clusterId) {
-                    if (!clusters[s.clusterId]) {
-                        clusters[s.clusterId] = {
-                            id: s.clusterId,
-                            title: `${s.location.split(',')[0]} ${s.issueType}`,
-                            issueType: s.issueType,
-                            location: s.location,
-                            severity: s.severity,
-                            aiConfidence: s.aiConfidence,
-                            signals: s.supportingSignals || 1,
-                            platforms: { X: 0, Instagram: 0, Facebook: 0, News: 0 },
-                            status: s.status,
-                            complaintId: s.complaintId || null,
-                            lat: s.latitude,
-                            lng: s.longitude
-                        };
-                    }
-                    clusters[s.clusterId].platforms[s.platform] = (clusters[s.clusterId].platforms[s.platform] || 0) + 1;
-                    if (s.status === 'Converted') {
-                        clusters[s.clusterId].status = 'Converted';
-                        clusters[s.clusterId].complaintId = s.complaintId;
-                    }
-                }
-            });
-
-            Object.values(clusters).forEach(c => {
-                const isConverted = c.status === 'Converted';
-                const statusBadge = isConverted 
-                    ? `<span class="px-2.5 py-1 bg-success/15 text-success text-xs font-bold rounded-full flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Converted (${c.complaintId})</span>`
-                    : `<span class="px-2.5 py-1 ${c.severity === 'Critical' ? 'bg-error-container text-error' : 'bg-[#ffede6] text-warning'} text-xs font-bold rounded-full">${c.severity}</span>`;
-
-                const actionButton = isConverted
-                    ? `<button disabled class="px-4 py-2 bg-[#eceef0] dark:bg-slate-800 text-outline text-xs font-bold rounded-xl cursor-not-allowed">Converted</button>`
-                    : `<button onclick="focusIncidentOnMap(${c.lat}, ${c.lng})" class="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all">View on Map</button>`;
-
-                const div = document.createElement('div');
-                div.className = 'p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-surface-container-low/30 transition-all group';
-                div.id = `cluster-${c.id}`;
-
-                // Create plat text
-                const platTexts = [];
-                if (c.platforms.X > 0) platTexts.push(`X: ${c.platforms.X}`);
-                if (c.platforms.Instagram > 0) platTexts.push(`Instagram: ${c.platforms.Instagram}`);
-                if (c.platforms.Facebook > 0) platTexts.push(`Facebook: ${c.platforms.Facebook}`);
-                if (c.platforms.News > 0) platTexts.push(`News: ${c.platforms.News}`);
-                const platSummary = platTexts.length > 0 ? ` (${platTexts.join(', ')})` : '';
-
-                div.innerHTML = `
-                    <div class="flex items-start gap-4">
-                        <div class="p-3 ${isConverted ? 'bg-success/10 text-success' : c.severity === 'Critical' ? 'bg-critical/10 text-critical' : 'bg-warning/10 text-warning'} rounded-xl shrink-0">
-                            <span class="material-symbols-outlined text-2xl">layers</span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h5 class="font-bold text-on-surface">${c.title}</h5>
-                                <span class="text-[10px] font-mono bg-surface-container-high border border-border-subtle px-1.5 py-0.5 rounded text-outline">${c.id}</span>
-                            </div>
-                            <p class="text-xs text-outline mt-1 font-medium">Clustered: ${c.signals} public social signals${platSummary}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 w-full md:w-auto justify-between md:justify-start">
-                        ${statusBadge}
-                        <span class="text-xs font-semibold text-outline">AI: ${c.aiConfidence}% confidence</span>
-                        ${actionButton}
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        // Modal operations
-        function openAnalysis(id) {
-            const signal = mockSignals.find(s => s.id === id);
-            if (!signal) return;
-            activeTargetSignal = signal;
-
-            const container = document.getElementById('analysis-details');
-            container.innerHTML = `
-                <div class="bg-surface-container-low border border-border-subtle p-4 rounded-xl space-y-2">
-                    <p class="text-xs text-outline font-bold">Original Signal (${signal.platform})</p>
-                    <p class="text-xs text-on-surface italic leading-normal">"${signal.content}"</p>
-                    <p class="text-[10px] text-outline font-semibold">Posted by ${signal.username} • ${signal.timestamp}</p>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
-                        <p class="text-[10px] text-outline uppercase font-bold">AI Category</p>
-                        <p class="text-xs font-bold text-on-surface">${signal.issueType}</p>
-                        <p class="text-[9px] text-outline">${signal.category}</p>
-                    </div>
-                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
-                        <p class="text-[10px] text-outline uppercase font-bold">AI Confidence</p>
-                        <p class="text-xs font-bold text-primary">${signal.aiConfidence}%</p>
-                        <p class="text-[9px] text-outline">MobileNet Text Classification</p>
-                    </div>
-                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1 col-span-2">
-                        <p class="text-[10px] text-outline uppercase font-bold">Location Intelligence</p>
-                        <p class="text-xs font-bold text-on-surface">${signal.location}</p>
-                        <p class="text-[9px] text-outline">Lat: ${signal.latitude} • Lng: ${signal.longitude}</p>
-                    </div>
-                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
-                        <p class="text-[10px] text-outline uppercase font-bold">Severity Rating</p>
-                        <p class="text-xs font-bold text-critical">${signal.severity}</p>
-                        <p class="text-[9px] text-outline">Accident risk flags detected</p>
-                    </div>
-                    <div class="bg-surface-container-low border border-border-subtle p-3 rounded-xl space-y-1">
-                        <p class="text-[10px] text-outline uppercase font-bold">Clustering Index</p>
-                        <p class="text-xs font-bold text-[#8B5CF6]">${signal.supportingSignals} signals</p>
-                        <p class="text-[9px] text-outline">Cluster: ${signal.clusterId}</p>
-                    </div>
-                </div>
-                <div class="bg-surface-container-high border border-border-subtle p-4 rounded-xl space-y-1.5 text-xs">
-                    <p class="font-bold text-on-surface">Recommended Routing Action:</p>
-                    <p class="text-on-surface-variant"><b>Department:</b> ${signal.department}</p>
-                    <p class="text-on-surface-variant"><b>Action:</b> ${signal.recommendedAction}</p>
-                </div>
-            `;
-
-            const modal = document.getElementById('analysisModal');
-            const modalContent = document.getElementById('analysisModalContent');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modalContent.classList.remove('translate-x-full');
-            }, 10);
-        }
-
         function openConfirmModal(id) {
-            const signal = mockSignals.find(s => s.id === id);
+            const signal = liveSignals.find(s => s.id === id);
             if (!signal) return;
             activeTargetSignal = signal;
 
             const details = document.getElementById('confirm-details');
-            details.innerHTML = `
-                <div class="flex justify-between font-bold border-b border-border-subtle/50 pb-2 mb-2 text-on-surface">
-                    <span>Issue: ${signal.issueType}</span>
-                    <span class="text-critical">${signal.severity}</span>
+            const demoWarning = signal.isSimulated ? `
+                <div class="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-primary font-bold text-xs mb-2">
+                     Notice: You are converting a DEMO / SIMULATED signal into a live municipal complaint.
                 </div>
-                <p class="mb-1"><strong>Location:</strong> ${signal.location}</p>
-                <p class="mb-1"><strong>AI Confidence:</strong> ${signal.aiConfidence}% (${signal.supportingSignals} clustered signals)</p>
-                <p class="mb-1"><strong>Department:</strong> ${signal.department}</p>
-                <p class="mt-2 text-outline italic">Description: "Multiple public social signals indicate a potentially hazardous ${signal.issueType.toLowerCase()} near ${signal.location}."</p>
+            ` : '';
+
+            details.innerHTML = `
+                ${demoWarning}
+                <div class="flex justify-between font-bold border-b border-border-subtle/50 pb-2 mb-2 text-on-surface">
+                    <span>Issue: ${esc(signal.issueType)}</span>
+                    <span class="text-primary">${signal.isSimulated ? 'DEMO SIGNAL' : 'LIVE SIGNAL'}</span>
+                </div>
+                <p class="mb-1"><strong>Location:</strong> ${esc(signal.location)}</p>
+                <p class="mb-1"><strong>Department:</strong> ${esc(signal.department)}</p>
+                <p class="mt-2 text-outline italic">Content: "${esc(signal.content)}"</p>
             `;
 
             const modal = document.getElementById('confirmModal');
@@ -880,15 +546,12 @@
             const modal = document.getElementById(modalId);
             const modalContent = modal?.querySelector('div:last-child');
             if (modalContent) {
-                if (modalId === 'analysisModal') modalContent.classList.add('translate-x-full');
-                else {
-                    modalContent.classList.add('scale-95');
-                    modalContent.classList.remove('scale-100');
-                }
+                modalContent.classList.add('scale-95');
+                modalContent.classList.remove('scale-100');
             }
             setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+                modal?.classList.add('hidden');
+            }, 200);
         }
 
         // Real Complaint Creation Flow (Supabase Insert)
@@ -899,23 +562,23 @@
             closeModal('confirmModal');
 
             const newIssue = {
-                title: `${signal.issueType} - ${signal.location.split(',')[0]} (Social Pulse)`,
+                title: `${signal.issueType || 'Social Signal'} - ${signal.location.split(',')[0]} (${signal.isSimulated ? 'Demo Signal' : 'Social Pulse'})`,
                 category: signal.issueType === 'Pothole' ? 'Road Damage' : signal.issueType === 'Garbage' ? 'Garbage' : signal.issueType === 'Streetlight' ? 'Streetlights' : 'Water Leakage',
                 location: signal.location,
                 date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
                 status: "Pending Verification",
                 progress: 0,
-                criticality: signal.severity,
-                description: `[Social Intelligence Report: ${signal.supportingSignals} signals clustered, ${signal.aiConfidence}% confidence]\nMultiple public social signals indicate a potentially hazardous ${signal.issueType.toLowerCase()} near ${signal.location}.`,
-                lat: signal.latitude,
-                lng: signal.longitude,
-                reported_by: "Social Pulse",
+                criticality: signal.severity || 'Normal',
+                description: `[Social Intelligence Report - ${signal.isSimulated ? 'DEMO SIGNAL' : 'LIVE WEBHOOK SIGNAL'}]\nContent: "${signal.content}"`,
+                lat: signal.latitude || 18.5204, // Default Pune center if lat/lng not provided by source
+                lng: signal.longitude || 73.8567,
+                reported_by: signal.isSimulated ? "Social Pulse (Demo)" : "Social Pulse",
                 reported_by_email: "social-pulse@civis.ai",
                 reported_by_phone: "N/A"
             };
 
             try {
-                let complaintId = `CIV-2026-${Math.floor(10000 + Math.random() * 90000)}`; // Fallback
+                let complaintId = `CIV-2026-${Math.floor(10000 + Math.random() * 90000)}`;
                 if (typeof supabaseClient !== 'undefined') {
                     const { data, error } = await supabaseClient.from('issues').insert([newIssue]).select();
                     if (error) throw error;
@@ -928,15 +591,16 @@
                 
                 const successDetails = document.getElementById('success-details');
                 successDetails.innerHTML = `
-                    <p class="font-bold text-on-surface text-base">${newIssue.title}</p>
+                    <p class="font-bold text-on-surface text-base">${esc(newIssue.title)}</p>
                     <p class="font-mono text-outline mt-1 font-bold">Complaint ID: ${complaintId}</p>
                     <p class="text-success font-semibold mt-2">Status: Pending Verification</p>
                 `;
 
-                // Immediately sync UI feeds
-                await fetchSignalsFromDb();
+                // Update signal status in memory
+                signal.status = "Converted";
+                signal.complaintId = complaintId;
+
                 renderFeed();
-                renderClusters();
 
                 const sModal = document.getElementById('successModal');
                 const sModalContent = document.getElementById('successModalContent');
@@ -951,90 +615,59 @@
             }
         });
 
-        document.getElementById('btn-convert-complaint').addEventListener('click', () => {
-            if (!activeTargetSignal) return;
-            closeModal('analysisModal');
-            setTimeout(() => {
-                openConfirmModal(activeTargetSignal.id);
-            }, 300);
-        });
-
         // Search and filter listeners
         document.getElementById('search-location').addEventListener('input', renderFeed);
         document.getElementById('filter-platform').addEventListener('change', renderFeed);
-        document.getElementById('filter-category').addEventListener('change', renderFeed);
 
-        // Simulation signal logic
+        // Simulation signal logic (In-memory demonstration mode)
         document.getElementById('btn-simulate').addEventListener('click', () => {
             const simulatedPost = {
-                id: `SOC-${Math.floor(100 + Math.random() * 900)}`,
+                id: `SOC-SIM-${Math.floor(1000 + Math.random() * 9000)}`,
                 platform: ["X", "Instagram", "Facebook", "News"][Math.floor(Math.random() * 4)],
-                username: `@citizen_simulation_${Math.floor(Math.random() * 100)}`,
+                username: `@demo_user_${Math.floor(Math.random() * 100)}`,
                 avatar: `https://api.dicebear.com/7.x/adventurer/svg?seed=sim${Math.floor(Math.random() * 100)}`,
                 timestamp: "Just now",
                 content: [
-                    "Broken streetlight is causing dark zones outside the playground. Please fix this soon.",
-                    "Garbage bin is overflowing and spilling garbage on the footpath near Baner.",
-                    "Another pothole detected after heavy rain. Near Kothrud bus station.",
-                    "Water leakage observed near the IT park road. Water is getting accumulated."
+                    "Broken streetlight reported outside school playground in Kothrud.",
+                    "Garbage bin overflowing on footpath near Baner road.",
+                    "Pothole on FC Road causing traffic slowdown.",
+                    "Water leakage observed near Aundh IT park."
                 ][Math.floor(Math.random() * 4)],
                 issueType: ["Streetlight", "Garbage", "Pothole", "Water Leakage"][Math.floor(Math.random() * 4)],
-                category: "Urban Infrastructure",
+                category: "Social Signal",
                 location: ["FC Road, Pune", "Baner Road, Pune", "Kothrud, Pune", "Aundh, Pune"][Math.floor(Math.random() * 4)],
-                latitude: [18.5244, 18.5590, 18.5074, 18.5596][Math.floor(Math.random() * 4)],
-                longitude: [73.8413, 73.7925, 73.8077, 73.8054][Math.floor(Math.random() * 4)],
-                severity: ["Critical", "High", "Moderate"][Math.floor(Math.random() * 3)],
-                aiConfidence: Math.floor(Math.random() * (98 - 85) + 85),
-                sentiment: "Negative",
-                supportingSignals: Math.floor(Math.random() * 10 + 2),
-                clusterId: `CIV-SIM-${Math.floor(100 + Math.random() * 900)}`,
-                status: "New",
-                department: "Municipal Infrastructure",
-                recommendedAction: "Deploy repair crew immediately",
-                engagement: Math.floor(Math.random() * 20 + 5)
+                latitude: null, // No fake GPS
+                longitude: null,
+                severity: null, // No fake severity
+                aiConfidence: null, // No fake AI confidence
+                sentiment: null,
+                supportingSignals: 1,
+                clusterId: null,
+                status: "New (Simulated)",
+                department: "General Municipal Administration",
+                recommendedAction: "Pending Verification",
+                engagement: Math.floor(Math.random() * 10 + 1),
+                isSimulated: true
             };
 
-            mockSignals.unshift(simulatedPost);
-            
-            // Increment KPIs
-            const sigKpi = document.getElementById('kpi-signals');
-            if (sigKpi) sigKpi.innerText = parseInt(sigKpi.innerText) + 1;
-            
+            liveSignals.unshift(simulatedPost);
             renderFeed();
-            renderClusters();
+            updateKPIs();
 
-            // Notify
-            alert(`🔔 New crowdsourced signal detected: "${simulatedPost.content.substring(0, 40)}..."`);
+            alert(`🔔 Simulated demo signal added in-memory: "${simulatedPost.content.substring(0, 40)}..."`);
         });
 
         document.getElementById('btn-refresh').addEventListener('click', async () => {
             await fetchSignalsFromDb();
             renderFeed();
-            renderClusters();
-            alert("Social Pulse feed refreshed successfully!");
         });
 
         // Initialize
         async function init() {
             await fetchSignalsFromDb();
             renderFeed();
-            renderClusters();
         }
         init();
-
-        // Check for incident focus query parameters
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const targetIncident = urlParams.get('incident');
-            if (targetIncident) {
-                const signal = mockSignals.find(s => s.clusterId === targetIncident);
-                if (signal) {
-                    setTimeout(() => {
-                        openAnalysis(signal.id);
-                    }, 500);
-                }
-            }
-        });
     </script>
 </body>
 </html>
