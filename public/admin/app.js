@@ -1370,18 +1370,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   initWeatherSystem();
 
   // Sidebar navigation active state highlighting
-  const currentPath = window.location.pathname;
-  document.querySelectorAll('aside nav a').forEach(link => {
-    const href = link.getAttribute('href');
-    const isDashboard = (href === '/admin_dashboard.html' || href === '/index.html' || href === '/') && (currentPath === '/' || currentPath === '' || currentPath.includes('admin_dashboard') || currentPath.endsWith('index.html'));
-    const isOtherPage = href !== '#' && href !== '/admin_dashboard.html' && href !== '/index.html' && href !== '/' && currentPath.includes(href);
+  function getCleanPageName(urlStr) {
+    if (!urlStr || urlStr === '#' || urlStr === '/') return 'dashboard';
+    let path = urlStr.split('?')[0].split('#')[0];
+    const segments = path.split('/').filter(Boolean);
+    let filename = segments.length > 0 ? segments[segments.length - 1] : 'dashboard';
+    filename = filename.replace(/\.html$/i, '').toLowerCase();
     
-    if (isDashboard || isOtherPage) {
-      link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-semibold');
-      link.classList.remove('text-on-surface-variant');
+    if (filename === 'index' || filename === 'admin_dashboard' || filename === 'home') {
+      return 'dashboard';
+    }
+    return filename;
+  }
+
+  const currentClean = getCleanPageName(window.location.pathname);
+
+  document.querySelectorAll('aside nav a, aside div.mt-auto a').forEach(link => {
+    const href = link.getAttribute('href');
+    const linkClean = getCleanPageName(href);
+
+    if (currentClean === linkClean) {
+      link.classList.add('bg-primary', 'text-white', 'font-semibold', 'shadow-sm');
+      link.classList.remove('text-on-surface-variant', 'hover:bg-surface-variant/30', 'bg-primary-container', 'text-on-primary-container');
     } else {
-      link.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-semibold');
-      link.classList.add('text-on-surface-variant');
+      link.classList.remove('bg-primary', 'text-white', 'font-semibold', 'shadow-sm', 'bg-primary-container', 'text-on-primary-container');
+      link.classList.add('text-on-surface-variant', 'hover:bg-surface-variant/30');
     }
   });
 

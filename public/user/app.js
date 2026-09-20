@@ -1470,7 +1470,42 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Initialize Live Weather System
   initWeatherSystem();
 
-  // Admin Quick Redirect Shortcut Pill in Headers removed for user portal
+  // User Portal Navigation Active State Highlighting
+  function getCleanUserPageName(urlStr) {
+    if (!urlStr || urlStr === '#' || urlStr === '/') return 'home';
+    let path = urlStr.split('?')[0].split('#')[0];
+    const segments = path.split('/').filter(Boolean);
+    let filename = segments.length > 0 ? segments[segments.length - 1] : 'home';
+    filename = filename.replace(/\.html$/i, '').toLowerCase();
+    
+    if (filename === 'index' || filename === 'home') {
+      return 'home';
+    }
+    return filename;
+  }
+
+  const currentCleanUser = getCleanUserPageName(window.location.pathname);
+
+  document.querySelectorAll('nav.fixed a, footer nav a').forEach(link => {
+    const href = link.getAttribute('href');
+    const linkClean = getCleanUserPageName(href);
+
+    if (currentCleanUser === linkClean) {
+      link.classList.add('text-primary', 'font-bold');
+      link.classList.remove('text-on-surface-variant');
+      const icon = link.querySelector('.material-symbols-outlined');
+      if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 1";
+      }
+    } else {
+      link.classList.remove('text-primary', 'font-bold');
+      link.classList.add('text-on-surface-variant');
+      const icon = link.querySelector('.material-symbols-outlined');
+      if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 0";
+      }
+    }
+  });
 
   // Back Button Wire-up
   const backBtn = Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('arrow_back') || b.querySelector('.material-symbols-outlined')?.textContent.trim() === 'arrow_back');
