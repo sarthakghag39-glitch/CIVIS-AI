@@ -1040,8 +1040,6 @@ function openImageLightbox(imgSrc) {
   document.body.appendChild(modal);
 }
 
-let cachedIssues = [];
-
 async function getIssues() {
   const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
   if (error) {
