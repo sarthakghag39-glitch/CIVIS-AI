@@ -3663,15 +3663,6 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   const mapWrapper = modal.querySelector('#modal-map-picker-wrapper');
   const locationInput = modal.querySelector('#form-location');
 
-  // Mobile Touch Isolation on map wrapper
-  if (mapWrapper) {
-    ['touchstart', 'touchmove', 'touchend'].forEach(evtType => {
-      mapWrapper.addEventListener(evtType, (e) => {
-        e.stopPropagation();
-      }, { passive: false });
-    });
-  }
-
   // Address Mismatch Warning Element
   const mismatchWarningBox = document.createElement('div');
   mismatchWarningBox.id = 'location-mismatch-warning';
@@ -3798,6 +3789,8 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
             const centerLat = isValidCoordinate(currentLat, currentLng) ? currentLat : 18.5204;
             const centerLng = isValidCoordinate(currentLat, currentLng) ? currentLng : 73.8567;
             miniMap = L.map(pickerDiv, { zoomControl: false }).setView([centerLat, centerLng], 14);
+            L.DomEvent.disableScrollPropagation(pickerDiv);
+            L.DomEvent.disableClickPropagation(pickerDiv);
             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
               maxZoom: 19,
               attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
