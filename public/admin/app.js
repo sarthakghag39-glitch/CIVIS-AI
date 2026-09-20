@@ -2174,79 +2174,8 @@ let activeFilterPriority = 'all'; // 'all', 'Critical', 'Medium', 'Low'
 let activeFilterStatus = 'all';   // 'all', 'Pending', 'Assigned', 'Resolved'
 let activeFilterCategory = 'all'; // 'all', 'Road Damage', 'Garbage', 'Streetlights', 'Water Leakage'
 let activeFilterDepartment = 'all'; // 'all', 'Road Maintenance & PWD', 'Solid Waste & Sanitation', etc.
-
-function initAdminDashboard() {
-  const issuesList = document.querySelector('table tbody, main .divide-y');
-  if (issuesList) {
-    renderAdminIssues();
-  }
-
-  // Wire up the Search Bar
-  const searchInput = document.getElementById('admin-search-input');
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      adminSearchQuery = e.target.value.toLowerCase().trim();
-      currentAdminPage = 1;
-      renderAdminIssues();
-    });
-  }
-
-  // Wire up the Filter Button
-  const filterBtn = document.getElementById('admin-filter-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Filter'));
-  if (filterBtn) {
-    filterBtn.style.cursor = 'pointer';
-    filterBtn.addEventListener('click', () => openAdminFilterModal());
-  }
-
-  // Wire up the CSV Export Button
-  const exportBtn = document.getElementById('admin-export-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.trim().includes('Export'));
-  if (exportBtn) {
-    exportBtn.style.cursor = 'pointer';
-    exportBtn.addEventListener('click', () => handleExportCSV());
-  }
-}
-
-async function handleExportCSV() {
-  const issues = await getIssues();
-  if (!issues || !issues.length) {
-    alert("No issues found to export.");
-    return;
-  }
-  
-  const headers = ['Complaint ID', 'Database ID', 'Title', 'Category', 'Assigned Department', 'Priority', 'Location', 'Date', 'Status', 'Progress', 'Reported By', 'Email', 'Phone', 'Latitude', 'Longitude'];
-  const csvRows = [headers.join(',')];
-  
-  issues.forEach(issue => {
-    const complaintId = issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`;
-    const values = [
-      `"${complaintId}"`,
-      issue.id,
-      `"${(issue.title || '').replace(/"/g, '""')}"`,
-      `"${(issue.category || '').replace(/"/g, '""')}"`,
-      `"${(issue.assigned_department || 'General Municipal Administration').replace(/"/g, '""')}"`,
-      `"${(issue.criticality || '').replace(/"/g, '""')}"`,
-      `"${(issue.location || '').replace(/"/g, '""')}"`,
-      `"${(issue.date || '').replace(/"/g, '""')}"`,
-      `"${(issue.status || '').replace(/"/g, '""')}"`,
-      issue.progress || 0,
-      `"${(issue.reported_by || '').replace(/"/g, '""')}"`,
-      `"${(issue.reported_by_email || '').replace(/"/g, '""')}"`,
-      `"${(issue.reported_by_phone || '').replace(/"/g, '""')}"`,
-      issue.lat || 0,
-      issue.lng || 0
-    ];
-    csvRows.push(values.join(','));
-  });
-  
-  const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `CIVIS_AI_Complaints_${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+let activeFilterPriorityTier = 'all'; // 'all', 'p1', 'p2', 'p3', 'p4'
+let activeAdminSort = 'priority_desc'; // 'priority_desc', 'priority_asc', 'date_desc', 'date_asc'
 
 function openAdminFilterModal() {
   const existingModal = document.getElementById('admin-filter-modal');
@@ -2264,12 +2193,32 @@ function openAdminFilterModal() {
           <span class="material-symbols-outlined text-[22px]">filter_list</span>
         </div>
         <div>
-          <h3 class="font-bold text-lg text-slate-900">Filter Complaints</h3>
-          <p class="text-xs text-slate-500">Refine table records by priority, status, department, or category</p>
+          <h3 class="font-bold text-lg text-slate-900">Filter &amp; Sort Complaints</h3>
+          <p class="text-xs text-slate-500">Refine table records by priority attention tier, status, department, category, or sort order</p>
         </div>
       </div>
 
       <div class="space-y-4 mb-6">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Priority Attention Tier (Phase 7A)</label>
+          <select id="filter-priority-tier-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="all" ${activeFilterPriorityTier === 'all' ? 'selected' : ''}>All Attention Tiers</option>
+            <option value="P1 Critical" ${activeFilterPriorityTier === 'P1 Critical' ? 'selected' : ''}>P1 Critical (&ge;75 Score)</option>
+            <option value="P2 High" ${activeFilterPriorityTier === 'P2 High' ? 'selected' : ''}>P2 High (55-74 Score)</option>
+            <option value="P3 Moderate" ${activeFilterPriorityTier === 'P3 Moderate' ? 'selected' : ''}>P3 Moderate (35-54 Score)</option>
+            <option value="P4 Routine" ${activeFilterPriorityTier === 'P4 Routine' ? 'selected' : ''}>P4 Routine (&lt;35 Score)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Sort Order</label>
+          <select id="filter-sort-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
+            <option value="priority_desc" ${activeAdminSort === 'priority_desc' ? 'selected' : ''}>Priority Score: High &rarr; Low</option>
+            <option value="priority_asc" ${activeAdminSort === 'priority_asc' ? 'selected' : ''}>Priority Score: Low &rarr; High</option>
+            <option value="date_desc" ${activeAdminSort === 'date_desc' ? 'selected' : ''}>Date: Newest First</option>
+          </select>
+        </div>
+
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Assigned Department</label>
           <select id="filter-department-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
@@ -2283,7 +2232,7 @@ function openAdminFilterModal() {
         </div>
 
         <div>
-          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Priority Level</label>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Priority Level (Legacy)</label>
           <select id="filter-priority-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20">
             <option value="all" ${activeFilterPriority === 'all' ? 'selected' : ''}>All Priorities</option>
             <option value="Critical" ${activeFilterPriority === 'Critical' ? 'selected' : ''}>Critical</option>
@@ -2332,6 +2281,8 @@ function openAdminFilterModal() {
     activeFilterPriority = 'all';
     activeFilterStatus = 'all';
     activeFilterCategory = 'all';
+    activeFilterPriorityTier = 'all';
+    activeAdminSort = 'priority_desc';
     currentAdminPage = 1;
     modal.remove();
     renderAdminIssues();
@@ -2342,6 +2293,8 @@ function openAdminFilterModal() {
     activeFilterPriority = document.getElementById('filter-priority-select').value;
     activeFilterStatus = document.getElementById('filter-status-select').value;
     activeFilterCategory = document.getElementById('filter-category-select').value;
+    activeFilterPriorityTier = document.getElementById('filter-priority-tier-select').value;
+    activeAdminSort = document.getElementById('filter-sort-select').value;
     currentAdminPage = 1;
     modal.remove();
     renderAdminIssues();
@@ -2755,6 +2708,42 @@ async function renderAdminIssues() {
 
   const issues = await getIssues();
 
+  // Phase 7A: Calculate Incident Map & Issue Priority Map
+  const incidentMap = new Map();
+  issues.forEach(i => {
+    if (i.incident_id !== null && i.incident_id !== undefined && i.incident_id !== '') {
+      const key = String(i.incident_id);
+      incidentMap.set(key, (incidentMap.get(key) || 0) + 1);
+    }
+  });
+
+  const issuePriorityMap = {};
+  let p1Count = 0, p2Count = 0, p3Count = 0, p4Count = 0;
+  issues.forEach(i => {
+    const priorityData = (typeof CivisPrioritizationEngine !== 'undefined')
+      ? CivisPrioritizationEngine.calculatePriorityScore(i, incidentMap)
+      : { score: 25, tier: 'P4 Routine', locationQualityLabel: 'Unknown', locationConfidence: 0 };
+
+    issuePriorityMap[i.id] = priorityData;
+
+    if (String(i.status || '').trim() !== 'Resolved') {
+      if (priorityData.tier === 'P1 Critical') p1Count++;
+      else if (priorityData.tier === 'P2 High') p2Count++;
+      else if (priorityData.tier === 'P3 Moderate') p3Count++;
+      else if (priorityData.tier === 'P4 Routine') p4Count++;
+    }
+  });
+
+  // Update Admin Dashboard Priority Attention widget cards
+  const elP1 = document.getElementById('stat-p1-count');
+  const elP2 = document.getElementById('stat-p2-count');
+  const elP3 = document.getElementById('stat-p3-count');
+  const elP4 = document.getElementById('stat-p4-count');
+  if (elP1) elP1.innerText = p1Count.toLocaleString();
+  if (elP2) elP2.innerText = p2Count.toLocaleString();
+  if (elP3) elP3.innerText = p3Count.toLocaleString();
+  if (elP4) elP4.innerText = p4Count.toLocaleString();
+
   // 1. Calculate overall stats for cards
   const totalCount = issues.length;
   const criticalCount = issues.filter(issue => normalizeSeverity(issue.criticality) === 'Critical').length;
@@ -2809,6 +2798,10 @@ async function renderAdminIssues() {
       if (!searchable.includes(adminSearchQuery)) return false;
     }
     if (activeFilterPriority !== 'all' && issue.criticality !== activeFilterPriority) return false;
+    if (activeFilterPriorityTier !== 'all') {
+      const pData = issuePriorityMap[issue.id];
+      if (!pData || pData.tier !== activeFilterPriorityTier) return false;
+    }
     if (activeFilterStatus !== 'all') {
       if (activeFilterStatus === 'Pending' && issue.status !== 'Pending') return false;
       if (activeFilterStatus === 'Assigned' && issue.status !== 'Assigned' && issue.status !== 'In Progress') return false;
@@ -2822,6 +2815,15 @@ async function renderAdminIssues() {
     }
     return true;
   });
+
+  // Sort filtered issues
+  if (activeAdminSort === 'priority_desc') {
+    filtered.sort((a, b) => (issuePriorityMap[b.id]?.score || 0) - (issuePriorityMap[a.id]?.score || 0));
+  } else if (activeAdminSort === 'priority_asc') {
+    filtered.sort((a, b) => (issuePriorityMap[a.id]?.score || 0) - (issuePriorityMap[b.id]?.score || 0));
+  } else if (activeAdminSort === 'date_desc') {
+    filtered.sort((a, b) => new Date(b.created_at || b.date).getTime() - new Date(a.created_at || a.date).getTime());
+  }
 
   // 3. Paginate issues
   const pageSize = window.location.pathname.includes('citizen_issues') ? 10 : ADMIN_PAGE_SIZE;
@@ -2866,6 +2868,15 @@ async function renderAdminIssues() {
         </div>
       `);
 
+      const pData = issuePriorityMap[issue.id] || (typeof CivisPrioritizationEngine !== 'undefined'
+        ? CivisPrioritizationEngine.calculatePriorityScore(issue, incidentMap)
+        : { score: 25, tier: 'P4 Routine', locationQualityLabel: 'Unknown', locationConfidence: 0 });
+
+      let tierStyle = 'bg-surface-container-high text-on-surface-variant border-border-subtle';
+      if (pData.tier === 'P1 Critical') tierStyle = 'bg-error-container text-error border-error/30';
+      else if (pData.tier === 'P2 High') tierStyle = 'bg-warning/20 text-warning border-warning/30';
+      else if (pData.tier === 'P3 Moderate') tierStyle = 'bg-primary/10 text-primary border-primary/20';
+
       const row = document.createElement('tr');
       row.className = 'border-b border-border-subtle hover:bg-surface-container-low/50 transition-colors group';
       row.innerHTML = `
@@ -2886,7 +2897,16 @@ async function renderAdminIssues() {
           </div>
         </td>
         <td class="px-6 py-4">
-          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality || 'Normal'}</span>
+          <div class="flex flex-col gap-1">
+            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${tierStyle}" title="Calculated Priority Score: ${pData.score}/100">
+              ${pData.tier} (${pData.score})
+            </span>
+            <span class="text-[10px] text-outline font-medium flex items-center gap-1" title="Location Confidence Signal">
+              <span class="w-1.5 h-1.5 rounded-full ${pData.locationConfidence >= 60 ? 'bg-success' : 'bg-warning'}"></span>
+              Location: ${pData.locationQualityLabel}
+            </span>
+          </div>
+        </td>
         </td>
         <td class="px-6 py-4">
           <div class="font-semibold text-sm text-on-surface">${issue.reported_by || 'Anonymous'}</div>

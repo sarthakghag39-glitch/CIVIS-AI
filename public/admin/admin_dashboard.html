@@ -376,8 +376,8 @@
 </div>
 </div>
 
-<!-- Secondary Analytics Bento Grid: Status, Severity, Department Workload & Incident Telemetry -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Secondary Analytics Bento Grid: Status, Severity, Department Workload, Incident Telemetry & Priority Signal -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
 <!-- Status & Severity Distribution Card -->
 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
 <div>
@@ -415,7 +415,7 @@
 </div>
 </div>
 
-<!-- Incident Clustering Telemetry Card (Fails Independently) -->
+<!-- Incident Clustering Telemetry Card -->
 <div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
 <div>
 <div class="flex items-center justify-between mb-4">
@@ -440,6 +440,38 @@
 <div class="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-outline">
 <span>Auto-Spatial Deduplication</span>
 <a href="/citizen_issues.html" class="text-primary font-semibold hover:underline">Review Pairs &rarr;</a>
+</div>
+</div>
+
+<!-- Priority Attention Signal Card (Phase 7A) -->
+<div class="bg-card-bg p-6 rounded-2xl border border-border-subtle ambient-shadow flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-4">
+<h5 class="font-headline-md text-headline-md text-on-surface">Priority Attention</h5>
+<span class="text-xs font-semibold text-primary">Phase 7A Active</span>
+</div>
+<div class="grid grid-cols-2 gap-2 my-2 text-center">
+<div class="bg-error-container/30 p-2 rounded-xl border border-error/20">
+<p class="text-[11px] text-error font-bold">P1 Critical</p>
+<h4 id="stat-p1-count" class="text-lg font-extrabold text-error mt-0.5">0</h4>
+</div>
+<div class="bg-warning/10 p-2 rounded-xl border border-warning/20">
+<p class="text-[11px] text-warning font-bold">P2 High</p>
+<h4 id="stat-p2-count" class="text-lg font-extrabold text-warning mt-0.5">0</h4>
+</div>
+<div class="bg-primary/10 p-2 rounded-xl border border-primary/20">
+<p class="text-[11px] text-primary font-bold">P3 Moderate</p>
+<h4 id="stat-p3-count" class="text-lg font-extrabold text-primary mt-0.5">0</h4>
+</div>
+<div class="bg-surface-container-high p-2 rounded-xl border border-border-subtle">
+<p class="text-[11px] text-outline font-bold">P4 Routine</p>
+<h4 id="stat-p4-count" class="text-lg font-extrabold text-on-surface-variant mt-0.5">0</h4>
+</div>
+</div>
+</div>
+<div class="pt-3 border-t border-border-subtle flex items-center justify-between text-xs text-outline">
+<span>Active Unresolved Tiers</span>
+<a href="/citizen_issues.html" class="text-primary font-semibold hover:underline">View Queue &rarr;</a>
 </div>
 </div>
 </div>
@@ -598,4 +630,5 @@ Export
     </script>
 
 
+<script src="/js/prioritization_engine.js"></script>
 <script src="/app.js"></script></body></html>
