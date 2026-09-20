@@ -1491,14 +1491,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const linkClean = getCleanUserPageName(href);
 
     if (currentCleanUser === linkClean) {
-      link.classList.add('text-primary', 'font-bold');
-      link.classList.remove('text-on-surface-variant');
+      link.classList.add('text-blue-600', 'font-bold');
+      link.classList.remove('text-on-surface-variant', 'text-slate-500');
       const icon = link.querySelector('.material-symbols-outlined');
       if (icon) {
         icon.style.fontVariationSettings = "'FILL' 1";
       }
     } else {
-      link.classList.remove('text-primary', 'font-bold');
+      link.classList.remove('text-blue-600', 'font-bold', 'text-primary');
       link.classList.add('text-on-surface-variant');
       const icon = link.querySelector('.material-symbols-outlined');
       if (icon) {

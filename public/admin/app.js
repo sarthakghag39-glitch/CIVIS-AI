@@ -1390,10 +1390,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const linkClean = getCleanPageName(href);
 
     if (currentClean === linkClean) {
-      link.classList.add('bg-primary', 'text-white', 'font-semibold', 'shadow-sm');
-      link.classList.remove('text-on-surface-variant', 'hover:bg-surface-variant/30', 'bg-primary-container', 'text-on-primary-container');
+      link.classList.add('bg-blue-600', 'text-white', 'font-semibold', 'shadow-sm');
+      link.classList.remove('text-on-surface-variant', 'text-slate-600', 'hover:bg-surface-variant/30', 'hover:bg-slate-100', 'bg-primary-container', 'text-on-primary-container', 'bg-primary');
     } else {
-      link.classList.remove('bg-primary', 'text-white', 'font-semibold', 'shadow-sm', 'bg-primary-container', 'text-on-primary-container');
+      link.classList.remove('bg-blue-600', 'bg-primary', 'text-white', 'font-semibold', 'shadow-sm', 'bg-primary-container', 'text-on-primary-container');
       link.classList.add('text-on-surface-variant', 'hover:bg-surface-variant/30');
     }
   });
