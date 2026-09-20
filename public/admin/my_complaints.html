@@ -163,7 +163,9 @@
 <!-- Navigation Drawer -->
 <aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
 <div class="px-6 mb-8">
-<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
+  <a href="admin_dashboard.html" class="flex items-center gap-2 group">
+    <img src="/civis_logo.png" alt="CIVIS AI" class="h-9 md:h-10 w-auto object-contain">
+  </a>
 </div>
 <nav class="flex-1 space-y-1">
 <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
@@ -216,16 +218,15 @@
 
 <!-- TopAppBar -->
 <div class="ml-64 min-h-screen flex flex-col pb-16">
-<header class="w-full top-0 sticky z-40 bg-surface dark:bg-inverse-surface shadow-sm flex items-center justify-between px-margin py-4 w-full glass-header">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 rounded-full overflow-hidden bg-primary-container flex items-center justify-center">
-<img class="w-full h-full object-cover" data-alt="A professional profile headshot of a young urban planner in a modern office, wearing a smart casual blazer. The background is softly blurred with cool blue and white tones, reflecting a high-tech gov-tech office environment. The lighting is bright and clean, consistent with a premium mobile application interface." src="/profile_photo.jpg">
-</div>
-<h1 class="font-headline-md text-headline-md font-extrabold text-primary dark:text-primary-fixed" style="font-weight: 800;">CIVIS AI</h1>
-</div>
+<header class="w-full top-0 sticky z-40 bg-surface dark:bg-inverse-surface shadow-sm flex items-center justify-end px-margin py-4 w-full glass-header">
+<div class="flex items-center gap-4">
 <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-variant/50 transition-colors duration-200">
 <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
 </button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-primary/10">
+<img class="w-full h-full object-cover" src="/profile_photo.jpg" alt="Admin Profile">
+</div>
+</div>
 </header>
 <main class="px-margin pt-6 max-w-[1440px] mx-auto">
 <!-- Search and Filter Bar -->

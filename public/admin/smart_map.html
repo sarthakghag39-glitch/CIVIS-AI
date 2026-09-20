@@ -161,7 +161,9 @@
 <!-- Navigation Drawer -->
 <aside class="h-full w-64 fixed left-0 top-0 bg-surface-container-low border-r border-border-subtle flex flex-col py-margin gap-unit z-50">
 <div class="px-6 mb-8">
-<h1 class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</h1>
+  <a href="admin_dashboard.html" class="flex items-center gap-2 group">
+    <img src="/civis_logo.png" alt="CIVIS AI" class="h-9 md:h-10 w-auto object-contain">
+  </a>
 </div>
 <nav class="flex-1 space-y-1">
 <a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:bg-surface-variant/30 rounded-lg mx-2 transition-all duration-200" href="/admin_dashboard.html" id="nav-dashboard">
@@ -216,8 +218,7 @@
 <div class="ml-64 min-h-screen flex flex-col pb-16">
 <header class="w-full top-0 sticky z-50 transition-colors duration-200 bg-surface/80 backdrop-blur-md shadow-sm flex items-center justify-between px-margin py-4">
 <div class="flex items-center gap-4">
-<span class="font-headline-md text-headline-md font-extrabold text-primary" style="font-weight: 800;">CIVIS AI</span>
-<div class="hidden md:flex items-center px-4 py-2 glass-panel rounded-full shadow-sm w-96 ml-8">
+<div class="hidden md:flex items-center px-4 py-2 glass-panel rounded-full shadow-sm w-96">
 <span class="material-symbols-outlined text-outline mr-3">search</span>
 <input class="bg-transparent border-none focus:ring-0 w-full font-body-md text-body-md text-on-surface placeholder:text-outline" placeholder="Search locations or issues..." type="text">
 </div>
