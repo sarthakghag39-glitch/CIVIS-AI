@@ -415,13 +415,16 @@ const translations = {
     "live_system_alert": "Live System Alert",
     "critical_issue_in": "Critical Issue in Kothrud, Pune",
     "water_leak_detected": "Water leak detected 5 mins ago",
+    "no_critical_alerts": "No Critical Alerts",
+    "all_systems_normal": "All civic systems operating normally",
+    "no_active_alerts_area": "No active civic alerts at this time.",
     "view": "View",
     "quick_actions": "Quick Actions",
     "report_issue": "Report Issue",
     "live_map": "Live Map",
     "my_complaints_menu": "My Complaints",
     "emergency": "Emergency",
-    "nearby_alerts": "Nearby Alerts",
+    "nearby_alerts": "Active Civic Alerts",
     "see_all": "See all",
     "my_complaints_title": "My Complaints",
     "search_reports_placeholder": "Search your reports...",
@@ -525,13 +528,16 @@ const translations = {
     "live_system_alert": "लाइव सिस्टम अलर्ट",
     "critical_issue_in": "कोथरुड, पुणे में गंभीर समस्या",
     "water_leak_detected": "5 मिनट पहले पानी का रिसाव पाया गया",
+    "no_critical_alerts": "कोई गंभीर अलर्ट नहीं",
+    "all_systems_normal": "सभी नागरिक प्रणालियां सामान्य रूप से काम कर रही हैं",
+    "no_active_alerts_area": "इस समय कोई सक्रिय नागरिक अलर्ट नहीं है।",
     "view": "देखें",
     "quick_actions": "त्वरित कार्रवाई",
     "report_issue": "समस्या रिपोर्ट करें",
     "live_map": "लाइव नक्शा",
     "my_complaints_menu": "मेरी शिकायतें",
     "emergency": "आपातकालीन",
-    "nearby_alerts": "आस-पास के अलर्ट",
+    "nearby_alerts": "सक्रिय नागरिक अलर्ट",
     "see_all": "सभी देखें",
     "my_complaints_title": "मेरी शिकायतें",
     "search_reports_placeholder": "अपनी रिपोर्ट खोजें...",
@@ -635,13 +641,16 @@ const translations = {
     "live_system_alert": "लाइव्ह प्रणाली अलर्ट",
     "critical_issue_in": "कोथरूड, पुणे येथे गंभीर समस्या",
     "water_leak_detected": "५ मिनिटांपूर्वी पाण्याचे गळती आढळली",
+    "no_critical_alerts": "कोणतेही गंभीर अलर्ट नाहीत",
+    "all_systems_normal": "सर्व नागरी यंत्रणा सामान्यपणे कार्य करत आहेत",
+    "no_active_alerts_area": "सध्या कोणतेही सक्रिय नागरी अलर्ट नाहीत.",
     "view": "पहा",
     "quick_actions": "त्वरित कृती",
     "report_issue": "तक्रार नोंदवा",
     "live_map": "लाइव्ह नकाशा",
     "my_complaints_menu": "माझ्या तक्रारी",
     "emergency": "आणीबाणी",
-    "nearby_alerts": "जवळील अलर्ट",
+    "nearby_alerts": "सक्रिय नागरी अलर्ट",
     "see_all": "सर्व पहा",
     "my_complaints_title": "माझ्या तक्रारी",
     "search_reports_placeholder": "तुमचे अहवाल शोधा...",
@@ -831,7 +840,7 @@ function translatePage() {
       }
     });
 
-    const nearbyAlertsHeader = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Nearby Alerts'));
+    const nearbyAlertsHeader = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Nearby Alerts') || el.textContent.includes('Active Civic Alerts') || el.textContent.includes('आस-पास के अलर्ट') || el.textContent.includes('जवळील अलर्ट') || el.textContent.includes('सक्रिय नागरिक अलर्ट') || el.textContent.includes('सक्रिय नागरी अलर्ट'));
     if (nearbyAlertsHeader) nearbyAlertsHeader.textContent = dict.nearby_alerts;
 
     const seeAllLink = Array.from(document.querySelectorAll('a')).find(el => el.textContent.includes('See all') || el.textContent.includes('सभी देखें') || el.textContent.includes('सर्व पहा'));
@@ -860,6 +869,8 @@ function translatePage() {
     if (card2Desc) card2Desc.textContent = dict.new_smart_bin_installed_desc;
     const card2Loc = document.getElementById('alert-card2-loc');
     if (card2Loc) card2Loc.textContent = dict.viman_nagar_pune;
+
+    updateHomeDashboardStats(cachedIssues, currentAuthenticatedUser);
   }
 
   if (path.includes('smart_map')) {
@@ -1246,7 +1257,7 @@ function openImageLightbox(imgSrc) {
 }
 
 async function getIssues() {
-  const { data, error } = await supabaseClient.from('issues').select('id, complaint_id, title, category, location, lat, lng, date, status, progress, criticality, description, reported_by, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary').order('id', { ascending: false });
+  const { data, error } = await supabaseClient.from('issues').select('id, complaint_id, title, category, location, lat, lng, date, created_at, status, progress, criticality, description, reported_by, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary').order('id', { ascending: false });
   if (error) {
     console.error('Error fetching issues:', error);
     return cachedIssues.length ? cachedIssues : [];
@@ -1586,6 +1597,133 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  function formatTimeAgo(dateStr) {
+    if (!dateStr) return 'Recently';
+    const parsed = new Date(dateStr);
+    if (isNaN(parsed)) return String(dateStr);
+    const diffMs = Date.now() - parsed.getTime();
+    if (diffMs < 0) return 'Just now';
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}d ago`;
+  }
+
+  function updateHomeDashboardStats(issues = null, user = null) {
+    const todayEl = document.getElementById('home-today-count');
+    const effEl = document.getElementById('home-efficiency-pct');
+    const alertTitleEl = document.getElementById('live-alert-title');
+    const alertDescEl = document.getElementById('live-alert-desc');
+    const nearbyContainer = document.getElementById('nearby-alerts-container');
+
+    if (!todayEl && !effEl && !alertTitleEl && !nearbyContainer) return;
+
+    const currentLang = localStorage.getItem('civis_language') || 'en';
+    const dict = (typeof translations !== 'undefined' && translations[currentLang]) ? translations[currentLang] : {};
+
+    const activeUser = user || currentAuthenticatedUser;
+
+    if (!issues) {
+      if (todayEl) todayEl.textContent = '—';
+      if (effEl) effEl.textContent = '—';
+      if (alertTitleEl) alertTitleEl.textContent = dict.no_critical_alerts || 'No Critical Alerts';
+      if (alertDescEl) alertDescEl.textContent = dict.all_systems_normal || 'All civic systems operating normally';
+      return;
+    }
+
+    const userIssues = issues.filter(i => {
+      if (!activeUser || !activeUser.id) return false;
+      return String(i.reported_by) === String(activeUser.id);
+    });
+
+    if (todayEl) {
+      const todayStr = new Date().toDateString();
+      const todayCount = userIssues.filter(i => {
+        if (!i.created_at && !i.date) return false;
+        const d = new Date(i.created_at || i.date);
+        return !isNaN(d) && d.toDateString() === todayStr;
+      }).length;
+
+      todayEl.textContent = String(todayCount);
+    }
+
+    if (effEl) {
+      const totalCount = userIssues.length;
+      const resolvedCount = userIssues.filter(i => i.status === 'Resolved' || (i.status || '').toLowerCase() === 'resolved').length;
+      const efficiencyPct = totalCount > 0 ? Math.round((resolvedCount / totalCount) * 100) : 0;
+      effEl.textContent = `${efficiencyPct}%`;
+    }
+
+    if (alertTitleEl && alertDescEl) {
+      const unresolvedIssues = issues.filter(i => i.status !== 'Resolved' && (i.status || '').toLowerCase() !== 'resolved');
+      
+      const criticalAlerts = unresolvedIssues.filter(i => i.criticality === 'Critical');
+      criticalAlerts.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+
+      const highAiAlerts = unresolvedIssues.filter(i => typeof i.ai_severity_score === 'number' && i.ai_severity_score >= 80);
+      highAiAlerts.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+
+      let selectedAlert = null;
+      if (criticalAlerts.length > 0) {
+        selectedAlert = criticalAlerts[0];
+      } else if (highAiAlerts.length > 0) {
+        selectedAlert = highAiAlerts[0];
+      }
+
+      if (selectedAlert) {
+        const categoryStr = selectedAlert.category || 'Civic';
+        const locStr = selectedAlert.location ? selectedAlert.location : '';
+
+        alertTitleEl.textContent = locStr ? `${categoryStr} Issue in ${locStr}` : (selectedAlert.title || `${categoryStr} Issue`);
+        
+        const timeAgoStr = selectedAlert.created_at ? formatTimeAgo(selectedAlert.created_at) : (selectedAlert.date ? formatTimeAgo(selectedAlert.date) : 'Recently reported');
+        alertDescEl.textContent = `${selectedAlert.title || categoryStr} • ${timeAgoStr}`;
+      } else {
+        alertTitleEl.textContent = dict.no_critical_alerts || 'No Critical Alerts';
+        alertDescEl.textContent = dict.all_systems_normal || 'All civic systems operating normally';
+      }
+    }
+
+    if (nearbyContainer) {
+      const activePublicAlerts = issues.filter(i => i.status !== 'Resolved' && (i.status || '').toLowerCase() !== 'resolved').slice(0, 5);
+
+      if (activePublicAlerts.length > 0) {
+        nearbyContainer.innerHTML = activePublicAlerts.map(alert => {
+          const badgeColor = alert.criticality === 'Critical' ? 'bg-critical/10 text-critical' : (alert.criticality === 'High' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success');
+          const timeAgo = alert.date ? formatTimeAgo(alert.date) : 'Recent';
+          const title = escapeHTML(alert.title || alert.category || 'Civic Issue');
+          const desc = escapeHTML(alert.description || alert.ai_recommended_action || 'Public civic report submitted.');
+          const loc = escapeHTML(alert.location || 'City Area');
+
+          return `
+            <div class="min-w-[280px] max-w-[320px] bg-white border border-border-subtle rounded-2xl p-4 premium-shadow flex-shrink-0">
+              <div class="flex justify-between items-start mb-3">
+                <span class="${badgeColor} px-3 py-1 rounded-full font-label-sm text-label-sm">${escapeHTML(alert.category || 'General')}</span>
+                <span class="text-outline font-label-sm text-label-sm">${escapeHTML(timeAgo)}</span>
+              </div>
+              <h4 class="font-body-md text-body-md font-bold mb-1 truncate">${title}</h4>
+              <p class="font-label-sm text-label-sm text-on-surface-variant mb-4 line-clamp-2">${desc}</p>
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-outline text-[16px]" data-icon="location_on">location_on</span>
+                <span class="font-label-sm text-label-sm text-outline truncate">${loc}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        nearbyContainer.innerHTML = `
+          <div class="w-full bg-white border border-border-subtle rounded-2xl p-6 text-center text-on-surface-variant font-label-sm">
+            ${dict.no_active_alerts_area || 'No active civic alerts at this time.'}
+          </div>
+        `;
+      }
+    }
+  }
+
+  window.formatTimeAgo = formatTimeAgo;
+  window.updateHomeDashboardStats = updateHomeDashboardStats;
   window.getTimeBasedGreeting = getTimeBasedGreeting;
   window.updateGreetingHeading = updateGreetingHeading;
   window.updateUserAvatarInitials = updateUserAvatarInitials;
@@ -1601,7 +1739,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   translatePage();
 
   // Initialize DB
-  await getIssues();
+  const issuesData = await getIssues();
+  updateHomeDashboardStats(issuesData, currentAuthenticatedUser);
 
   // Initialize Live Weather System
   initWeatherSystem();
