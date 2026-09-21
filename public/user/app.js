@@ -1284,7 +1284,11 @@ function getBrowserGPSLocation() {
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
       (err) => {
-        console.warn("GPS Geolocation for weather disabled/failed:", err.message);
+        if (err && (err.code === 1 || err.code === 3 || err.code === err.PERMISSION_DENIED || err.code === err.TIMEOUT)) {
+          resolve(null);
+          return;
+        }
+        console.warn("GPS Geolocation for weather disabled/failed:", err?.message || err);
         resolve(null);
       },
       { timeout: 6000, enableHighAccuracy: true }
