@@ -1284,48 +1284,6 @@ function classifyImage(fileName, simCategory = null) {
   return { category: 'Road Damage', title: 'Road Pothole Damage', severity: 92, tag: 'POTHOLE 98%', description: 'Structural cavity detected in asphalt road surface.' };
 }
 
-// TensorFlow.js Predictions to Civic Issues mapping
-function mapPredictionsToIssue(predictions, defaultAnalysis) {
-  // If the user's manual selector or file name already matched a strong civic category, prioritize that fallback over generic ImageNet classes
-  if (defaultAnalysis && defaultAnalysis.category && defaultAnalysis.category !== 'Road Damage') {
-    return defaultAnalysis;
-  }
-
-  if (!predictions || !predictions.length) {
-    return defaultAnalysis;
-  }
-  
-  const topPrediction = predictions[0].className.toLowerCase();
-  const topProbability = Math.round(predictions[0].probability * 100);
-
-  for (const pred of predictions) {
-    const label = pred.className.toLowerCase();
-    const prob = Math.round(pred.probability * 100);
-    
-    if (label.includes('garbage') || label.includes('trash') || label.includes('waste') || label.includes('rubbish') || label.includes('plastic') || label.includes('bottle') || label.includes('can') || label.includes('ashcan') || label.includes('crate') || label.includes('carton') || label.includes('bag') || label.includes('bin') || label.includes('litter')) {
-      return { category: 'Garbage', title: 'Waste Accumulation Detected', severity: 68, tag: `GARBAGE ${prob}%`, description: `AI classified image as "${pred.className}". Overflowing litter/waste bin detected.` };
-    }
-    // Only map to Water Leakage if it contains explicit pipe/burst leakage indicators. Avoid mapping generic rain puddles to leaks.
-    if (label.includes('pipe') || label.includes('burst') || label.includes('leak') || label.includes('conduit') || label.includes('spill')) {
-      return { category: 'Water Leakage', title: 'Water Leak / Spill Detected', severity: 86, tag: `WATER LEAK ${prob}%`, description: `AI classified image as "${pred.className}". Subsurface utility leak or liquid spill detected.` };
-    }
-    if (label.includes('light') || label.includes('lamp') || label.includes('bulb') || label.includes('dark') || label.includes('streetlight') || label.includes('pole') || label.includes('lantern') || label.includes('streetlamp') || label.includes('torch')) {
-      return { category: 'Streetlights', title: 'Streetlight Infrastructure Anomaly', severity: 54, tag: `LIGHT OUT ${prob}%`, description: `AI classified image as "${pred.className}". Overhead streetlight fixture anomaly detected.` };
-    }
-    if (label.includes('pothole') || label.includes('crack') || label.includes('hole') || label.includes('ditch') || label.includes('trench') || label.includes('pit') || label.includes('mud') || label.includes('soil') || label.includes('ground') || label.includes('ruin') || label.includes('stone') || label.includes('rock') || label.includes('asphalt') || label.includes('paving') || label.includes('puddle')) {
-      return { category: 'Road Damage', title: 'Road Pothole Detected', severity: 92, tag: `POTHOLE ${prob}%`, description: `AI classified image as "${pred.className}". Cavity or fracture detected in asphalt road surface.` };
-    }
-  }
-  
-  return { 
-    category: 'Road Damage', 
-    title: `Anomaly Detected (${predictions[0].className.split(',')[0]})`, 
-    severity: 70, 
-    tag: `DETECTED ${topProbability}%`, 
-    description: `AI detected "${predictions[0].className}" with ${topProbability}% confidence. Classifying under general road anomalies.` 
-  };
-}
-
 // --- OpenWeatherMap Live Forecast Integration ---
 const OPENWEATHER_API_KEY = atob('MmZlODVjNjBkMmY5MWQyM2M0OGFjOGJjMTgzZmM3Mjc=');
 
