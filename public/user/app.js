@@ -716,11 +716,7 @@ function translatePage() {
     const welcomeEl = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Welcome back'));
     if (welcomeEl) welcomeEl.textContent = dict.welcome_back;
 
-    const goodMorningEl = document.querySelector('h1.font-headline-lg-mobile');
-    if (goodMorningEl) {
-      const name = goodMorningEl.textContent.split(',')[1] || '';
-      goodMorningEl.textContent = `${dict.good_morning}${name}`;
-    }
+    updateGreetingHeading();
 
     const aiScanEl = Array.from(document.querySelectorAll('h2')).find(el => el.textContent.trim() === 'AI Scan');
     if (aiScanEl) aiScanEl.textContent = dict.ai_scan;
@@ -1522,20 +1518,67 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function getTimeBasedGreeting(lang = 'en') {
+    const hour = new Date().getHours();
+    let timeOfDay = 'morning';
+    if (hour >= 12 && hour < 17) {
+      timeOfDay = 'afternoon';
+    } else if (hour >= 17 || hour < 5) {
+      timeOfDay = 'evening';
+    }
+
+    const greetings = {
+      en: {
+        morning: 'Good Morning,',
+        afternoon: 'Good Afternoon,',
+        evening: 'Good Evening,'
+      },
+      hi: {
+        morning: 'शुभ प्रभात,',
+        afternoon: 'शुभ दोपहर,',
+        evening: 'शुभ संध्या,'
+      },
+      mr: {
+        morning: 'शुभ प्रभात,',
+        afternoon: 'शुभ दुपार,',
+        evening: 'शुभ संध्या,'
+      }
+    };
+
+    const selectedLang = greetings[lang] ? lang : 'en';
+    return greetings[selectedLang][timeOfDay];
+  }
+
+  function updateGreetingHeading(userName) {
+    const currentLang = localStorage.getItem('civis_language') || 'en';
+    const greetingPrefix = getTimeBasedGreeting(currentLang);
+    const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
+    const name = userName || localUser.name || 'Sarthak M Ghag';
+
+    const greetingHeading = document.getElementById('user-greeting-heading') || document.querySelector('h1.font-headline-lg-mobile');
+    if (greetingHeading) {
+      greetingHeading.textContent = `${greetingPrefix} ${name}`;
+    } else {
+      const headings = Array.from(document.querySelectorAll('h1, h2, h3, p'));
+      headings.forEach(el => {
+        const txt = el.innerText.trim();
+        if (txt.includes('Good Morning,') || txt.includes('Good Afternoon,') || txt.includes('Good Evening,') ||
+            txt.includes('शुभ प्रभात,') || txt.includes('शुभ दोपहर,') || txt.includes('शुभ दुपार,') || txt.includes('शुभ संध्या,')) {
+          el.innerText = `${greetingPrefix} ${name}`;
+        }
+      });
+    }
+  }
+
+  window.getTimeBasedGreeting = getTimeBasedGreeting;
+  window.updateGreetingHeading = updateGreetingHeading;
   window.updateUserAvatarInitials = updateUserAvatarInitials;
 
   // Instant Welcome & Avatar dynamic sync (Runs immediately before network calls)
   const localUser = JSON.parse(sessionStorage.getItem('civis_user') || '{}');
   const activeName = localUser.name || 'Sarthak M Ghag';
-  
-  const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
-  greetings.forEach(el => {
-    const text = el.innerText.trim();
-    if (text.includes('Hi,') || text.includes('Good Morning,') || text.includes('Good Afternoon,')) {
-      el.innerText = text.replace(/Hi,.*$/, `Hi, ${activeName}`).replace(/Good Morning,.*$/, `Good Morning, ${activeName}`);
-    }
-  });
 
+  updateGreetingHeading(activeName);
   updateUserAvatarInitials(activeName);
 
   // Apply translation
@@ -2740,13 +2783,7 @@ function openEditProfileModal() {
 
     updateUserAvatarInitials(newName);
 
-    const greetings = Array.from(document.querySelectorAll('span, p, h1, h2, h3'));
-    greetings.forEach(el => {
-      const text = el.innerText.trim();
-      if (text.includes('Hi,') || text.includes('Good Morning,') || text.includes('Good Afternoon,')) {
-        el.innerText = text.replace(/Hi,.*$/, `Hi, ${newName}`).replace(/Good Morning,.*$/, `Good Morning, ${newName}`);
-      }
-    });
+    updateGreetingHeading(newName);
 
     initProfilePage();
   });
