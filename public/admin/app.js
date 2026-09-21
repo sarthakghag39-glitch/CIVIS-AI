@@ -21,6 +21,16 @@ const GEOLOCATION_OPTIONS = {
   maximumAge: 30000
 };
 
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function isValidCoordinate(lat, lng) {
   return typeof lat === 'number' && Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
          typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
@@ -176,14 +186,14 @@ async function checkAuthSession() {
       // Do NOT treat a failed SELECT request as "profile does not exist".
       console.warn("Supabase profiles lookup error:", profileError);
       currentUserProfile = null;
-      currentAuthenticatedRole = session.user.user_metadata?.role || (isAdminPage ? 'admin' : 'citizen');
+      currentAuthenticatedRole = session.user.user_metadata?.role || 'citizen';
     } else if (!profile) {
       // SELECT explicitly indicated that no profile exists (0 rows returned with no DB error).
       const newProfile = {
         id: session.user.id,
         full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
         phone: session.user.user_metadata?.phone || '',
-        role: session.user.user_metadata?.role || (isAdminPage ? 'admin' : 'citizen')
+        role: session.user.user_metadata?.role || 'citizen'
       };
 
       const { error: upsertErr } = await supabaseClient
@@ -2096,13 +2106,13 @@ async function renderComplaintsList() {
         <div class="flex-1 flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${issue.title}</h3>
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality || 'Normal'}</span>
+              <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${escapeHTML(issue.title)}</h3>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${escapeHTML(issue.criticality || 'Normal')}</span>
             </div>
-            <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</span> • ${issue.date} • ${issue.location} • By ${issue.reported_by || 'Anonymous'}</p>
+            <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">${escapeHTML(issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`)}</span> • ${escapeHTML(issue.date)} • ${escapeHTML(issue.location)} • By ${escapeHTML(issue.reported_by || 'Anonymous')}</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${issue.status}</span>
+            <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${escapeHTML(issue.status)}</span>
             ${resolvedUrl ? `<button onclick="openImageLightbox('${resolvedUrl}')" class="px-2 py-0.5 bg-primary/10 text-primary text-[11px] font-semibold rounded-md hover:bg-primary/20 flex items-center gap-1 cursor-pointer" title="View attached photo"><span class="material-symbols-outlined text-xs">photo</span> Photo</button>` : ''}
           </div>
         </div>
@@ -2116,7 +2126,7 @@ async function renderComplaintsList() {
           <div class="h-full bg-primary" style="width: ${issue.progress || 0}%"></div>
         </div>
       </div>
-      <p class="text-body-md text-on-surface-variant text-sm">${issue.description || ''}</p>
+      <p class="text-body-md text-on-surface-variant text-sm">${escapeHTML(issue.description || '')}</p>
       ${(() => {
         if (issue.ai_analyzed === true) {
           const confPercent = issue.ai_confidence ? Math.round(issue.ai_confidence * 100) : null;
@@ -3378,13 +3388,13 @@ async function renderAdminIssues() {
             ${iconOrThumbnail}
             <div>
               <p class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-1.5 flex-wrap">
-                ${issue.title}
+                ${escapeHTML(issue.title)}
                 ${issue.ai_analyzed ? `<span class="inline-flex items-center gap-0.5 text-[10px] font-semibold px-2 py-0.5 bg-primary/10 text-primary rounded-md" title="AI Analyzed"><span class="material-symbols-outlined text-[12px]">psychology</span> AI Analyzed</span>` : ''}
               </p>
-              <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</p>
+              <p class="text-[12px] text-on-surface-variant font-mono font-bold">ID: ${escapeHTML(issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`)}</p>
               <p class="text-[11px] font-semibold text-primary/90 mt-0.5 flex items-center gap-1">
                 <span class="material-symbols-outlined text-[13px]">account_balance</span>
-                Department: ${issue.assigned_department || 'General Municipal Administration'}
+                Department: ${escapeHTML(issue.assigned_department || 'General Municipal Administration')}
               </p>
             </div>
           </div>
@@ -3392,7 +3402,7 @@ async function renderAdminIssues() {
         <td class="px-6 py-4">
           <div class="flex flex-col gap-1 cursor-pointer" onclick="openPriorityBreakdownModal(${issue.id})" title="Click to view Priority Factor Breakdown">
             <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${tierStyle} hover:opacity-80 transition-opacity">
-              ${pData.tier} (${pData.score})
+              ${escapeHTML(pData.tier)} (${pData.score})
             </span>
             ${sla.isSLABreached ? `
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-error/10 text-error border border-error/20" title="Target SLA (${sla.targetDays}d) exceeded by ${sla.overdueDays} days">
@@ -3405,24 +3415,24 @@ async function renderAdminIssues() {
             ` : ''}
             <span class="text-[10px] text-outline font-medium flex items-center gap-1" title="Location Confidence Signal">
               <span class="w-1.5 h-1.5 rounded-full ${pData.locationConfidence >= 60 ? 'bg-success' : 'bg-warning'}"></span>
-              Location: ${pData.locationQualityLabel}
+              Location: ${escapeHTML(pData.locationQualityLabel)}
             </span>
           </div>
         </td>
         <td class="px-6 py-4">
-          <div class="font-semibold text-sm text-on-surface">${issue.reported_by || 'Anonymous'}</div>
-          <div class="text-[10px] text-outline font-normal mt-0.5">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</div>
+          <div class="font-semibold text-sm text-on-surface">${escapeHTML(issue.reported_by || 'Anonymous')}</div>
+          <div class="text-[10px] text-outline font-normal mt-0.5">${escapeHTML(issue.reported_by_email || 'N/A')} • ${escapeHTML(issue.reported_by_phone || 'N/A')}</div>
         </td>
         <td class="px-6 py-4 text-outline font-medium text-sm">
-          ${issue.location}
+          ${escapeHTML(issue.location)}
         </td>
         <td class="px-6 py-4 text-label-sm text-outline">
-          ${issue.date}
+          ${escapeHTML(issue.date)}
         </td>
         <td class="px-6 py-4">
           <span class="inline-flex items-center gap-1.5 text-label-sm font-bold" style="color: ${markerColor}">
             <span class="w-1.5 h-1.5 rounded-full" style="background-color: ${markerColor}"></span>
-            ${issue.status}
+            ${escapeHTML(issue.status)}
           </span>
         </td>
         <td class="px-6 py-4">
@@ -3752,7 +3762,7 @@ async function openAdminComplaintDetailModal(issueId) {
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pt-1">
             <div>
               <span class="text-outline text-[11px] font-medium block">Current Department</span>
-              <span class="font-bold text-primary text-sm">${issue.assigned_department || 'General Municipal Administration'}</span>
+              <span class="font-bold text-primary text-sm">${escapeHTML(issue.assigned_department || 'General Municipal Administration')}</span>
             </div>
 
             <div class="flex items-center gap-1.5 w-full sm:w-auto">
@@ -3791,20 +3801,20 @@ async function openAdminComplaintDetailModal(issueId) {
         <!-- Description Box -->
         <div class="p-4 bg-surface-container-low rounded-xl border border-border-subtle">
           <span class="text-xs font-bold text-outline uppercase tracking-wider block mb-1.5">Description</span>
-          <p class="text-sm font-medium text-on-surface leading-relaxed whitespace-pre-wrap">${issue.description || 'No description provided.'}</p>
+          <p class="text-sm font-medium text-on-surface leading-relaxed whitespace-pre-wrap">${escapeHTML(issue.description || 'No description provided.')}</p>
         </div>
 
         <!-- Location & Citizen Info Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
           <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs">
             <span class="text-outline font-semibold text-[10px]">Location & Address</span>
-            <span class="font-bold text-on-surface">${issue.location || 'N/A'}</span>
-            <span class="text-outline font-mono text-[10px]">${issue.lat ? issue.lat.toFixed(5) : 'N/A'}, ${issue.lng ? issue.lng.toFixed(5) : 'N/A'} (${issue.location_source || 'unknown'})</span>
+            <span class="font-bold text-on-surface">${escapeHTML(issue.location || 'N/A')}</span>
+            <span class="text-outline font-mono text-[10px]">${issue.lat ? issue.lat.toFixed(5) : 'N/A'}, ${issue.lng ? issue.lng.toFixed(5) : 'N/A'} (${escapeHTML(issue.location_source || 'unknown')})</span>
           </div>
           <div class="p-3 bg-surface-container-low rounded-xl border border-border-subtle flex flex-col gap-1 text-xs">
             <span class="text-outline font-semibold text-[10px]">Reported By</span>
-            <span class="font-bold text-on-surface">${issue.reported_by || 'Anonymous'}</span>
-            <span class="text-outline text-[11px]">${issue.reported_by_email || 'N/A'} • ${issue.reported_by_phone || 'N/A'}</span>
+            <span class="font-bold text-on-surface">${escapeHTML(issue.reported_by || 'Anonymous')}</span>
+            <span class="text-outline text-[11px]">${escapeHTML(issue.reported_by_email || 'N/A')} • ${escapeHTML(issue.reported_by_phone || 'N/A')}</span>
           </div>
         </div>
       </div>

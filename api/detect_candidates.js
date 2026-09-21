@@ -27,13 +27,71 @@ if (!evaluateMatch) {
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://dppdyknjrryoljzzdulj.supabase.co';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_DoV52AE_kw3GIMhY50tXTA_vUAgbAmm';
+
+// Instance-level burst rate limiter
+const RATE_LIMIT_WINDOW_MS = 60000;
+const MAX_REQUESTS_PER_WINDOW = parseInt(process.env.CANDIDATE_RATE_LIMIT_MAX || '20', 10);
+const instanceRateLimitMap = new Map();
+
+function checkInstanceRateLimit(clientKey) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW_MS;
+  const timestamps = (instanceRateLimitMap.get(clientKey) || []).filter(ts => ts > windowStart);
+  
+  if (timestamps.length >= MAX_REQUESTS_PER_WINDOW) {
+    return false;
+  }
+  
+  timestamps.push(now);
+  instanceRateLimitMap.set(clientKey, timestamps);
+  return true;
+}
+
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
   }
 
-  // 1. Verify SUPABASE_SERVICE_ROLE_KEY configuration (Do NOT fall back to public/anon key)
+  // 1. Authentication Guard (Server-side Token Verification)
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'] || '';
+  if (!authHeader || typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Missing or invalid authentication token.'
+    });
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Missing or invalid authentication token.'
+    });
+  }
+
+  // Validate JWT token with Supabase Auth
+  const supabaseAnon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: { user }, error: authErr } = await supabaseAnon.auth.getUser(token);
+  if (authErr || !user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Invalid or expired authentication token.'
+    });
+  }
+
+  // 2. Rate Limiting Guard
+  const clientIdentifier = user.id || req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'anonymous';
+  if (!checkInstanceRateLimit(clientIdentifier)) {
+    res.setHeader('Retry-After', '60');
+    return res.status(429).json({
+      success: false,
+      error: 'Too Many Requests: Rate limit exceeded. Please wait 60 seconds before retrying.'
+    });
+  }
+
+  // 3. Verify SUPABASE_SERVICE_ROLE_KEY configuration (Do NOT fall back to public/anon key)
   if (!SUPABASE_SERVICE_ROLE_KEY) {
     console.error('Server configuration error: SUPABASE_SERVICE_ROLE_KEY is missing');
     return res.status(500).json({
@@ -57,7 +115,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid or missing issue_id.' });
     }
 
-    // 2. Fetch inserted issue record securely from database
+    // 4. Fetch inserted issue record securely from database
     const { data: insertedIssue, error: fetchErr } = await supabaseServer
       .from('issues')
       .select('*')

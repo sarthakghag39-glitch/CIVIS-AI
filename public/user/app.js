@@ -21,6 +21,16 @@ const GEOLOCATION_OPTIONS = {
   maximumAge: 30000
 };
 
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function isValidCoordinate(lat, lng) {
   return typeof lat === 'number' && Number.isFinite(lat) && lat >= -90 && lat <= 90 &&
          typeof lng === 'number' && Number.isFinite(lng) && lng >= -180 && lng <= 180;
@@ -2196,13 +2206,13 @@ async function renderComplaintsList() {
         <div class="flex-1 flex flex-col justify-between">
           <div>
             <div class="flex justify-between items-start">
-              <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${issue.title}</h3>
-              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${issue.criticality}</span>
+              <h3 class="font-headline-md text-[18px] leading-tight text-on-surface mb-1">${escapeHTML(issue.title)}</h3>
+              <span class="px-2 py-0.5 text-[10px] font-bold rounded-md uppercase tracking-wider ${issue.criticality === 'Critical' ? 'bg-error-container text-error' : 'bg-surface-container-high text-on-surface-variant'}">${escapeHTML(issue.criticality)}</span>
             </div>
-            <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">${issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`}</span> • ${issue.date} • ${issue.location} • By ${issue.reported_by || 'Anonymous'}</p>
+            <p class="font-label-sm text-label-sm text-outline"><span class="font-mono font-bold text-primary">${escapeHTML(issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`)}</span> • ${escapeHTML(issue.date)} • ${escapeHTML(issue.location)} • By ${escapeHTML(issue.reported_by || 'Anonymous')}</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${issue.status}</span>
+            <span class="px-2 py-0.5 bg-secondary-container/30 text-on-secondary-container text-[11px] font-semibold rounded-md">${escapeHTML(issue.status)}</span>
             ${resolvedImageUrl ? '<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold rounded-md flex items-center gap-1 cursor-pointer" onclick="openImageLightbox(\'' + resolvedImageUrl + '\')"><span class="material-symbols-outlined text-xs">photo</span> Photo Attached</span>' : ''}
           </div>
         </div>
@@ -2216,7 +2226,7 @@ async function renderComplaintsList() {
           <div class="h-full bg-primary" style="width: ${issue.progress}%"></div>
         </div>
       </div>
-      <p class="text-body-md text-on-surface-variant text-sm">${issue.description}</p>
+      <p class="text-body-md text-on-surface-variant text-sm">${escapeHTML(issue.description)}</p>
     `;
     container.appendChild(card);
   }
@@ -2549,11 +2559,11 @@ async function openAdminComplaintDetailModal(issueId) {
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
             <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
               <span class="text-outline font-medium block text-[10px]">AI Category</span>
-              <span class="font-bold text-on-surface text-xs mt-0.5 block">${issue.ai_category || issue.category}</span>
+              <span class="font-bold text-on-surface text-xs mt-0.5 block">${escapeHTML(issue.ai_category || issue.category)}</span>
             </div>
             <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
               <span class="text-outline font-medium block text-[10px]">AI Severity</span>
-              <span class="font-bold text-on-surface text-xs mt-0.5 block">${issue.ai_severity || 'Moderate'}${issue.ai_severity_score ? ` (${issue.ai_severity_score}/100)` : ''}</span>
+              <span class="font-bold text-on-surface text-xs mt-0.5 block">${escapeHTML(issue.ai_severity || 'Moderate')}${issue.ai_severity_score ? ` (${issue.ai_severity_score}/100)` : ''}</span>
             </div>
             <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
               <span class="text-outline font-medium block text-[10px]">AI Confidence</span>
@@ -2561,7 +2571,7 @@ async function openAdminComplaintDetailModal(issueId) {
             </div>
             <div class="p-2.5 bg-card-bg rounded-lg border border-border-subtle">
               <span class="text-outline font-medium block text-[10px]">Analysis Time</span>
-              <span class="font-mono text-on-surface-variant text-[10px] mt-0.5 block">${analyzedAt}</span>
+              <span class="font-mono text-on-surface-variant text-[10px] mt-0.5 block">${escapeHTML(analyzedAt)}</span>
             </div>
           </div>
 
@@ -2569,19 +2579,19 @@ async function openAdminComplaintDetailModal(issueId) {
             <div>
               <span class="text-outline font-semibold block text-[11px] mb-1">Detected Tags</span>
               <div class="flex flex-wrap gap-1">
-                ${tags.map(tag => `<span class="px-2.5 py-0.5 bg-surface-container-high text-on-surface rounded-full text-[11px] font-medium">${tag}</span>`).join('')}
+                ${tags.map(tag => `<span class="px-2.5 py-0.5 bg-surface-container-high text-on-surface rounded-full text-[11px] font-medium">${escapeHTML(tag)}</span>`).join('')}
               </div>
             </div>
           ` : ''}
 
           <div>
             <span class="text-outline font-semibold block text-[11px] mb-0.5">Reasoning Summary</span>
-            <p class="text-on-surface text-xs leading-relaxed opacity-90">${issue.ai_reasoning_summary || 'Visual and textual analysis indicates a civic infrastructure concern.'}</p>
+            <p class="text-on-surface text-xs leading-relaxed opacity-90">${escapeHTML(issue.ai_reasoning_summary || 'Visual and textual analysis indicates a civic infrastructure concern.')}</p>
           </div>
 
           <div>
             <span class="text-primary font-semibold block text-[11px] mb-0.5">Recommended Action</span>
-            <p class="text-primary font-medium text-xs leading-relaxed">${issue.ai_recommended_action || 'Inspect location and dispatch maintenance team.'}</p>
+            <p class="text-primary font-medium text-xs leading-relaxed">${escapeHTML(issue.ai_recommended_action || 'Inspect location and dispatch maintenance team.')}</p>
           </div>
         </div>
       ` : `
@@ -3836,9 +3846,16 @@ async function checkForDuplicateCandidates(insertedIssue) {
   if (!insertedIssue || !insertedIssue.id) return;
 
   try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const token = session?.access_token;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const res = await fetch('/api/detect_candidates', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ issue_id: insertedIssue.id })
     });
     if (!res.ok) {
