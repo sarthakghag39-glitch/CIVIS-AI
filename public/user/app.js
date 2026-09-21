@@ -1192,7 +1192,7 @@ function openImageLightbox(imgSrc) {
 }
 
 async function getIssues() {
-  const { data, error } = await supabaseClient.from('issues').select('*').order('id', { ascending: false });
+  const { data, error } = await supabaseClient.from('issues').select('id, complaint_id, title, category, location, lat, lng, date, status, progress, criticality, description, reported_by, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary').order('id', { ascending: false });
   if (error) {
     console.error('Error fetching issues:', error);
     return cachedIssues.length ? cachedIssues : [];
