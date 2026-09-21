@@ -264,6 +264,50 @@ checkAuthSession().then(user => {
 
 let cachedIssues = [];
 
+// Primary in-memory state for the active complaint image
+let selectedComplaintImageFile = null;
+let selectedComplaintImagePreviewUrl = null;
+
+function setSelectedComplaintImage(fileOrBlob, filename = 'captured_scan.jpg') {
+  if (selectedComplaintImagePreviewUrl) {
+    try {
+      URL.revokeObjectURL(selectedComplaintImagePreviewUrl);
+    } catch (e) {
+      console.warn("Error revoking object URL:", e);
+    }
+    selectedComplaintImagePreviewUrl = null;
+  }
+
+  if (!fileOrBlob) {
+    selectedComplaintImageFile = null;
+    return null;
+  }
+
+  if (fileOrBlob instanceof File) {
+    selectedComplaintImageFile = fileOrBlob;
+  } else if (fileOrBlob instanceof Blob) {
+    selectedComplaintImageFile = new File([fileOrBlob], filename, { type: fileOrBlob.type || 'image/jpeg' });
+  } else {
+    selectedComplaintImageFile = null;
+    return null;
+  }
+
+  if (selectedComplaintImageFile) {
+    selectedComplaintImagePreviewUrl = URL.createObjectURL(selectedComplaintImageFile);
+  }
+  return selectedComplaintImagePreviewUrl;
+}
+
+function fileToDataURL(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve(null);
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+}
+
 // Helper to compress/resize base64 image data URL specifically for AI multimodal payload
 function getCompressedImageForAi(dataUrl, maxDim = 1280, quality = 0.75) {
   return new Promise((resolve) => {
@@ -2995,6 +3039,12 @@ function openScanModal() {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const dataUrl = canvas.toDataURL('image/jpeg');
     
+    // Set in-memory File object as primary source of truth
+    const capturedBlob = dataURLtoBlob(dataUrl);
+    if (capturedBlob) {
+      setSelectedComplaintImage(capturedBlob, `civis_scan_${Date.now()}.jpg`);
+    }
+
     sessionStorage.setItem('civis_captured_img', dataUrl);
     sessionStorage.setItem('civis_sim_category', targetSelect.value);
     sessionStorage.removeItem('civis_captured_name');
@@ -3012,6 +3062,9 @@ function openScanModal() {
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Set in-memory File object as primary source of truth
+      setSelectedComplaintImage(file);
+
       const reader = new FileReader();
       reader.onload = (event) => {
         const dataUrl = event.target.result;
@@ -3081,7 +3134,16 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
   const currentLang = localStorage.getItem('civis_language') || 'en';
   const dict = translations[currentLang] || translations.en;
-  const hasCapturedImg = !!sessionStorage.getItem('civis_captured_img');
+  
+  const capturedDataUrl = sessionStorage.getItem('civis_captured_img');
+  if (!selectedComplaintImageFile && capturedDataUrl) {
+    const rawBlob = dataURLtoBlob(capturedDataUrl);
+    if (rawBlob) {
+      setSelectedComplaintImage(rawBlob, sessionStorage.getItem('civis_captured_name') || 'captured_scan.jpg');
+    }
+  }
+  const hasCapturedImg = !!selectedComplaintImageFile || !!capturedDataUrl;
+  const initialPreviewSrc = selectedComplaintImagePreviewUrl || capturedDataUrl || '';
 
   const modal = document.createElement('div');
   modal.id = 'report-issue-modal';
@@ -3139,6 +3201,12 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
             <span class="material-symbols-outlined text-sm">photo_camera</span>
             <span>Image attached from AI Scan / Selection</span>
           </div>
+          <div id="form-image-preview-container" class="${hasCapturedImg ? 'block' : 'hidden'} mt-2 relative rounded-xl overflow-hidden border border-border-subtle max-h-48 bg-black/5">
+            <img id="form-image-preview" src="${initialPreviewSrc}" alt="Complaint Preview" class="w-full h-48 object-cover rounded-xl">
+            <button type="button" id="remove-image-btn" class="absolute top-2 right-2 bg-black/60 hover:bg-black/80 text-white rounded-full p-1 text-xs flex items-center justify-center transition-all" title="Remove image">
+              <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+          </div>
         </div>
 
         <!-- AI Analysis Trigger & Results -->
@@ -3163,9 +3231,27 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
   const form = modal.querySelector('form');
   const fileInput = modal.querySelector('#form-image-file');
   const attachedBadge = modal.querySelector('#image-attached-badge');
+  const previewContainer = modal.querySelector('#form-image-preview-container');
+  const previewImg = modal.querySelector('#form-image-preview');
+  const removeImageBtn = modal.querySelector('#remove-image-btn');
   const submitBtn = modal.querySelector('#submit-report-btn');
   const triggerAiBtn = modal.querySelector('#trigger-ai-modal-btn');
   const aiResultBox = modal.querySelector('#ai-modal-result');
+
+  if (removeImageBtn) {
+    removeImageBtn.addEventListener('click', () => {
+      setSelectedComplaintImage(null);
+      if (fileInput) fileInput.value = '';
+      sessionStorage.removeItem('civis_captured_img');
+      sessionStorage.removeItem('civis_captured_name');
+      if (attachedBadge) {
+        attachedBadge.classList.add('hidden');
+        attachedBadge.classList.remove('flex');
+      }
+      if (previewContainer) previewContainer.classList.add('hidden');
+      if (previewImg) previewImg.src = '';
+    });
+  }
 
   const badgeBox = modal.querySelector('#location-badge-box');
   const toggleMapBtn = modal.querySelector('#toggle-modal-map-btn');
@@ -3353,11 +3439,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
 
   if (triggerAiBtn && aiResultBox) {
     triggerAiBtn.addEventListener('click', async () => {
-      const capturedImg = sessionStorage.getItem('civis_captured_img');
       const descText = form.querySelector('#form-desc').value.trim();
       const currentCategory = form.querySelector('#form-category').value;
 
-      if (!capturedImg && !descText) {
+      if (!selectedComplaintImageFile && !sessionStorage.getItem('civis_captured_img') && !descText) {
         alert("Please attach a complaint photo or write a description first to run AI analysis.");
         return;
       }
@@ -3366,7 +3451,13 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       triggerAiBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Analyzing image & description...`;
 
       try {
-        const compressedImgForAi = capturedImg ? await getCompressedImageForAi(capturedImg) : null;
+        let compressedImgForAi = null;
+        if (selectedComplaintImageFile) {
+          const fileDataUrl = await fileToDataURL(selectedComplaintImageFile);
+          compressedImgForAi = await getCompressedImageForAi(fileDataUrl);
+        } else if (sessionStorage.getItem('civis_captured_img')) {
+          compressedImgForAi = await getCompressedImageForAi(sessionStorage.getItem('civis_captured_img'));
+        }
         const response = await fetch('/api/analyze_issue', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3498,11 +3589,18 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         return;
       }
 
+      const previewUrl = setSelectedComplaintImage(file);
+
       const reader = new FileReader();
       reader.onload = (event) => {
         sessionStorage.setItem('civis_captured_img', event.target.result);
-        attachedBadge.classList.remove('hidden');
-        attachedBadge.classList.add('flex');
+        sessionStorage.setItem('civis_captured_name', file.name);
+        if (attachedBadge) {
+          attachedBadge.classList.remove('hidden');
+          attachedBadge.classList.add('flex');
+        }
+        if (previewContainer) previewContainer.classList.remove('hidden');
+        if (previewImg) previewImg.src = previewUrl || event.target.result;
       };
       reader.readAsDataURL(file);
     });
@@ -3534,11 +3632,14 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
     const reported_by_phone = localUser.phone || 'N/A';
 
     let uploadedImagePath = null;
-    const capturedDataUrl = sessionStorage.getItem('civis_captured_img');
+    let targetImageBlob = selectedComplaintImageFile;
+    if (!targetImageBlob && sessionStorage.getItem('civis_captured_img')) {
+      targetImageBlob = dataURLtoBlob(sessionStorage.getItem('civis_captured_img'));
+    }
 
-    if (capturedDataUrl) {
+    if (targetImageBlob) {
       try {
-        let rawBlob = dataURLtoBlob(capturedDataUrl);
+        let rawBlob = targetImageBlob;
         if (rawBlob) {
           if (!['image/jpeg', 'image/png', 'image/webp'].includes(rawBlob.type)) {
             alert("Unsupported image format detected. Please select a valid JPEG, PNG, or WEBP image.");
@@ -3694,6 +3795,7 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
       submitBtn.disabled = false;
       submitBtn.innerHTML = `<span>${dict.submit_report}</span>`;
     } else {
+      setSelectedComplaintImage(null);
       sessionStorage.removeItem('civis_captured_img');
       sessionStorage.removeItem('civis_captured_name');
       sessionStorage.removeItem('civis_sim_category');
