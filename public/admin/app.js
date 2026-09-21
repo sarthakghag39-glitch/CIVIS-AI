@@ -1047,7 +1047,7 @@ function openImageLightbox(imgSrc) {
 }
 
 async function getIssues() {
-  const { data, error } = await supabaseClient.from('issues').select('id, complaint_id, title, category, location, lat, lng, location_source, location_accuracy_meters, date, status, progress, criticality, description, reported_by, reported_by_email, reported_by_phone, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary, ai_model_version, ai_is_valid_civic_issue, assigned_department, auto_routed, routed_at, incident_id').order('id', { ascending: false });
+  const { data, error } = await supabaseClient.from('issues').select('id, complaint_id, title, category, location, lat, lng, location_source, location_accuracy_meters, date, created_at, status, progress, criticality, description, reported_by, reported_by_email, reported_by_phone, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary, ai_model_version, ai_is_valid_civic_issue, assigned_department, auto_routed, routed_at, incident_id').order('id', { ascending: false });
   if (error) {
     console.error('Error fetching issues:', error);
     return cachedIssues.length ? cachedIssues : [];
@@ -2641,8 +2641,11 @@ function renderTrendChart(issues, days = 30) {
   }
 
   for (const issue of issues) {
-    if (!issue.created_at) continue;
-    const issueDateStr = new Date(issue.created_at).toISOString().split('T')[0];
+    const rawDate = issue.created_at || issue.date;
+    if (!rawDate) continue;
+
+    const issueDateStr = new Date(rawDate).toISOString().split('T')[0];
+
     if (dateMap[issueDateStr]) {
       dateMap[issueDateStr].count++;
     }
