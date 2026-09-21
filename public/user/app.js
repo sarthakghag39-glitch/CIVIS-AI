@@ -440,7 +440,17 @@ const translations = {
     "sensors": "SENSORS",
     "active_lidar": "Active LiDAR",
     "submit_complaint": "Submit Complaint",
-    "retake": "Retake"
+    "retake": "Retake",
+    "maintenance": "Maintenance",
+    "two_hours_ago": "2h ago",
+    "scheduled_road_work": "Scheduled Road Work",
+    "scheduled_road_work_desc": "Avenue 4th intersection will be closed from 10 PM tonight.",
+    "baner_pune": "Baner, Pune",
+    "cleanliness": "Cleanliness",
+    "five_hours_ago": "5h ago",
+    "new_smart_bin_installed": "New Smart Bin Installed",
+    "new_smart_bin_installed_desc": "Your local park now features AI-sorted waste management bins.",
+    "viman_nagar_pune": "Viman Nagar, Pune"
   },
   hi: {
     "civis_ai": "सिविस एआई",
@@ -540,7 +550,17 @@ const translations = {
     "sensors": "सेंसर",
     "active_lidar": "सक्रिय लिडार",
     "submit_complaint": "तक्रार सबमिट करें",
-    "retake": "पुनः लें"
+    "retake": "पुनः लें",
+    "maintenance": "रखरखाव",
+    "two_hours_ago": "2 घंटे पहले",
+    "scheduled_road_work": "निर्धारित सड़क कार्य",
+    "scheduled_road_work_desc": "एवेन्यू चौथी चौराहा आज रात 10 बजे से बंद रहेगा।",
+    "baner_pune": "बानेर, पुणे",
+    "cleanliness": "सफाई",
+    "five_hours_ago": "5 घंटे पहले",
+    "new_smart_bin_installed": "नया स्मार्ट बिन स्थापित",
+    "new_smart_bin_installed_desc": "आपके स्थानीय पार्क में अब AI-सॉर्टेड कचरा प्रबंधन बिन हैं।",
+    "viman_nagar_pune": "विमान नगर, पुणे"
   },
   mr: {
     "civis_ai": "सिव्हिस एआय",
@@ -640,7 +660,17 @@ const translations = {
     "sensors": "सेन्सर्स",
     "active_lidar": "सक्रिय लिडार",
     "submit_complaint": "तक्रार सादर करा",
-    "retake": "पुन्हा घ्या"
+    "retake": "पुन्हा घ्या",
+    "maintenance": "दुरुस्ती काम",
+    "two_hours_ago": "२ तासांपूर्वी",
+    "scheduled_road_work": "नियोजित रस्ता काम",
+    "scheduled_road_work_desc": "चौथा एव्हेन्यू चौक आज रात्री १० वाजल्यापासून बंद राहील.",
+    "baner_pune": "बाणेर, पुणे",
+    "cleanliness": "स्वच्छता",
+    "five_hours_ago": "५ तासांपूर्वी",
+    "new_smart_bin_installed": "नवीन स्मार्ट बिन बसवले",
+    "new_smart_bin_installed_desc": "तुमच्या स्थानिक उद्यानात आता AI-आधारित कचरा व्यवस्थापन डबे आहेत.",
+    "viman_nagar_pune": "विमान नगर, पुणे"
   }
 };
 
@@ -754,8 +784,32 @@ function translatePage() {
     const nearbyAlertsHeader = Array.from(document.querySelectorAll('h3')).find(el => el.textContent.includes('Nearby Alerts'));
     if (nearbyAlertsHeader) nearbyAlertsHeader.textContent = dict.nearby_alerts;
 
-    const seeAllLink = Array.from(document.querySelectorAll('a')).find(el => el.textContent.includes('See all'));
+    const seeAllLink = Array.from(document.querySelectorAll('a')).find(el => el.textContent.includes('See all') || el.textContent.includes('सभी देखें') || el.textContent.includes('सर्व पहा'));
     if (seeAllLink) seeAllLink.textContent = dict.see_all;
+
+    // Translate Nearby Alert Card 1
+    const card1Badge = document.getElementById('alert-card1-badge');
+    if (card1Badge) card1Badge.textContent = dict.maintenance;
+    const card1Time = document.getElementById('alert-card1-time');
+    if (card1Time) card1Time.textContent = dict.two_hours_ago;
+    const card1Title = document.getElementById('alert-card1-title');
+    if (card1Title) card1Title.textContent = dict.scheduled_road_work;
+    const card1Desc = document.getElementById('alert-card1-desc');
+    if (card1Desc) card1Desc.textContent = dict.scheduled_road_work_desc;
+    const card1Loc = document.getElementById('alert-card1-loc');
+    if (card1Loc) card1Loc.textContent = dict.baner_pune;
+
+    // Translate Nearby Alert Card 2
+    const card2Badge = document.getElementById('alert-card2-badge');
+    if (card2Badge) card2Badge.textContent = dict.cleanliness;
+    const card2Time = document.getElementById('alert-card2-time');
+    if (card2Time) card2Time.textContent = dict.five_hours_ago;
+    const card2Title = document.getElementById('alert-card2-title');
+    if (card2Title) card2Title.textContent = dict.new_smart_bin_installed;
+    const card2Desc = document.getElementById('alert-card2-desc');
+    if (card2Desc) card2Desc.textContent = dict.new_smart_bin_installed_desc;
+    const card2Loc = document.getElementById('alert-card2-loc');
+    if (card2Loc) card2Loc.textContent = dict.viman_nagar_pune;
   }
 
   if (path.includes('smart_map')) {
