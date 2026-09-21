@@ -672,19 +672,19 @@ function translatePage() {
       });
     });
 
-    const liveSystemAlert = Array.from(document.querySelectorAll('span')).find(el => el.textContent.includes('Live System Alert'));
+    const liveSystemAlert = document.getElementById('live-alert-tag') || Array.from(document.querySelectorAll('span')).find(el => el.textContent.trim() === 'Live System Alert');
     if (liveSystemAlert) liveSystemAlert.textContent = dict.live_system_alert;
 
-    const criticalIssueIn = Array.from(document.querySelectorAll('div')).find(el => el.textContent.includes('Critical Issue in Kothrud'));
+    const criticalIssueIn = document.getElementById('live-alert-title') || Array.from(document.querySelectorAll('div')).find(el => el.children.length === 0 && el.textContent.includes('Critical Issue in Kothrud'));
     if (criticalIssueIn) criticalIssueIn.textContent = dict.critical_issue_in;
 
-    const waterLeakDetected = Array.from(document.querySelectorAll('p')).find(el => el.textContent.includes('Water leak detected'));
+    const waterLeakDetected = document.getElementById('live-alert-desc') || Array.from(document.querySelectorAll('p')).find(el => el.children.length === 0 && el.textContent.includes('Water leak detected'));
     if (waterLeakDetected) waterLeakDetected.textContent = dict.water_leak_detected;
 
-    const viewBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('View'));
+    const viewBtn = document.getElementById('live-alert-view-btn') || Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('View'));
     if (viewBtn) {
       const icon = viewBtn.querySelector('span');
-      viewBtn.innerHTML = dict.view + ' ';
+      viewBtn.innerHTML = (dict.view || 'View') + ' ';
       if (icon) viewBtn.appendChild(icon);
     }
 
