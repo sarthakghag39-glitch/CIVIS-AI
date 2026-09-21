@@ -1848,10 +1848,19 @@ async function initAiAnalysisPage() {
   // Attempt Real Backend Multimodal AI Analysis (api/analyze_issue.js)
   if (capturedImg) {
     try {
+      const { data: { session }, error: sessionErr } = await supabaseClient.auth.getSession();
+      if (sessionErr || !session || !session.access_token) {
+        console.warn("AI analysis skipped: User is not authenticated.");
+        return;
+      }
+
       const compressedImgForAi = await getCompressedImageForAi(capturedImg);
       const response = await fetch('/api/analyze_issue', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           image: compressedImgForAi,
           description: sessionStorage.getItem('civis_captured_desc') || '',
@@ -3447,6 +3456,19 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         return;
       }
 
+      const { data: { session }, error: sessionErr } = await supabaseClient.auth.getSession();
+      if (sessionErr || !session || !session.access_token) {
+        aiResultBox.innerHTML = `
+          <div class="text-outline text-center py-2">
+            <span class="material-symbols-outlined text-base">lock</span>
+            <p class="font-semibold mt-1 text-xs">Authentication Required</p>
+            <p class="text-[10px] opacity-75">Please log in to analyze civic issues with AI.</p>
+          </div>
+        `;
+        aiResultBox.classList.remove('hidden');
+        return;
+      }
+
       triggerAiBtn.disabled = true;
       triggerAiBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Analyzing image & description...`;
 
@@ -3460,7 +3482,10 @@ function openReportModalAtCoords(lat, lng, defaultTitle = '', defaultCategory = 
         }
         const response = await fetch('/api/analyze_issue', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
             image: compressedImgForAi,
             description: descText,
