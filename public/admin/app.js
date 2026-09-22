@@ -3853,6 +3853,9 @@ async function openAdminComplaintDetailModal(issueId) {
 
       <!-- Footer Action Buttons -->
       <div class="flex items-center justify-end gap-3 border-t border-border-subtle pt-4 mt-2">
+        <button id="modal-notify-authority-btn" type="button" class="px-4 py-2 bg-surface-container-high hover:bg-surface-variant text-on-surface text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 border border-border-subtle">
+          <span class="material-symbols-outlined text-sm text-primary">send</span> Notify Authority
+        </button>
         <button id="modal-assign-btn" type="button" class="px-4 py-2 bg-primary text-white text-xs font-semibold rounded-xl hover:brightness-110 transition-all cursor-pointer">
           Assign (In Progress)
         </button>
@@ -3871,6 +3874,62 @@ async function openAdminComplaintDetailModal(issueId) {
   modal.addEventListener('click', (e) => {
     if (e.target === modal) modal.remove();
   });
+
+  // Notify Authority Button Event Listener
+  const notifyAuthBtn = modal.querySelector('#modal-notify-authority-btn');
+  if (notifyAuthBtn) {
+    notifyAuthBtn.addEventListener('click', async () => {
+      notifyAuthBtn.disabled = true;
+      const originalText = notifyAuthBtn.innerHTML;
+      notifyAuthBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span> Notifying...';
+
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session || !session.access_token) {
+          alert('Authentication error: Valid session required to notify authority.');
+          notifyAuthBtn.disabled = false;
+          notifyAuthBtn.innerHTML = originalText;
+          return;
+        }
+
+        const response = await fetch('/api/notify_authority', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            issue_id: issue.id
+          })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (response.status === 200) {
+          if (data && data.status === 'already_notified') {
+            alert('Authority was already notified for this complaint.');
+          } else if (data && data.success === false) {
+            alert(data.warning || data.error || 'Authority notification could not be delivered.');
+          } else {
+            alert('Authority notified successfully.');
+          }
+        } else if (response.status === 401 || response.status === 403) {
+          alert('Authorization Error: You are not authorized to trigger authority notification.');
+        } else if (response.status === 404) {
+          alert('Authority Error (404): Complaint or active department authority configuration was not found.');
+        } else if (response.status === 429) {
+          alert('Rate Limit Exceeded (429): Please wait a minute before sending another authority notification.');
+        } else {
+          alert('Authority notification failed. The complaint was not deleted or modified.');
+        }
+      } catch (err) {
+        alert('Authority notification failed. The complaint was not deleted or modified.');
+      } finally {
+        notifyAuthBtn.disabled = false;
+        notifyAuthBtn.innerHTML = originalText;
+      }
+    });
+  }
 
   // Attach Phase 4 Event Listeners
   const toggleIncBtn = modal.querySelector('#toggle-incident-status-btn');
