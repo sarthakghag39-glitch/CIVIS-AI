@@ -62,7 +62,7 @@ async function runTests() {
 
   // Test 2: Missing Authorization header returns 401
   {
-    const req = { method: 'POST', headers: {}, body: { complaint_id: 'CIV-2026-0922-8491' } };
+    const req = { method: 'POST', headers: {}, body: { issue_id: 'test-issue-id-123' } };
     const res = createMockRes();
     await notifyAuthorityHandler(req, res);
     assert(res.statusCode === 401 && res.body?.error?.includes('Missing or invalid'), 'Missing Authorization header returns 401');
@@ -73,14 +73,14 @@ async function runTests() {
     const req = {
       method: 'POST',
       headers: { authorization: 'Bearer invalid-token-12345' },
-      body: { complaint_id: 'CIV-2026-0922-8491' }
+      body: { issue_id: 'test-issue-id-123' }
     };
     const res = createMockRes();
     await notifyAuthorityHandler(req, res);
     assert(res.statusCode === 401 && res.body?.error?.includes('Invalid or expired'), 'Invalid JWT token returns 401');
   }
 
-  // Test 4: Missing complaint_id returns 400
+  // Test 4: Missing issue_id returns 400
   {
     const req = {
       method: 'POST',
@@ -89,31 +89,31 @@ async function runTests() {
     };
     const res = createMockRes();
     await notifyAuthorityHandler(req, res);
-    assert(res.statusCode === 400 && res.body?.error?.includes('complaint_id string is required'), 'Missing complaint_id returns 400 Bad Request');
+    assert(res.statusCode === 400 && res.body?.error?.includes('issue_id is required'), 'Missing issue_id returns 400 Bad Request');
   }
 
-  // Test 5: Invalid complaint_id type (number/object) returns 400
+  // Test 5: Invalid issue_id type returns 400
   {
     const req = {
       method: 'POST',
       headers: { authorization: 'Bearer test-admin-token' },
-      body: { complaint_id: 12345 }
+      body: { issue_id: { invalid: 'object' } }
     };
     const res = createMockRes();
     await notifyAuthorityHandler(req, res);
-    assert(res.statusCode === 400 && res.body?.error?.includes('complaint_id string is required'), 'Non-string complaint_id returns 400 Bad Request');
+    assert(res.statusCode === 400 && res.body?.error?.includes('issue_id is required'), 'Invalid issue_id type returns 400 Bad Request');
   }
 
-  // Test 6: Unknown complaint_id returns 404
+  // Test 6: Unknown issue_id returns 404
   {
     const req = {
       method: 'POST',
       headers: { authorization: 'Bearer test-admin-token' },
-      body: { complaint_id: 'CIV-NONEXISTENT-99999999' }
+      body: { issue_id: 'NONEXISTENT-ISSUE-ID-99999999' }
     };
     const res = createMockRes();
     await notifyAuthorityHandler(req, res);
-    assert(res.statusCode === 404 && res.body?.error?.includes('Complaint not found'), 'Non-existent complaint_id returns 404 Not Found');
+    assert(res.statusCode === 404 && res.body?.error?.includes('Complaint not found'), 'Non-existent issue_id returns 404 Not Found');
   }
 
   // Test 7: Citizen owns complaint -> Authorized past ownership check (mock/DB test)
@@ -187,7 +187,7 @@ async function runTests() {
     const req = {
       method: 'POST',
       headers: { authorization: 'Bearer test-admin-token' },
-      body: { complaint_id: 'CIV-TEST-12345' }
+      body: { issue_id: 'test-issue-12345' }
     };
     const res = createMockRes();
     const oldUrl = process.env.N8N_AUTHORITY_WEBHOOK_URL;
@@ -212,17 +212,26 @@ async function runTests() {
     assert(codeStr.includes("authority_notified: true") && codeStr.includes("authority_notified_at:"), 'Successful notification updates authority_notified and authority_notified_at in issues table');
   }
 
-  // Test 21: PII (reported_by_email, reported_by_phone) is not returned in API response to browser
+  // Test 21: PII and authority recipient email are excluded from client API response
   {
     const codeStr = fs.readFileSync(path.join(__dirname, '../api/notify_authority.js'), 'utf8');
-    const returnStart = codeStr.indexOf('return res.status(200).json({');
+    const returnStart = codeStr.lastIndexOf('return res.status(200).json({');
     const lastReturn = codeStr.slice(returnStart);
-    assert(!lastReturn.includes('reported_by_email') && !lastReturn.includes('reported_by_phone'), 'Client HTTP response body excludes reported_by_email and reported_by_phone');
+    assert(
+      !lastReturn.includes('reported_by_email') &&
+      !lastReturn.includes('reported_by_phone') &&
+      !lastReturn.includes('authority_email') &&
+      lastReturn.includes('success: true') &&
+      lastReturn.includes("status: 'sent'") &&
+      lastReturn.includes('issue_id: issue.id') &&
+      lastReturn.includes('complaint_id: issue.complaint_id'),
+      'Client HTTP response body excludes authority_email, reported_by_email, reported_by_phone while containing success, status, issue_id, complaint_id'
+    );
   }
 
   // Test 22: Rate limit returns 429 after threshold
   {
-    const req = { method: 'POST', headers: { authorization: 'Bearer test-admin-token' }, body: { complaint_id: 'CIV-RATE-LIMIT' } };
+    const req = { method: 'POST', headers: { authorization: 'Bearer test-admin-token' }, body: { issue_id: 'rate-limit-issue-id' } };
     let hitRateLimit = false;
     for (let i = 0; i < 8; i++) {
       const res = createMockRes();

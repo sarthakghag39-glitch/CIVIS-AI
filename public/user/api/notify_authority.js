@@ -117,21 +117,26 @@ module.exports = async (req, res) => {
     try { body = JSON.parse(body.toString('utf-8')); } catch (e) { body = {}; }
   }
 
-  const rawComplaintId = body.complaint_id;
-  if (!rawComplaintId || typeof rawComplaintId !== 'string' || !rawComplaintId.trim() || rawComplaintId.trim().length > 100) {
+  const rawIssueId = body.issue_id;
+  if (
+    rawIssueId === undefined ||
+    rawIssueId === null ||
+    (typeof rawIssueId !== 'string' && typeof rawIssueId !== 'number') ||
+    (typeof rawIssueId === 'string' && (!rawIssueId.trim() || rawIssueId.trim().length > 100))
+  ) {
     return res.status(400).json({
-      error: 'Invalid request: Valid complaint_id string is required.'
+      error: 'Invalid request: Valid issue_id is required.'
     });
   }
 
-  const complaintId = rawComplaintId.trim();
+  const issueId = typeof rawIssueId === 'string' ? rawIssueId.trim() : rawIssueId;
 
   try {
     // 5. Fetch Complaint from Database
     const { data: issue, error: issueErr } = await supabase
       .from('issues')
       .select('id, complaint_id, title, category, description, location, lat, lng, status, criticality, assigned_department, auto_routed, routed_at, image_url, ai_analyzed, ai_category, ai_severity, ai_severity_score, ai_confidence, ai_detected_tags, ai_recommended_action, ai_reasoning_summary, created_at, reported_by, reported_by_email, reported_by_phone, authority_notified, authority_notified_at')
-      .eq('complaint_id', complaintId)
+      .eq('id', issueId)
       .maybeSingle();
 
     if (issueErr || !issue) {
@@ -179,6 +184,7 @@ module.exports = async (req, res) => {
       return res.status(200).json({
         success: true,
         status: 'already_notified',
+        issue_id: issue.id,
         complaint_id: issue.complaint_id,
         message: 'Authority has already been notified for this complaint.'
       });
@@ -205,11 +211,12 @@ module.exports = async (req, res) => {
     }
 
     // 11. Build Structured Payload for n8n
-    const eventId = `NOTIFY-${issue.complaint_id}-${Date.now()}`;
+    const eventId = `NOTIFY-${issue.complaint_id || issue.id}-${Date.now()}`;
     const n8nPayload = {
       event: 'authority_complaint_notification',
       event_id: eventId,
-      complaint_id: issue.complaint_id,
+      issue_id: issue.id,
+      complaint_id: issue.complaint_id || `CIV-2026-${String(issue.id).padStart(5, '0')}`,
       authority: {
         name: authority.authority_name,
         email: authority.official_email,
@@ -305,17 +312,17 @@ module.exports = async (req, res) => {
           authority_notified: true,
           authority_notified_at: new Date().toISOString()
         })
-        .eq('complaint_id', complaintId);
+        .eq('id', issue.id);
     } catch (dbErr) {
       console.error('Failed to update authority notification status in DB:', dbErr);
     }
 
-    // 16. Return Sanitized Success Response (PII Excluded)
+    // 16. Return Sanitized Success Response (PII & Recipient Email Excluded)
     return res.status(200).json({
       success: true,
       status: 'sent',
-      complaint_id: issue.complaint_id,
-      authority_email: authority.official_email
+      issue_id: issue.id,
+      complaint_id: issue.complaint_id
     });
 
   } catch (err) {
