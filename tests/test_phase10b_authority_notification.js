@@ -244,12 +244,13 @@ async function runTests() {
     assert(hitRateLimit, 'Rate limit threshold triggers 429 Too Many Requests response');
   }
 
-  // Test 23: API copies remain byte-for-byte identical across root, public/, and public/user/
+  // Test 23: API copies remain byte-for-byte identical across root, public/, public/user/, and public/admin/
   {
     const rootApi = fs.readFileSync(path.join(__dirname, '../api/notify_authority.js'), 'utf8');
     const publicApi = fs.readFileSync(path.join(__dirname, '../public/api/notify_authority.js'), 'utf8');
     const publicUserApi = fs.readFileSync(path.join(__dirname, '../public/user/api/notify_authority.js'), 'utf8');
-    assert(rootApi === publicApi && rootApi === publicUserApi, 'api/notify_authority.js is 100% byte-for-byte identical across root, public/, and public/user/');
+    const publicAdminApi = fs.readFileSync(path.join(__dirname, '../public/admin/api/notify_authority.js'), 'utf8');
+    assert(rootApi === publicApi && rootApi === publicUserApi && rootApi === publicAdminApi, 'api/notify_authority.js is 100% byte-for-byte identical across root, public/, public/user/, and public/admin/');
   }
 
   // Test 24: Existing protected files remain unchanged and intact

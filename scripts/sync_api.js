@@ -21,11 +21,13 @@ function copyDirRecursive(src, dest) {
 const rootApi = path.join(__dirname, '..', 'api');
 const publicApi = path.join(__dirname, '..', 'public', 'api');
 const publicUserApi = path.join(__dirname, '..', 'public', 'user', 'api');
+const publicAdminApi = path.join(__dirname, '..', 'public', 'admin', 'api');
 
 console.log('Syncing API endpoints...');
 copyDirRecursive(rootApi, publicApi);
 copyDirRecursive(rootApi, publicUserApi);
-console.log('API endpoints successfully synchronized across root, public/, and public/user/.');
+copyDirRecursive(rootApi, publicAdminApi);
+console.log('API endpoints successfully synchronized across root, public/, public/user/, and public/admin/.');
 
 // Sync shared engine JS modules from canonical public/js/ to public/admin/js/ and public/user/js/
 const sharedJsDir = path.join(__dirname, '..', 'public', 'js');
