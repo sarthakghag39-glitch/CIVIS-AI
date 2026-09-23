@@ -245,7 +245,8 @@ module.exports = async (req, res) => {
         recommended_action: issue.ai_recommended_action || null,
         reasoning_summary: issue.ai_reasoning_summary || null
       },
-      reported_by_name: issue.reported_by || 'Anonymous Resident'
+      reported_by_name: issue.reported_by || 'Anonymous Resident',
+      reported_by_email: issue.reported_by_email || null
     };
 
     // 12. Verify n8n Webhook Configuration

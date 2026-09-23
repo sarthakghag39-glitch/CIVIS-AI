@@ -176,6 +176,16 @@ async function runTests() {
     assert(codeStr.includes('event: \'authority_complaint_notification\'') && codeStr.includes('authority:') && codeStr.includes('ai_analysis:'), 'n8n payload is cleanly structured with complaint, authority, and AI analysis data');
   }
 
+  // Test 16b: n8n payload contains reported_by_name and reported_by_email
+  {
+    const codeStr = fs.readFileSync(path.join(__dirname, '../api/notify_authority.js'), 'utf8');
+    assert(
+      codeStr.includes('reported_by_name: issue.reported_by') &&
+      codeStr.includes('reported_by_email: issue.reported_by_email'),
+      'n8n payload includes reported_by_name and reported_by_email for citizen acknowledgement flow'
+    );
+  }
+
   // Test 17: HMAC-SHA256 signature header is generated correctly
   {
     const codeStr = fs.readFileSync(path.join(__dirname, '../api/notify_authority.js'), 'utf8');
